@@ -5,21 +5,21 @@ from pathlib import Path
 import pytest
 import yaml
 
-from skillware.core.config import (
+from skill_assay.core.config import (
     GLOBAL_CONFIG_DIR_ENV,
     PROJECT_CONFIG_FILENAME,
     clear_config_cache,
     load_merged_config,
 )
-from skillware.core.mail_config import (
-    ARPACORP_URL,
+from skill_assay.core.mail_config import (
+    AO_ORG_URL,
     DEFAULT_SIGNATURE_HTML,
     DEFAULT_SIGNATURE_PLAIN,
     ENV_ADDRESSBOOK_PATH,
     ENV_SIGNATURE_PLAIN,
     MailSettings,
-    SKILLWARE_GITHUB_URL,
-    SKILLWARE_SITE_URL,
+    SKILL_ASSAY_GITHUB_URL,
+    SKILL_ASSAY_SITE_URL,
     add_addressbook_contact,
     init_signature_bundle,
     init_addressbook_file,
@@ -55,7 +55,7 @@ def _reset_config_cache():
 def test_parse_mail_block_and_merge():
     global_layer = parse_mail_block(
         {
-            "addressbook_path": "~/.config/skillware/addressbook.yaml",
+            "addressbook_path": "~/.config/skill-assay/addressbook.yaml",
             "signature_plain": "Global sig",
         }
     )
@@ -66,7 +66,7 @@ def test_parse_mail_block_and_merge():
         }
     )
     merged = merge_mail_settings([global_layer, project_layer])
-    assert merged.addressbook_path == "~/.config/skillware/addressbook.yaml"
+    assert merged.addressbook_path == "~/.config/skill-assay/addressbook.yaml"
     assert merged.signature_plain == "Project sig"
     assert merged.send_ledger_path == "/tmp/ledger.json"
 
@@ -169,13 +169,11 @@ def test_init_addressbook_file(tmp_path):
 
 
 def test_default_signature_includes_links():
-    assert SKILLWARE_SITE_URL in DEFAULT_SIGNATURE_PLAIN
-    assert SKILLWARE_GITHUB_URL in DEFAULT_SIGNATURE_PLAIN
-    assert ARPACORP_URL in DEFAULT_SIGNATURE_PLAIN
-    assert (
-        'height="40"' in DEFAULT_SIGNATURE_HTML
-        or "height: 40px" in DEFAULT_SIGNATURE_HTML
-    )
+    assert SKILL_ASSAY_SITE_URL in DEFAULT_SIGNATURE_PLAIN
+    assert SKILL_ASSAY_GITHUB_URL in DEFAULT_SIGNATURE_PLAIN
+    assert AO_ORG_URL in DEFAULT_SIGNATURE_PLAIN
+    assert "Agent Skill Assay" in DEFAULT_SIGNATURE_HTML
+    assert "<img" not in DEFAULT_SIGNATURE_HTML
     assert "—" in DEFAULT_SIGNATURE_HTML
 
 
@@ -183,7 +181,7 @@ def test_init_signature_bundle(tmp_path):
     txt, html, logo = init_signature_bundle(tmp_path)
     assert txt.is_file()
     assert html.is_file()
-    assert logo is not None and logo.is_file()
+    assert logo is None
 
 
 def test_add_addressbook_contact(tmp_path):
@@ -215,7 +213,7 @@ def test_resolve_signature_html_from_config(tmp_path, monkeypatch):
 
 
 def test_save_global_mail_settings(tmp_path, monkeypatch):
-    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "global"))
+    monkeypatch.setenv("SKILL_ASSAY_CONFIG_DIR", str(tmp_path / "global"))
     target = save_global_mail_settings(
         MailSettings(addressbook_path=str(tmp_path / "ab.yaml"))
     )

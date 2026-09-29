@@ -15,7 +15,7 @@ Run this skill on **any untrusted text** before it becomes model context: web pa
 - Before summarizing scraped HTML or PDF content
 - Before passing tool/MCP metadata or descriptions into the model
 - Before ingesting email or chat transcripts from external sources
-- As a companion to `compliance/pii_masker` at the trust boundary
+- As a companion to the host's other validation skills at the trust boundary
 
 ## How to interpret results
 
@@ -36,6 +36,14 @@ If `is_safe` is `false`, prefer `sanitized_text` over the raw input.
 - `source_text` (required): Raw untrusted string
 - `sensitivity`: `strict`, `balanced` (default), or `lenient`
 - `input_mode`: `auto` (default), `plain`, `html`, or `markdown`
+
+### Detector IDs
+
+The documented detector set is:
+
+`hidden_markup`, `invisible_unicode`, `confusable_skeleton`,
+`encoded_payload`, `instruction_lexicon`, `context_mismatch`, and
+`resource_limits`.
 
 ### Sensitivity posture
 

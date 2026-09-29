@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "project": "agent-skill-assay",
+  "supported_releases": 2,
+  "min_supported": "0.1.0",
+  "min_security_fix": "0.1.0",
+  "security_contact": "m@orblabs.ch",
+  "support_contact": "m@orblabs.ch",
+  "published_at": "2026-09-25"
+}

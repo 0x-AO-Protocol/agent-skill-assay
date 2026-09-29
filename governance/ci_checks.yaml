@@ -1,0 +1,23 @@
+schema_version: "1.0"
+checks:
+  - id: build-py310
+    workflow_job: "build (3.10)"
+    norms: [N-1, N-2, N-3, N-5]
+  - id: build-py311
+    workflow_job: "build (3.11)"
+    norms: [N-1, N-2, N-3, N-5]
+  - id: build-py312
+    workflow_job: "build (3.12)"
+    norms: [N-1, N-2, N-3, N-5]
+  - id: wheel-smoke
+    workflow_job: "wheel-smoke"
+    norms: [N-2, N-3]
+  - id: provenance-check
+    workflow_job: "provenance-check"
+    norms: [N-2, N-3]
+  - id: secret-scan
+    workflow_job: "secret-scan"
+    norms: [N-3, N-5]
+  - id: public-text-lint
+    workflow_job: "public-text-lint"
+    norms: [N-3, N-5]

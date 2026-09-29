@@ -1,12 +1,12 @@
 name: "Bug Report"
-description: Create a report to help us improve Skillware.
+description: Create a report to help us improve Agent Skill Assay.
 title: "[Bug]: "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting an issue! Search [open bugs](https://github.com/ARPAHLS/skillware/issues?q=is%3Aopen+label%3Abug) first.
+        Thanks for reporting an issue! Search [open bugs](https://github.com/0x-AO-Protocol/agent-skill-assay/issues?q=is%3Aopen+label%3Abug) first.
 
   - type: dropdown
     id: component
@@ -71,8 +71,8 @@ body:
       placeholder: |
         Windows 11
         Python 3.12
-        pip install skillware[gemini]==0.5.5
+        pip install agent-skill-assay[gemini]==0.1.0
         google-genai 1.0.0
-        Config: ~/.config/skillware/config.yaml and/or .skillware.yaml
+        Config: ~/.config/skill_assay/config.yaml and/or .skill-assay.yaml
     validations:
       required: false

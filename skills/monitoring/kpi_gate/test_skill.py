@@ -1,7 +1,7 @@
 """Bundle tests for monitoring/kpi_gate.
 
 All tests are offline and deterministic: fixtures under fixtures/ and kb/
-exercise the exact interface frozen in issue #317, including the end-to-end
+exercise the published v0.1 interface, including the end-to-end
 example, every closed-registry error code, the honesty-floor boundary, and
 bit-identical repeat execution. No network access is required or permitted.
 """
@@ -14,7 +14,7 @@ import re
 import pytest
 import yaml
 
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 from . import skill as skill_module
 from .skill import (

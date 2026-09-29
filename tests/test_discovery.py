@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from skillware.core.discovery import (
-    SKILLWARE_SKILL_PATH_ENV,
+from skill_assay.core.discovery import (
+    SKILL_ASSAY_SKILL_PATH_ENV,
     SkillRootTier,
     build_skill_not_found_message,
     bundled_skills_root,
@@ -12,14 +12,14 @@ from skillware.core.discovery import (
     get_skill_roots,
     list_registry_skill_ids,
 )
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 
 def _write_registry_skill(root: Path, category: str, name: str) -> None:
     skill_dir = root / category / name
     skill_dir.mkdir(parents=True)
     (skill_dir / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class S(BaseSkill):\n"
         "    @property\n"
         "    def manifest(self): return {'name': '%s/%s'}\n"
@@ -39,7 +39,7 @@ def test_get_skill_roots_order_env_project_bundled_legacy(tmp_path, monkeypatch)
     project_root = tmp_path / "project" / "skills"
     project_root.mkdir(parents=True)
     monkeypatch.chdir(tmp_path / "project")
-    monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(env_root))
+    monkeypatch.setenv(SKILL_ASSAY_SKILL_PATH_ENV, str(env_root))
 
     roots = get_skill_roots()
     tiers = [root.tier for root in roots]
@@ -53,8 +53,8 @@ def test_get_skill_roots_order_env_project_bundled_legacy(tmp_path, monkeypatch)
 def test_get_skill_roots_order_project_external_bundled_configured(
     tmp_path, monkeypatch
 ):
-    """Configured mode (#246 default order): project → external → bundled."""
-    from skillware.core.config import PROJECT_CONFIG_FILENAME, clear_config_cache
+    """Configured mode default order: project → external → bundled."""
+    from skill_assay.core.config import PROJECT_CONFIG_FILENAME, clear_config_cache
 
     env_root = tmp_path / "external"
     env_root.mkdir()
@@ -67,7 +67,7 @@ def test_get_skill_roots_order_project_external_bundled_configured(
         encoding="utf-8",
     )
     monkeypatch.chdir(project_dir)
-    monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(env_root))
+    monkeypatch.setenv(SKILL_ASSAY_SKILL_PATH_ENV, str(env_root))
     clear_config_cache()
 
     roots = get_skill_roots()
@@ -90,7 +90,7 @@ def test_get_skill_roots_override_single_root(tmp_path):
 
 def test_for_display_shows_missing_env_path(tmp_path, monkeypatch):
     missing = tmp_path / "missing-external"
-    monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(missing))
+    monkeypatch.setenv(SKILL_ASSAY_SKILL_PATH_ENV, str(missing))
     monkeypatch.chdir(tmp_path)
 
     roots = get_skill_roots(for_display=True)
@@ -104,16 +104,16 @@ def test_find_shadow_conflicts_first_root_wins(tmp_path, monkeypatch):
     second = tmp_path / "second"
     first.mkdir()
     second.mkdir()
-    _write_registry_skill(first, "office", "dup_skill")
-    _write_registry_skill(second, "office", "dup_skill")
+    _write_registry_skill(first, "security", "dup_skill")
+    _write_registry_skill(second, "security", "dup_skill")
 
-    monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, f"{first}{os.pathsep}{second}")
+    monkeypatch.setenv(SKILL_ASSAY_SKILL_PATH_ENV, f"{first}{os.pathsep}{second}")
     monkeypatch.chdir(tmp_path)
 
     roots = get_skill_roots(for_display=True)
     conflicts = find_shadow_conflicts(roots)
     assert len(conflicts) == 1
-    assert conflicts[0].skill_id == "office/dup_skill"
+    assert conflicts[0].skill_id == "security/dup_skill"
     assert conflicts[0].winner.path == first.resolve()
     assert conflicts[0].shadowed.path == second.resolve()
 
@@ -131,12 +131,12 @@ def test_build_skill_not_found_message_includes_paths_tip(monkeypatch, tmp_path)
     monkeypatch.chdir(tmp_path)
     message = build_skill_not_found_message("missing/skill")
     assert "missing/skill" in message
-    assert "skillware paths" in message
+    assert "skill-assay paths" in message
     assert "bundled:" in message or "project:" in message or "external:" in message
 
 
 def test_build_skill_not_found_message_config_tip(tmp_path, monkeypatch):
-    from skillware.core.config import PROJECT_CONFIG_FILENAME, clear_config_cache
+    from skill_assay.core.config import PROJECT_CONFIG_FILENAME, clear_config_cache
 
     clear_config_cache()
     repo = tmp_path / "repo"
@@ -145,10 +145,10 @@ def test_build_skill_not_found_message_config_tip(tmp_path, monkeypatch):
         "paths:\n  project: auto\n", encoding="utf-8"
     )
     monkeypatch.chdir(repo)
-    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "no-global"))
+    monkeypatch.setenv("SKILL_ASSAY_CONFIG_DIR", str(tmp_path / "no-global"))
 
     message = build_skill_not_found_message("missing/skill")
-    assert "skillware config show" in message
+    assert "skill-assay config show" in message
     clear_config_cache()
 
 
@@ -156,4 +156,4 @@ def test_loader_uses_discovery_error_message(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
     with pytest.raises(FileNotFoundError) as exc:
         SkillLoader.load_skill("missing/skill")
-    assert "skillware paths" in str(exc.value)
+    assert "skill-assay paths" in str(exc.value)

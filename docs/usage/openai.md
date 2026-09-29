@@ -1,6 +1,6 @@
 # Integration Guide: OpenAI (ChatGPT)
 
-Skillware supports OpenAI Chat Completions tool calling via `SkillLoader.to_openai_tool()`. Use the official `openai` Python SDK.
+Agent Skill Assay supports OpenAI Chat Completions tool calling via `SkillLoader.to_openai_tool()`. Use the official `openai` Python SDK.
 
 For agent credentials, set `OPENAI_API_KEY` (see [API keys for skills](api_keys.md) for local and CI setup). Skills that call external APIs during `execute()` may require additional variables documented on each skill page.
 
@@ -13,13 +13,13 @@ base URLs, credentials, and compatibility boundaries.
 ## Quick snippet
 
 ```python
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 from openai import OpenAI
 
 load_env_file()
 
-bundle = SkillLoader.load_skill("finance/wallet_screening")
+bundle = SkillLoader.load_skill("monitoring/kpi_gate")
 tool = SkillLoader.to_openai_tool(bundle)
 
 client = OpenAI()
@@ -65,8 +65,8 @@ OpenAI function names must match `[a-zA-Z0-9_-]` and are limited to 64 character
 
 | Manifest `name` | OpenAI `function.name` |
 | :--- | :--- |
-| `compliance/tos_evaluator` | `compliance_tos_evaluator` |
-| `finance/wallet_screening` | `finance_wallet_screening` |
+| `monitoring/business_diagnostic` | `monitoring_business_diagnostic` |
+| `monitoring/kpi_gate` | `monitoring_kpi_gate` |
 
 In your tool loop, compare `tool_call.function.name` to `tool["function"]["name"]` from `to_openai_tool()`, not necessarily the raw manifest string.
 
@@ -78,7 +78,7 @@ Pass `bundle["instructions"]` as the `system` role content (or equivalent in you
 
 OpenAI returns `tool_calls` on the assistant message. You execute `skill.execute(...)`, append the assistant message and a `tool` role message with the result, then call `chat.completions.create` again until the model responds without tools.
 
-See `examples/openai_tos_evaluator.py` for a full loop with `compliance/tos_evaluator`.
+See `examples/openai_business_diagnostic.py` for a full loop with `monitoring/business_diagnostic`.
 
 ---
 
@@ -90,12 +90,12 @@ import os
 
 from openai import OpenAI
 
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 
-bundle = SkillLoader.load_skill("compliance/tos_evaluator")
+bundle = SkillLoader.load_skill("monitoring/business_diagnostic")
 skill = bundle["class"]()
 # Or: SkillClass = bundle["module"].TOSEvaluatorSkill; skill = SkillClass()
 

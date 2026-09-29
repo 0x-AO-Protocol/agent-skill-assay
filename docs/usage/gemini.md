@@ -1,11 +1,11 @@
 # Integration Guide: Google Gemini
 
-Skillware provides first-class support for Google's Gemini models via the `google-genai` SDK.
+Agent Skill Assay provides first-class support for Google's Gemini models via the `google-genai` SDK.
 
 ## Install
 
 ```bash
-pip install "skillware[gemini]"
+pip install "agent-skill-assay[gemini]"
 ```
 
 This installs the [`google-genai`](https://pypi.org/project/google-genai/) package. Set `GOOGLE_API_KEY` in your environment or `.env` file before running Gemini examples.
@@ -14,12 +14,12 @@ This installs the [`google-genai`](https://pypi.org/project/google-genai/) packa
 
 ```python
 import os
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 import google.genai as genai
 from google.genai import types
 
 # Load & Convert
-skill = SkillLoader.load_skill("finance/wallet_screening")
+skill = SkillLoader.load_skill("monitoring/kpi_gate")
 skill_instance = skill["class"](
     config={"ETHERSCAN_API_KEY": os.environ.get("ETHERSCAN_API_KEY")}
 )
@@ -78,8 +78,8 @@ Without `system_instruction`, the model knows it *has* a tool but lacks the skil
 
 ### 3. Function Calling Loop
 The `google-genai` SDK returns model parts that can include `function_call` requests.
-In a manual Skillware loop, execute the matching local skill with `skill.execute(dict(part.function_call.args))`, then send a `function_response` back to Gemini so the model can produce the final answer.
-If you use an automatic-calling helper in your own app, keep the same boundary: Skillware executes locally, and the tool result is returned to the model before you show a final response.
+In a manual Agent Skill Assay loop, execute the matching local skill with `skill.execute(dict(part.function_call.args))`, then send a `function_response` back to Gemini so the model can produce the final answer.
+If you use an automatic-calling helper in your own app, keep the same boundary: Agent Skill Assay executes locally, and the tool result is returned to the model before you show a final response.
 
 **Canonical Dispatch**: When matching the requested `function_call.name` against your skill in a multi-tool agent loop, always match against the sanitized name (e.g. `SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])` or the adapter-derived `tool.function_declarations[0].name`), not the raw registry ID with slashes.
 
@@ -120,11 +120,11 @@ for part in response.candidates[0].content.parts:
 
 ## 🔗 Skill Chaining (Middleware)
 
-Skillware's modular design allows treating skills as deterministic offline logic blocks. For example, you can seamlessly chain the **Prompt Token Rewriter** to optimize context before hitting the LLM:
+Agent Skill Assay's modular design allows treating skills as deterministic offline logic blocks. For example, you can seamlessly chain the **Prompt Token Rewriter** to optimize context before hitting the LLM:
 
 ```python
 # Load the middleware skill
-rewriter = SkillLoader.load_skill("optimization/prompt_rewriter")
+rewriter = SkillLoader.load_skill("wellness/mental_coach")
 sys_prompt = "You are a very helpful assistant serving a bank..."
 
 # Use python logic offline before starting the chat session

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Packaging smoke test for installed skillware wheels.
+Packaging smoke test for installed agent-skill-assay wheels.
 
 Run after ``pip install`` of a built wheel (not editable). Validates that every
 registry skill bundle shipped in the wheel is present on disk and loadable
@@ -8,7 +8,7 @@ without installing optional per-skill extras or downloading models.
 
 Usage (CI):
     python -m venv /tmp/smoke-venv
-    /tmp/smoke-venv/bin/pip install dist/skillware-*.whl
+    /tmp/smoke-venv/bin/pip install dist/skill-assay-*.whl
     /tmp/smoke-venv/bin/python scripts/wheel_smoke_test.py
 """
 
@@ -24,10 +24,12 @@ from pathlib import Path
 from typing import List, Sequence
 
 import yaml
+from packaging.version import Version
 
-from skillware.core.discovery import bundled_skills_root, list_registry_skill_ids
-from skillware.core.extras import requirement_import_module
-from skillware.core.loader import SkillLoader
+from skill_assay.core.discovery import bundled_skills_root, list_registry_skill_ids
+from skill_assay.core.extras import requirement_import_module
+from skill_assay.core.loader import SkillLoader
+from skill_assay import version_policy
 
 BUNDLE_FILES = (
     "manifest.yaml",
@@ -38,6 +40,14 @@ BUNDLE_FILES = (
 )
 
 REQUIRED_BUNDLE_KEYS = ("manifest", "instructions", "module", "class")
+EXPECTED_POLICY_KEYS = {
+    "schema_version",
+    "project",
+    "supported_releases",
+    "min_supported",
+    "min_security_fix",
+    "published_at",
+}
 
 
 @dataclass
@@ -155,6 +165,30 @@ def _try_load_skill(skill_id: str, manifest: dict) -> SkillSmokeResult:
     return SkillSmokeResult(skill_id=skill_id, loaded=True)
 
 
+def _verify_support_policy(failures: List[str]) -> None:
+    try:
+        policy_path = Path(version_policy.__file__).with_name("support_policy.json")
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        failures.append(f"support policy missing or invalid: {exc}")
+        return
+
+    missing = EXPECTED_POLICY_KEYS - set(policy)
+    if missing:
+        failures.append("support policy missing keys: " + ", ".join(sorted(missing)))
+        return
+    if policy["project"] != "agent-skill-assay":
+        failures.append("support policy project does not match distribution")
+    if policy["supported_releases"] != 2:
+        failures.append("support policy supported_releases must be 2")
+
+    minimum = Version(str(policy["min_supported"]))
+    if version_policy.should_emit_unsupported_advisory(minimum, policy):
+        failures.append("current minimum supported version is treated as unsupported")
+    if not version_policy.should_emit_unsupported_advisory(Version("0.0.0"), policy):
+        failures.append("an out-of-window version is treated as supported")
+
+
 def run_wheel_smoke() -> SmokeReport:
     bundled_root = bundled_skills_root()
     if not bundled_root.is_dir():
@@ -165,6 +199,7 @@ def run_wheel_smoke() -> SmokeReport:
         raise SystemExit(f"No registry skills found under {bundled_root}")
 
     report = SmokeReport(skill_ids=skill_ids)
+    _verify_support_policy(report.failures)
 
     for skill_id in skill_ids:
         skill_dir = bundled_root / skill_id
@@ -187,9 +222,9 @@ def run_wheel_smoke() -> SmokeReport:
 
 
 def _isolated_smoke_env() -> None:
-    """Avoid project ./skills/ or SKILLWARE_SKILL_PATH shadowing bundled wheel."""
-    os.environ.pop("SKILLWARE_SKILL_PATH", None)
-    os.chdir(tempfile.mkdtemp(prefix="skillware-wheel-smoke-"))
+    """Avoid project ./skills/ or SKILL_ASSAY_SKILL_PATH shadowing bundled wheel."""
+    os.environ.pop("SKILL_ASSAY_SKILL_PATH", None)
+    os.chdir(tempfile.mkdtemp(prefix="skill-assay-wheel-smoke-"))
 
 
 def main(argv: Sequence[str] | None = None) -> int:

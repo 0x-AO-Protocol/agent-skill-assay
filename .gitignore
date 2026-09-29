@@ -47,3 +47,4 @@ desktop.ini
 
 # Maintainer issue drafts (not for commit)
 issue_drafts/
+.venv/

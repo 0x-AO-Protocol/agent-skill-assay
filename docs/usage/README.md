@@ -1,40 +1,40 @@
 # Usage Guides
 
-How to load Skillware skills and connect them to language models. Each guide covers one provider adapter in `SkillLoader`.
+How to load Agent Skill Assay skills and connect them to language models. Each guide covers one provider adapter in `SkillLoader`.
 
 ## Finding skills on disk
 
-`SkillLoader.load_skill()` accepts an absolute path to a skill directory, or a registry id such as `compliance/tos_evaluator`. When the id is not already a path on disk, the loader searches configured skill roots in resolution order.
+`SkillLoader.load_skill()` accepts an absolute path to a skill directory, or a registry id such as `monitoring/business_diagnostic`. When the id is not already a path on disk, the loader searches configured skill roots in resolution order.
 
 **Default (no config file):**
 
-1. Roots listed in `SKILLWARE_SKILL_PATH` (OS path separator between multiple roots)
+1. Roots listed in `SKILL_ASSAY_SKILL_PATH` (OS path separator between multiple roots)
 2. A `skills/` directory in the current working directory or its parents
-3. Bundled skills installed with the `skillware` package (for example under `site-packages/skills/`)
+3. Bundled skills installed with the `skill-assay` package (for example under `site-packages/skills/`)
 
-**With config:** copy [`.skillware.yaml.example`](../.skillware.yaml.example) to `.skillware.yaml` (or use global `~/.config/skillware/config.yaml`) to persist project and external paths. Use the interactive menu (**`4` / `paths`**) or edit YAML manually. Default order is project → external → bundled; the **bundled registry is always included** and remains the fallback when you have no local `skills/` tree (typical after `pip install skillware` only). See [CLI — config](cli.md#skillware-config) and `skillware config show`.
+**With config:** copy [`.skill-assay.yaml.example`](../.skill-assay.yaml.example) to `.skill-assay.yaml` (or use global `~/.config/skill_assay/config.yaml`) to persist project and external paths. Use the interactive menu (**`4` / `paths`**) or edit YAML manually. Default order is project → external → bundled; the **bundled registry is always included** and remains the fallback when you have no local `skills/` tree (typical after `pip install agent-skill-assay` only). See [CLI — config](cli.md#agent-skill-assay-config) and `skill-assay config show`.
 
-For pip-installed apps, bundled maintainer skills are the default; add private skills under `./skills/<category>/<name>/`, config `paths.external`, or `SKILLWARE_SKILL_PATH`.
+For pip-installed apps, bundled maintainer skills are the default; add private skills under `./skills/<category>/<name>/`, config `paths.external`, or `SKILL_ASSAY_SKILL_PATH`.
 
 By default, `SkillLoader.load_skill()` validates manifest `requirements` before loading `skill.py`: unpinned deps must be importable; pinned specifiers (for example `web3>=6.0.0`) must match the installed version. See [Install extras — Loader behavior](install_extras.md#loader-behavior).
 
-> **Tip:** Bundled registry skills are the default after `pip install skillware`. Local or external skills with the same id **shadow** the bundled copy — see `skillware paths`. Credential setup and provenance: [API keys](api_keys.md) · [Skill trust model](../security/skill-trust-model.md).
+> **Tip:** Bundled registry skills are the default after `pip install agent-skill-assay`. Local or external skills with the same id **shadow** the bundled copy — see `skill-assay paths`. Credential setup and provenance: [API keys](api_keys.md) · [Skill trust model](../security/skill-trust-model.md).
 
-To list locally available skills, inspect path resolution, show config, check load readiness, or run bundle tests from the terminal, see the [CLI reference](cli.md) (`skillware list`, `skillware paths`, `skillware config show`, `skillware doctor`, `skillware test`).
+To list locally available skills, inspect path resolution, show config, check load readiness, or run bundle tests from the terminal, see the [CLI reference](cli.md) (`skill-assay list`, `skill-assay paths`, `skill-assay config show`, `skill-assay doctor`, `skill-assay test`).
 
 | Provider | Adapter | Guide | Agent API key (typical) |
 | :--- | :--- | :--- | :--- |
-| Google Gemini | `to_gemini_tool()` | [gemini.md](gemini.md) | `GOOGLE_API_KEY` (install `skillware[gemini]` for `google-genai`) |
+| Google Gemini | `to_gemini_tool()` | [gemini.md](gemini.md) | `GOOGLE_API_KEY` (install `agent-skill-assay[gemini]` for `google-genai`) |
 | Anthropic Claude | `to_claude_tool()` | [claude.md](claude.md) | `ANTHROPIC_API_KEY` |
 | OpenAI (ChatGPT) | `to_openai_tool()` | [openai.md](openai.md) | `OPENAI_API_KEY` |
 | OpenAI-compatible hosts | `to_openai_tool()` | [openai_compatible.md](openai_compatible.md) | Host-specific key |
 | DeepSeek | `to_deepseek_tool()` | [deepseek.md](deepseek.md) | `DEEPSEEK_API_KEY` |
-| AWS Bedrock Converse | `to_bedrock_tool()` | [bedrock.md](bedrock.md) | IAM / AWS credentials; `skillware[bedrock]` |
+| AWS Bedrock Converse | `to_bedrock_tool()` | [bedrock.md](bedrock.md) | IAM / AWS credentials; `agent-skill-assay[bedrock]` |
 | Azure OpenAI | `to_openai_tool()` | [azure_openai.md](azure_openai.md) | Azure deployment credentials |
 | Vertex AI (Gemini) | `to_gemini_tool()` | [vertex.md](vertex.md) | GCP ADC / service account |
 | Enterprise cloud (routing) | (see guide) | [enterprise_cloud.md](enterprise_cloud.md) | Hosting + adapter choice |
 | Ollama (prompt mode) | `to_ollama_prompt()` | [ollama.md](ollama.md) | (local; no cloud key) |
-| CLI | `skillware list`, `skillware paths`, `skillware config show`, `skillware doctor`, `skillware test`, `skillware examples`, `skillware context`, `skillware chain` | [cli.md](cli.md) | pytest in `[dev]` for `test` |
+| CLI | `skill-assay list`, `skill-assay paths`, `skill-assay config show`, `skill-assay doctor`, `skill-assay test`, `skill-assay examples`, `skill-assay context`, `skill-assay chain` | [cli.md](cli.md) | pytest in `[dev]` for `test` |
 | Install extras | Category, skill, SDK, and meta `pip install` targets | [install_extras.md](install_extras.md) | See guide for `[all]`, `[agents]`, per-skill extras |
 
 Skill-specific **Usage Examples** (sample prompts and execute payloads) live on each [skill catalog page](../skills/README.md).

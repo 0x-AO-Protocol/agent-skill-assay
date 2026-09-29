@@ -2,12 +2,12 @@
 
 **Domain:** `wellness`
 **Skill ID:** `wellness/mental_coach`
-**Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) · **Contact:** masa88keith@gmail.com
+**Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) · **Project contact:** m@orblabs.ch
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.1` — 9 Sep 2026
 <!-- skill-doc-meta:end -->
 
-**Recommended install:** `pip install "skillware[wellness_mental_coach]"`. See [Install extras](../usage/install_extras.md).
+**Recommended install:** `pip install "agent-skill-assay[wellness_mental_coach]"`. See [Install extras](../usage/install_extras.md).
 
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
@@ -50,7 +50,7 @@ Configure values per [API keys for skills](../usage/api_keys.md). Core crisis an
 ## Example Usage (Direct)
 
 ```python
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("wellness/mental_coach")
 skill = bundle["class"]()
@@ -87,8 +87,8 @@ Sample user message: *I feel stressed at work and need coping strategies.*
 ```python
 import google.genai as genai
 from google.genai import types
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("wellness/mental_coach")
@@ -114,8 +114,8 @@ for part in response.candidates[0].content.parts:
 ```python
 import os
 import anthropic
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("wellness/mental_coach")
@@ -141,8 +141,8 @@ for block in response.content:
 import json
 import os
 from openai import OpenAI
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("wellness/mental_coach")
@@ -169,8 +169,8 @@ if message.tool_calls:
 import json
 import os
 from openai import OpenAI
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("wellness/mental_coach")
@@ -198,7 +198,7 @@ if message.tool_calls:
 
 ```python
 import json
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("wellness/mental_coach")
 skill = bundle["class"]()
@@ -233,15 +233,6 @@ Always include `disclaimers_required` in the user-facing reply.
 <!-- skill-history:begin -->
 ## Skill history
 
-Commits that touched this skill bundle or its catalog page ([`wellness/mental_coach`](https://github.com/ARPAHLS/skillware/tree/main/skills/wellness/mental_coach)).
-
-| Commit | Description | Date | Version | Contributors |
-| :--- | :--- | :--- | :--- | :--- |
-| [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.1.1` | [@rosspeili](https://github.com/rosspeili) |
-| [`525ecd0`](https://github.com/ARPAHLS/skillware/commit/525ecd01967080bc9631a04395ade9b80c3403d4) | docs: migrate Gemini defaults to 3.5 Flash / Flash-Lite — default evaluator model (#265) (#345) | 9 Sep 2026 | `0.1.1` | [@rosspeili](https://github.com/rosspeili) |
-| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
-| [`4096824`](https://github.com/ARPAHLS/skillware/commit/4096824fbaeb87a2b48a90d1ba2bec29cf3a1766) | docs: document issuer.org policy and align ARPA-driven registry skills (#295) (#316) | 28 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
-| [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
-| [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
-| [`6cbe140`](https://github.com/ARPAHLS/skillware/commit/6cbe140) | Add wellness/mental_coach skill resolving #148 (#174) | 22 Jun 2026 | `0.1.0` | [@mrmasa88](https://github.com/mrmasa88) |
+The public v0.1 page records the current AO release. Source provenance is
+maintained in the private source-of-record archive.
 <!-- skill-history:end -->

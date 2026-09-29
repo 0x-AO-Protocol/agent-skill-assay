@@ -14,6 +14,17 @@ issuer:
   email: masa88keith@gmail.com
   github: mrmasa88
   org: AO
+trust_tier: L0
+provenance:
+  source: agent-skill-assay-sources@acdf991857535108ef05f2f96e0da1b6e9c1ebe7:skills/monitoring/kpi_gate
+  content_sha256: a7c9ba1bfa990b5ec53941fd221b82bc1b168bedec212a4f4aa9a77628a4febb
+  ported_on: "2026-09-25"
+economic_effect:
+  claim: "Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption."
+  baseline_task: "The same task performed by an LLM agent without this skill (prompt-only)."
+  metric: "LLM tokens (input + output) per task run."
+  method: "Run the skill's reference fixtures through (a) the baseline agent and (b) the same agent calling the skill; publish the median tokens per run for both and the reduction."
+norm_version: norms-1.0.0
 category: monitoring
 parameters:
   type: object
@@ -23,7 +34,7 @@ parameters:
       description: >
         Metrics snapshot object (metrics schema v1): schema_version, period
         (start, end, granularity), and a metrics map of lower_snake_case keys
-        to non-negative numbers. Assembled upstream; this skill never fetches data.
+        to non-negative numbers. Assembled beforehand; this skill never fetches data.
     policy:
       type: object
       description: >

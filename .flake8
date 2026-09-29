@@ -10,4 +10,4 @@ exclude =
     .venv-wheel-smoke,
     env,
     venv,
-    src/skillware.egg-info
+    src/agent_skill_assay.egg-info

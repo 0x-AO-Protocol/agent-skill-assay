@@ -3,7 +3,7 @@ import os
 import pytest
 import yaml
 
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 from .crisis_gate import assess_language, evaluate_crisis_gate
 from .skill import MentalCoachSkill

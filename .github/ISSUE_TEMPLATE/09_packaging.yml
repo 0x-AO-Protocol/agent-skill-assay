@@ -31,7 +31,7 @@ body:
     attributes:
       label: Acceptance criteria
       placeholder: |
-        - pip install skillware includes all bundled skills on disk
+        - pip install agent-skill-assay includes all bundled skills on disk
         - python scripts/sync_extras.py --check passes
         - wheel smoke test passes
         - docs/usage/install_extras.md updated when extras change

@@ -1,0 +1,7 @@
+# Default owner for review and release governance.
+* @mrmasa88
+
+# Security-sensitive surfaces require the repository owner.
+/skills/security/ @mrmasa88
+/governance/ @mrmasa88
+/.github/ @mrmasa88

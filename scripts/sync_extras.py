@@ -13,7 +13,7 @@ PYPROJECT = REPO_ROOT / "pyproject.toml"
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from skillware.core.extras import (  # noqa: E402
+from skill_assay.core.extras import (  # noqa: E402
     GENERATED_BEGIN,
     GENERATED_END,
     render_generated_block,

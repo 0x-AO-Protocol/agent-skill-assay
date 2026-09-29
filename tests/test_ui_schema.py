@@ -1,6 +1,6 @@
-"""Unit tests for skillware.core.ui_schema helpers."""
+"""Unit tests for skill_assay.core.ui_schema helpers."""
 
-from skillware.core.ui_schema import (
+from skill_assay.core.ui_schema import (
     extract_card_field_keys,
     is_output_card_ui_schema,
     missing_keys_for_samples,

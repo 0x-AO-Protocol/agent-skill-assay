@@ -1,0 +1,16 @@
+Agent Skill Assay third-party notices
+
+This repository is forked from Skillware (MIT). Inherited framework files retain
+the original MIT license notice where present. Newly written Agent Skill Assay
+modules are licensed under MIT.
+
+The four v0.1 AO skill bundles are imported from the private
+agent-skill-assay-sources provenance archive.
+
+License identifiers:
+
+- Inherited framework material: `MIT` as retained from the source snapshot.
+- Newly written Agent Skill Assay modules: `MIT` (`SPDX-License-Identifier: MIT`).
+- Imported v0.1 skill trees: provenance is anchored in
+  `agent-skill-assay-sources`; each bundle manifest is the source of its
+  attribution and version metadata.

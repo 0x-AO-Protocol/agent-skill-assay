@@ -1,6 +1,6 @@
-# Agent loops with Skillware
+# Agent loops with Agent Skill Assay
 
-Every integration follows the same execution pattern. **Skillware** loads the bundle and adapts it to your runtime's tool format; **your host app** calls `execute()` and passes JSON back to the model. The diagram below is the loop you implement in code — for bundle contents, see the [Introduction](../introduction.md).
+Every integration follows the same execution pattern. **Agent Skill Assay** loads the bundle and adapts it to your runtime's tool format; **your host app** calls `execute()` and passes JSON back to the model. The diagram below is the loop you implement in code — for bundle contents, see the [Introduction](../introduction.md).
 
 **Multiple skills:** use [`SkillContext`](skill_chaining.md#skillcontext--discovery-filters) for registry brief + tools, or [skill chaining](skill_chaining.md) for deterministic middleware chains. Single-skill loops below are unchanged.
 
@@ -15,7 +15,7 @@ flowchart LR
 
 | Role | Steps |
 | :--- | :--- |
-| **Skillware** | load, wire |
+| **Agent Skill Assay** | load, wire |
 | **Model** | prompt, return |
 | **Host** | execute |
 
@@ -35,7 +35,7 @@ flowchart LR
 
 ### Direct path (no model)
 
-You can also run skills directly without an LLM or agent loop (e.g., `examples/token_limiter_loop.py`): load the skill, call `execute(args)` directly, and process the returned JSON. **`validate_params()` is optional** — direct scripts and many examples skip it; skills may still validate or error inside `execute()`.
+You can also run skills directly without an LLM or agent loop (e.g., `examples/kpi_gate_loop.py`): load the skill, call `execute(args)` directly, and process the returned JSON. **`validate_params()` is optional** — direct scripts and many examples skip it; skills may still validate or error inside `execute()`.
 
 ```mermaid
 flowchart LR
@@ -46,9 +46,9 @@ Provider guides contain full API details. Skill pages contain copy-paste example
 
 OpenAI-compatible hosts reuse `to_openai_tool()`; see the [host guide](openai_compatible.md) and runnable [Groq example](../../examples/openai_compatible_host.py).
 
-Enterprise cloud (Bedrock Converse, Azure OpenAI, Vertex AI) uses the same loop with existing adapters — see [enterprise_cloud.md](enterprise_cloud.md). Runnable Bedrock example: [`bedrock_tos_evaluator.py`](../../examples/bedrock_tos_evaluator.py).
+Enterprise cloud (Bedrock Converse, Azure OpenAI, Vertex AI) uses the same loop with existing adapters — see [enterprise_cloud.md](enterprise_cloud.md). Runnable Bedrock example: [`bedrock_business_diagnostic.py`](../../examples/bedrock_business_diagnostic.py).
 
-**Optional param validation:** Some agent-loop examples (e.g. `claude_wallet_check.py`, `gemini_tos_evaluator.py`) call `skill.validate_params(...)` before `execute()`; others call `execute()` directly.
+**Optional param validation:** Some agent-loop examples (e.g. `claude_wallet_check.py`, `gemini_business_diagnostic.py`) call `skill.validate_params(...)` before `execute()`; others call `execute()` directly.
 
 ### Multi-turn tool loops
 
@@ -65,7 +65,7 @@ For the choice between full Directives, brief registry lines, and host-managed p
 For agents that expose **many tools** from the registry, replace steps 1–4 with `SkillContext`:
 
 ```python
-from skillware import SkillContext
+from skill_assay import SkillContext
 
 ctx = SkillContext()  # or categories=, skills=, roots= — see skill_chaining.md
 system = ctx.merge_system(host_system_prompt)
@@ -107,21 +107,21 @@ result = ctx.execute(skill_id, arguments)  # auto-prepares and validates paramet
 
 | Adapter | Match tool calls using |
 | :--- | :--- |
-| Gemini | `SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])` (e.g. `compliance_tos_evaluator`) |
-| Claude | `to_claude_tool(bundle)["name"]` (sanitized, e.g. `compliance_tos_evaluator`) |
-| OpenAI | `to_openai_tool(bundle)["function"]["name"]` (sanitized, e.g. `compliance_tos_evaluator`) |
+| Gemini | `SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])` (e.g. `monitoring_business_diagnostic`) |
+| Claude | `to_claude_tool(bundle)["name"]` (sanitized, e.g. `monitoring_business_diagnostic`) |
+| OpenAI | `to_openai_tool(bundle)["function"]["name"]` (sanitized, e.g. `monitoring_business_diagnostic`) |
 | DeepSeek | `to_deepseek_tool(bundle)["function"]["name"]` (same sanitization rules) |
 | Bedrock Converse | `to_bedrock_tool(bundle)["toolSpec"]["name"]` (same sanitization rules) |
 | Ollama (prompt) | `"tool"` field in the JSON block the model emits (same as `manifest["name"]` when the manifest uses the full registry ID) |
 
-**Registry manifest names:** Every bundled skill uses `manifest["name"]` = `category/skill_name` (for example `office/pdf_form_filler`, `defi/evm_tx_handler`). Match tool calls with sanitized adapter names on Gemini, Claude, OpenAI, DeepSeek, and Bedrock Converse (`office_pdf_form_filler`, `optimization_prompt_rewriter`), or compare against `SkillLoader.to_*_tool(bundle)` output rather than hardcoding. Do not hardcode legacy short names in examples. `SkillLoader.load_skill()` warns when `name` diverges from the folder path for registry-layout skills; use `bundle.get("registry_id")` for the path-derived ID when present.
+**Registry manifest names:** Every bundled skill uses `manifest["name"]` = `category/skill_name` (for example `monitoring/business_diagnostic`, `monitoring/kpi_gate`). Match tool calls with sanitized adapter names on Gemini, Claude, OpenAI, DeepSeek, and Bedrock Converse (`monitoring_business_diagnostic`, `wellness_mental_coach`), or compare against `SkillLoader.to_*_tool(bundle)` output rather than hardcoding. Do not hardcode legacy short names in examples. `SkillLoader.load_skill()` warns when `name` diverges from the folder path for registry-layout skills; use `bundle.get("registry_id")` for the path-derived ID when present.
 
 ## Minimal execute (no LLM)
 
 ```python
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
-bundle = SkillLoader.load_skill("compliance/tos_evaluator")
+bundle = SkillLoader.load_skill("monitoring/business_diagnostic")
 result = bundle["class"]().execute(
     {
         "target_url": "https://example.com",
@@ -138,10 +138,10 @@ print(result)
 Full runnable loops live under `examples/` where listed. See the
 [examples index](../../examples/README.md) for script filenames, skill IDs,
 per-skill pip extras, SDK extras, and required environment variables. Install
-each skill with `pip install "skillware[<category>_<skill>]"` (see
+each skill with `pip install "agent-skill-assay[<category>_<skill>]"` (see
 [Install extras](install_extras.md)). Gemini reference scripts use the
 `google-genai` SDK (`import google.genai`). Bedrock Converse reference:
-[`bedrock_tos_evaluator.py`](../../examples/bedrock_tos_evaluator.py) ([bedrock.md](bedrock.md)).
+[`bedrock_business_diagnostic.py`](../../examples/bedrock_business_diagnostic.py) ([bedrock.md](bedrock.md)).
 All [skill catalog pages](../skills/README.md) include compact **Usage Examples** per provider.
 
 `Local execute / mixed` means the checked-in script is not a single-provider
@@ -150,24 +150,25 @@ skills in one harness.
 
 | Skill | Local execute / mixed | Gemini | Claude | OpenAI | DeepSeek | Ollama |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `compliance/tos_evaluator` | - | `gemini_tos_evaluator.py` | `claude_tos_evaluator.py` | `openai_tos_evaluator.py` | `deepseek_tos_evaluator.py` | `ollama_tos_evaluator.py` |
-| `finance/wallet_screening` | - | `gemini_wallet_check.py` | `claude_wallet_check.py` | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
-| `office/gmail_handler` | `gmail_handler_demo.py` (local execute) | `gemini_gmail_handler.py` | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-| `office/pdf_form_filler` | - | `gemini_pdf_form_filler.py` | `claude_pdf_form_filler.py` | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
-| `compliance/mica_module` | - | `mica_rag_flow.py` | `mica_claude_flow.py` | (catalog page) | (catalog page) | `mica_ollama_flow.py` |
-| `compliance/pii_masker` | `pii_guardrail_flow.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `monitoring/business_diagnostic` | - | `gemini_business_diagnostic.py` | `claude_business_diagnostic.py` | `openai_business_diagnostic.py` | `deepseek_business_diagnostic.py` | `ollama_business_diagnostic.py` |
+| `monitoring/kpi_gate` | - | `gemini_wallet_check.py` | `claude_wallet_check.py` | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
+| `wellness/mental_coach` | `mental_coach_demo.py` (local execute) | `gemini_mental_coach.py` | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `monitoring/business_diagnostic` | - | `gemini_business_diagnostic.py` | `claude_business_diagnostic.py` | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
+| `monitoring/business_diagnostic` | - | `mica_rag_flow.py` | `mica_claude_flow.py` | (catalog page) | (catalog page) | `mica_ollama_flow.py` |
+| `security/prompt_injection_firewall` | `pii_guardrail_flow.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `security/prompt_injection_firewall` | `prompt_injection_firewall_demo.py`, `sanitize_input_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-| `security/deceptive_ui_guard` | `deceptive_ui_guard_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-| `creative/bg_remover` | `bg_remover_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-| `creative/deck_builder` | `deck_builder_demo.py`, `deck_builder_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-| `optimization/prompt_rewriter` | `prompt_compression_demo.py`, `sanitize_input_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
-| `optimization/context_optimizer` | `context_optimizer_demo.py`, `context_optimizer_chain_demo.py` (local execute; fastembed) | `context_optimizer_gemini_loop.py` | `context_optimizer_claude_loop.py` | (catalog page) | (catalog page) | (catalog page) |
-| `data_engineering/synthetic_generator` | `build_dataset_demo.py` (local execute, Gemini backend) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-| `data_engineering/novelty_extractor` | `novelty_extractor_demo.py` (local execute) | `gemini_novelty_extractor.py` | (catalog page) | (catalog page) | (catalog page) | `ollama_novelty_extractor.py` |
-| `data_engineering/semantic_web_proxy` | `semantic_web_proxy_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-| `dev_tools/issue_resolver` | - | `gemini_issue_resolver.py` | `claude_issue_resolver.py` | (catalog page) | (catalog page) | `ollama_issue_resolver.py` |
+| `security/prompt_injection_firewall` | `prompt_injection_firewall_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `monitoring/business_diagnostic` | `business_diagnostic_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `monitoring/business_diagnostic` | `business_diagnostic_demo.py`, `business_diagnostic_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `wellness/mental_coach` | `prompt_compression_demo.py`, `sanitize_input_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
+| `monitoring/business_diagnostic` | `business_diagnostic_demo.py`, `business_diagnostic_chain_demo.py` (local execute; fastembed) | `business_diagnostic_gemini_loop.py` | `business_diagnostic_claude_loop.py` | (catalog page) | (catalog page) | (catalog page) |
+| `monitoring/business_diagnostic` | `build_dataset_demo.py` (local execute, Gemini backend) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `monitoring/business_diagnostic` | `business_diagnostic_demo.py` (local execute) | `gemini_business_diagnostic.py` | (catalog page) | (catalog page) | (catalog page) | `ollama_business_diagnostic.py` |
+| `monitoring/business_diagnostic` | `business_diagnostic_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `monitoring/business_diagnostic` | - | `gemini_business_diagnostic.py` | `claude_business_diagnostic.py` | (catalog page) | (catalog page) | `ollama_business_diagnostic.py` |
 | `wellness/mental_coach` | `mental_coach_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-| `defi/evm_tx_handler` | - | `gemini_evm_tx_handler.py` | `claude_evm_tx_handler.py` | - | - | - |
-| `monitoring/token_limiter` | `token_limiter_loop.py` (local execute) | `gemini_token_limiter.py`, `skill_context_gemini_loop.py` (multi-skill) | `claude_token_limiter.py` | (catalog page) | (catalog page) | (catalog page) |
+| `monitoring/kpi_gate` | - | `gemini_kpi_gate.py` | `claude_kpi_gate.py` | - | - | - |
+| `monitoring/kpi_gate` | `kpi_gate_loop.py` (local execute) | `gemini_kpi_gate.py`, `skill_context_gemini_loop.py` (multi-skill) | `claude_kpi_gate.py` | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/kpi_gate` | `kpi_gate_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-| `finance/uk_companies_house_handler` | `uk_companies_house_handler_demo.py` | `gemini_uk_companies_house_handler.py` | `claude_uk_companies_house_handler.py` | (catalog page) | (catalog page) | (catalog page) |
+| `monitoring/business_diagnostic` | `business_diagnostic_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `monitoring/business_diagnostic` | `business_diagnostic_demo.py` | `gemini_business_diagnostic.py` | `claude_business_diagnostic.py` | (catalog page) | (catalog page) | (catalog page) |

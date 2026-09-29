@@ -1,4 +1,0 @@
-# Label (lowercase) -> checksummed address. Replace placeholders before mainnet use.
-# Example only — do not send real funds to these addresses.
-mom: "0x000000000000000000000000000000000000dEaD"
-george: "0x000000000000000000000000000000000000dEaD"

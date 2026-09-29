@@ -1,4 +1,4 @@
-"""Integration tests for SkillContext, chains, and CLI (#330 / #297)."""
+"""Integration tests for SkillContext, chains, and CLI."""
 
 from __future__ import annotations
 
@@ -8,36 +8,36 @@ import json
 import pytest
 from rich.console import Console
 
-from skillware import SkillContext
-from skillware.chains import (
+from skill_assay import SkillContext
+from skill_assay.chains import (
     list_chains,
     required_host_input_keys,
     run_chain,
     validate_chain,
 )
-from skillware.cli import (
+from skill_assay.cli import (
     cmd_chain_list,
     cmd_chain_run,
     cmd_chain_show,
     cmd_chain_validate,
     cmd_context_show,
 )
-from skillware.core.config import (
+from skill_assay.core.config import (
     GLOBAL_CONFIG_DIR_ENV,
     PROJECT_CONFIG_FILENAME,
     clear_config_cache,
     load_merged_config,
 )
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 FIREWALL = "security/prompt_injection_firewall"
-REWRITER = "optimization/prompt_rewriter"
-TOKEN_LIMITER = "monitoring/token_limiter"
+REWRITER = "wellness/mental_coach"
+KPI_SKILL = "monitoring/kpi_gate"
 
 
 @pytest.fixture
 def chain_config_repo(tmp_path, monkeypatch):
-    """Project .skillware.yaml with sanitize_input chain."""
+    """Project .skill-assay.yaml with sanitize_input chain."""
     repo = tmp_path / "repo"
     repo.mkdir()
     (repo / PROJECT_CONFIG_FILENAME).write_text(
@@ -46,7 +46,7 @@ paths:
   project: auto
 chains:
   sanitize_input:
-    description: Scan untrusted text; compress only if safe.
+    description: Scan untrusted text; rescan only if safe.
     when: Untrusted text enters model context.
     steps:
       - id: scan
@@ -58,13 +58,16 @@ chains:
           source_text: host.source_text
         map_out:
           sanitized_text: next.raw_text
-      - skill: optimization/prompt_rewriter
+      - skill: wellness/mental_coach
         when:
           prior_step: scan
           field: is_safe
           equals: true
         params:
-          compression_aggression: low
+          session_mode: information
+          run_evaluator: false
+        input_from:
+          user_prompt: next.raw_text
   preflight_untrusted_html:
     description: HTML-mode scan only.
     steps:
@@ -75,19 +78,18 @@ chains:
         input_from:
           source_text: host.source_text
   scan_then_gate:
-    description: Scan then token gate.
+    description: Scan then KPI gate.
     steps:
       - id: scan
         skill: security/prompt_injection_firewall
         input_from:
           source_text: host.source_text
-      - skill: monitoring/token_limiter
+      - skill: monitoring/kpi_gate
         params:
-          action: check
+
         input_from:
-          task_id: host.task_id
-          current_token_count: host.current_token_count
-          max_allowed_tokens: host.max_allowed_tokens
+          metrics: host.metrics
+          policy: host.policy
 """,
         encoding="utf-8",
     )
@@ -103,7 +105,7 @@ chains:
 
 def test_context_full_registry_non_empty():
     ctx = SkillContext()
-    assert len(ctx.skill_ids) >= 5
+    assert len(ctx.skill_ids) >= 4
 
 
 def test_context_explicit_skills_list():
@@ -157,7 +159,7 @@ def test_context_all_providers_match_loader():
 def test_context_ollama_prompt_contains_tool():
     ctx = SkillContext(skill=REWRITER)
     prompt = ctx.ollama_prompt
-    assert REWRITER in prompt or "prompt_rewriter" in prompt
+    assert REWRITER in prompt or "mental_coach" in prompt
 
 
 def test_context_max_skills_cap_emits_warning():
@@ -171,11 +173,12 @@ def test_context_execute_without_prepare():
     out = ctx.execute(
         REWRITER,
         {
-            "raw_text": "Repeat repeat repeat compliance summary please.",
-            "compression_aggression": "low",
+            "user_prompt": "Repeat repeat repeat compliance summary please.",
+            "session_mode": "information",
+            "run_evaluator": False,
         },
     )
-    assert "compressed_text" in out
+    assert "policy_status" in out
 
 
 def test_context_prepare_then_execute_same_instance():
@@ -184,9 +187,13 @@ def test_context_prepare_then_execute_same_instance():
     assert "compression" in prep.directive.lower() or prep.directive
     out = ctx.call(
         REWRITER,
-        {"raw_text": "Long prompt text here.", "compression_aggression": "medium"},
+        {
+            "user_prompt": "Long prompt text here.",
+            "session_mode": "information",
+            "run_evaluator": False,
+        },
     )
-    assert "compressed_text" in out
+    assert "policy_status" in out
 
 
 def test_context_prepare_skill_outside_initial_list():
@@ -208,9 +215,13 @@ def test_manual_chain_firewall_then_rewriter_safe():
     assert fw.get("is_safe") is True
     rw = ctx.execute(
         REWRITER,
-        {"raw_text": fw["sanitized_text"], "compression_aggression": "low"},
+        {
+            "user_prompt": fw["sanitized_text"],
+            "session_mode": "information",
+            "run_evaluator": False,
+        },
     )
-    assert "compressed_text" in rw
+    assert "policy_status" in rw
 
 
 def test_manual_chain_host_branching_on_unsafe():
@@ -249,7 +260,7 @@ def test_run_chain_sanitize_input_safe(chain_config_repo):
     assert result.status in {"ok", "partial"}
     assert result.steps[0].status == "ok"
     if result.steps[1].status == "ok":
-        assert "compressed_text" in (result.final or {})
+        assert "policy_status" in (result.final or {})
 
 
 def test_run_chain_sanitize_skips_rewriter_when_unsafe(chain_config_repo):
@@ -276,9 +287,8 @@ def test_run_chain_scan_then_gate_dry_run(chain_config_repo):
         "scan_then_gate",
         host_input={
             "source_text": "hello",
-            "task_id": "t1",
-            "current_token_count": 500,
-            "max_allowed_tokens": 8000,
+            "metrics": {},
+            "policy": {},
         },
         dry_run=True,
     )
@@ -290,7 +300,7 @@ def test_required_host_input_keys_scan_then_gate(chain_config_repo):
     definition = load_merged_config(refresh=True).chains["scan_then_gate"]
     keys = required_host_input_keys(definition)
     assert "source_text" in keys
-    assert "task_id" in keys
+    assert "metrics" in keys
 
 
 # --- CLI ---
@@ -301,14 +311,14 @@ def test_cli_context_show_single_skill():
     console = Console(file=buf, force_terminal=False, width=120)
     assert cmd_context_show(skill=REWRITER, console=console) == 0
     out = buf.getvalue()
-    assert REWRITER in out or "prompt_rewriter" in out
+    assert REWRITER in out or "mental_coach" in out
 
 
 def test_cli_context_show_category():
     buf = io.StringIO()
     console = Console(file=buf, force_terminal=False, width=120)
-    assert cmd_context_show(categories="optimization", console=console) == 0
-    assert "optimization" in buf.getvalue()
+    assert cmd_context_show(categories="security", console=console) == 0
+    assert "security" in buf.getvalue()
 
 
 def test_cli_context_export(tmp_path):
@@ -358,8 +368,8 @@ def test_cli_chain_dry_run(chain_config_repo):
             host_vars=[
                 "source_text=hi",
                 "task_id=t1",
-                "current_token_count=100",
-                "max_allowed_tokens=9999",
+                "policy=100",
+                "policy=9999",
             ],
             dry_run=True,
             console=console,
@@ -375,11 +385,19 @@ def test_loader_single_skill_still_works_alongside_context():
     bundle = SkillLoader.load_skill(REWRITER)
     skill = bundle["class"]()
     direct = skill.execute(
-        {"raw_text": "Test prompt for loader path.", "compression_aggression": "low"}
+        {
+            "user_prompt": "Test prompt for loader path.",
+            "session_mode": "information",
+            "run_evaluator": False,
+        }
     )
     ctx = SkillContext(skill=REWRITER)
     via_ctx = ctx.execute(
         REWRITER,
-        {"raw_text": "Test prompt for loader path.", "compression_aggression": "low"},
+        {
+            "user_prompt": "Test prompt for loader path.",
+            "session_mode": "information",
+            "run_evaluator": False,
+        },
     )
-    assert direct["compressed_text"] == via_ctx["compressed_text"]
+    assert direct["policy_status"] == via_ctx["policy_status"]

@@ -1,6 +1,6 @@
-# Deep Dive: The Skillware Philosophy
+# Deep Dive: The Agent Skill Assay Philosophy
 
-**Skillware** is an Operating System for Agentic Capabilities. It decouples *intelligence* (the model) from *capability* (the tool): you **install** know-how instead of redefining it for every host.
+**Agent Skill Assay** is an Operating System for Agentic Capabilities. It decouples *intelligence* (the model) from *capability* (the tool): you **install** know-how instead of redefining it for every host.
 
 ## Skill anatomy
 
@@ -33,11 +33,11 @@ FRAMEWORK (outside the bundle folder)
 | **Contract** | `manifest.yaml` | What is this skill? Typed I/O, `constitution`, issuer, `requirements` |
 | **Effect** | `skill.py` | What runs deterministically when invoked? (`BaseSkill.execute()`) |
 | **Directive** | `instructions.md` | How should the host use this capability? When, how to read outputs, limits |
-| **Assurance** | `test_skill.py` | Does Effect honor Contract? (offline bundle tests; CI / `skillware test`) |
+| **Assurance** | `test_skill.py` | Does Effect honor Contract? (offline bundle tests; CI / `skill-assay test`) |
 | **Presentation** | `card.json` | Catalog and UI card metadata; issuer must match Contract when present |
 | **Corpus** | `kb/`, `data/`, … | Static knowledge Effect reads (not fetched at runtime) |
 | **Reference** | `schemas/`, maps | Machine-readable adjuncts to Contract (validators, terminology) |
-| **Interface** | `skillware/core/loader.py` | Adapters that expose Contract to a host API |
+| **Interface** | `skill_assay/core/loader.py` | Adapters that expose Contract to a host API |
 
 **Effect modules** — co-located Python imported by `skill.py` (for example `workflow.py`, `budget.py`). Part of Effect implementation, not separate bundle roles.
 
@@ -51,10 +51,10 @@ FRAMEWORK (outside the bundle folder)
 
 ## The Architecture: How It Works
 
-Skillware relies on a strict, modular layout. Capabilities live under `skills/` grouped by domain (see [Skill categories](../CONTRIBUTING.md#skill-categories)):
+Agent Skill Assay relies on a strict, modular layout. Capabilities live under `skills/` grouped by domain (see [Skill categories](../CONTRIBUTING.md#skill-categories)):
 
 ```text
-Skillware/
+Agent Skill Assay/
 ├── skills/
 │   └── category/                   # Domain boundary (e.g., 'finance')
 │       └── skill_name/             # A self-contained capability bundle
@@ -65,7 +65,7 @@ Skillware/
 │           ├── test_skill.py       # Assurance
 │           ├── kb/ or data/        # Corpus (optional)
 │           └── schemas/            # Reference (optional)
-└── skillware/
+└── skill_assay/
     └── core/
         ├── base_skill.py           # Effect interface (`BaseSkill`)
         ├── env.py                  # API key and secret loading
@@ -91,7 +91,7 @@ flowchart LR
 
 ### Step 1: Discovery & Loading
 
-The loader resolves `category/skill_name` against configured skill roots (run `skillware paths` and `skillware config show` for the live order). Bundled registry skills remain available after `pip install skillware` even without a local `skills/` tree.
+The loader resolves `category/skill_name` against configured skill roots (run `skill-assay paths` and `skill-assay config show` for the live order). Bundled registry skills remain available after `pip install agent-skill-assay` even without a local `skills/` tree.
 
 - Dynamically imports `skill.py` and discovers the single `BaseSkill` subclass as `bundle["class"]`.
 - Parses `manifest.yaml` (including `issuer` for attribution).
@@ -123,7 +123,7 @@ Pass **`instructions.md`** (**Directive**) into the host system prompt. The mode
 ## The Execution Loop
 
 1.  **User Query**: "Should this agent loop stop — we're at 95k tokens?"
-2.  **Host reads Directive**: The model sees injected `instructions.md` and selects `monitoring/token_limiter`.
+2.  **Host reads Directive**: The model sees injected `instructions.md` and selects `monitoring/kpi_gate`.
 3.  **Tool Call**: The model emits a structured tool call via **Interface** adapters.
 4.  **Framework Execution**: Your script may call `skill.validate_params(...)` before `execute()` (recommended in production loops).
 5.  **Effect runs**: `skill.py` evaluates the budget and returns structured JSON.
@@ -131,7 +131,7 @@ Pass **`instructions.md`** (**Directive**) into the host system prompt. The mode
 
 ## Model Agnosticism
 
-Skillware is designed to be the "Standard Library" for all agents.
+Agent Skill Assay is designed to be the "Standard Library" for all agents.
 
 | Platform | Integration Strategy |
 | :--- | :--- |

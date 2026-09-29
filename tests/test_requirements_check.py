@@ -4,7 +4,7 @@ import importlib.util
 
 import pytest
 
-from skillware.core.extras import (
+from skill_assay.core.extras import (
     build_version_mismatch_message,
     check_manifest_requirements,
     parse_requirement,
@@ -46,7 +46,7 @@ def test_check_manifest_requirements_version_mismatch(monkeypatch):
     monkeypatch.setattr(
         importlib.util, "find_spec", lambda name, package=None: object()
     )
-    monkeypatch.setattr("skillware.core.extras.version", lambda _name: "1.0.0")
+    monkeypatch.setattr("skill_assay.core.extras.version", lambda _name: "1.0.0")
 
     with pytest.raises(ImportError, match="unsatisfied version requirements"):
         check_manifest_requirements(
@@ -60,7 +60,7 @@ def test_check_manifest_requirements_satisfied_version(monkeypatch):
     monkeypatch.setattr(
         importlib.util, "find_spec", lambda name, package=None: object()
     )
-    monkeypatch.setattr("skillware.core.extras.version", lambda _name: "2.5.0")
+    monkeypatch.setattr("skill_assay.core.extras.version", lambda _name: "2.5.0")
 
     check_manifest_requirements(
         ["demo_pkg>=2.0.0"],
@@ -77,17 +77,17 @@ def test_check_manifest_requirements_invalid_pep508():
 
 def test_build_version_mismatch_message_includes_install_hint():
     message = build_version_mismatch_message(
-        {"name": "defi/evm_tx_handler"},
-        "defi/evm_tx_handler",
+        {"name": "monitoring/business_diagnostic"},
+        "monitoring/business_diagnostic",
         [("web3>=6.0.0", "5.31.0", ">=6.0.0")],
     )
     assert "web3>=6.0.0" in message
     assert "5.31.0" in message
-    assert "skillware[defi_evm_tx_handler]" in message
+    assert "agent-skill-assay[monitoring_business_diagnostic]" in message
 
 
 def test_build_skill_module_import_error_includes_hint():
-    from skillware.core.extras import build_skill_module_import_error
+    from skill_assay.core.extras import build_skill_module_import_error
 
     message = build_skill_module_import_error(
         {"name": "demo/skill"},
@@ -96,4 +96,4 @@ def test_build_skill_module_import_error_includes_hint():
         ModuleNotFoundError("No module named 'hidden_pkg'"),
     )
     assert "Manifest requirement pre-flight passed" in message
-    assert "skillware[demo_skill]" in message
+    assert "agent-skill-assay[demo_skill]" in message

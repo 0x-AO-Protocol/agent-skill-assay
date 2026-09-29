@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Scope: `examples/*.py`, [examples/README.md](https://github.com/ARPAHLS/skillware/blob/main/examples/README.md), and provider agent-loop patterns.
+        Scope: `examples/*.py`, [examples/README.md](https://github.com/0x-AO-Protocol/agent-skill-assay/blob/main/examples/README.md), and provider agent-loop patterns.
 
         For prose-only doc fixes, use **Documentation Fix**. For loader/adapter behavior, use **Framework Feature** or **Bug Report**.
 
@@ -14,7 +14,7 @@ body:
     id: scripts
     attributes:
       label: Script path(s)
-      placeholder: examples/gemini_gmail_handler.py, examples/gemini_wallet_check.py
+      placeholder: examples/kpi_gate_demo.py, examples/prompt_injection_firewall_demo.py
     validations:
       required: true
 
@@ -22,7 +22,7 @@ body:
     id: skill_id
     attributes:
       label: Skill ID (if applicable)
-      placeholder: finance/wallet_screening
+      placeholder: monitoring/kpi_gate
     validations:
       required: false
 

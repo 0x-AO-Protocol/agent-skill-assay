@@ -2,7 +2,7 @@
 
 How to combine multiple skills in one host session — model-driven multi-tool routing, host-owned sequential chains, and config-defined named chains.
 
-**Related:** [#330](https://github.com/ARPAHLS/skillware/issues/330) (implementation), [#297](https://github.com/ARPAHLS/skillware/issues/297) (docs), [Agent loops](agent_loops.md), [CLI — context & chain](cli.md#skillware-context), [`.skillware.yaml.example`](../../.skillware.yaml.example)
+**Related:** [Agent loops](agent_loops.md), [CLI — context & chain](cli.md#agent-skill-assay-context), [`.skill-assay.yaml.example`](../../.skill-assay.yaml.example)
 
 Skills **never call each other**. The host (your agent loop, script, or `run_chain()`) owns discovery, context assembly, ordering, and each `execute()` call.
 
@@ -18,7 +18,7 @@ Skills **never call each other**. The host (your agent loop, script, or `run_cha
 | **Named chains (`chains:`)** | You (pick chain name) | YAML steps | Repeatable middleware → domain; CI/scripts |
 | **Examples** | Copy from `examples/` | Varies | Provider-specific starter loops |
 
-Use **chain / chains / chaining** for cross-skill host orchestration. Do **not** use framework **`run_pipeline`** (reserved for in-skill actions such as `finance/uk_companies_house_handler`).
+Use **chain / chains / chaining** for cross-skill host orchestration. Do **not** use framework **`run_pipeline`** (reserved for in-skill actions such as `monitoring/business_diagnostic`).
 
 ---
 
@@ -33,7 +33,7 @@ the full playbook:
 | Agent exposes about 10 registry tools | `SkillContext(mode="brief")` + `merge_system()` + `tools()` | Brief lines save tokens while schemas carry parameter detail |
 | Small fixed skill set (≤ 3) | `SkillContext(mode="directives")` or manual concatenation | Full playbooks fit in the system budget |
 | Untrusted text arrives before the model sees it | `run_chain(...)` or a manual chain before the agent loop | The model must not choose middleware order |
-| Deterministic middleware (firewall → rewriter) | Manual chain or named YAML chain | The host owns the order and branching |
+| Deterministic middleware (firewall → coaching) | Manual chain or named YAML chain | The host owns the order and branching |
 | Full Directive is needed only after tool selection | `prepare()` then host-inject `prep.directive` on the next turn | Progressive disclosure is host-driven |
 
 ### Glossary
@@ -52,9 +52,9 @@ the full playbook:
 
 | Need | Import |
 | :--- | :--- |
-| Registry context (recommended multi-skill entry) | `from skillware import SkillContext` |
-| Named chain runner | `from skillware.chains import run_chain, list_chains, load_chain, validate_chain` |
-| Single skill (unchanged) | `from skillware.core.loader import SkillLoader` |
+| Registry context (recommended multi-skill entry) | `from skill_assay import SkillContext` |
+| Named chain runner | `from skill_assay.chains import run_chain, list_chains, load_chain, validate_chain` |
+| Single skill (unchanged) | `from skill_assay.core.loader import SkillLoader` |
 
 `SkillContext` wraps `SkillLoader`; it does not replace it. Existing single-skill scripts keep working unchanged.
 
@@ -62,16 +62,16 @@ the full playbook:
 
 ## SkillContext — discovery filters
 
-`SkillContext` discovers skills the same way as `skillware list`, then assembles brief system text, provider tools, and progressive Directive load on `prepare()` / `execute()`.
+`SkillContext` discovers skills the same way as `skill-assay list`, then assembles brief system text, provider tools, and progressive Directive load on `prepare()` / `execute()`.
 
 ### Filter matrix
 
 | Goal | Constructor | Example |
 | :--- | :--- | :--- |
 | **Entire registry** | Default (no filters) | `SkillContext()` |
-| **One skill** | `skill=` | `SkillContext(skill="optimization/prompt_rewriter")` |
-| **Explicit list** | `skills=` | `SkillContext(skills=["security/prompt_injection_firewall", "optimization/prompt_rewriter"])` |
-| **Category(ies)** | `categories=` | `SkillContext(categories=["security", "compliance"])` |
+| **One skill** | `skill=` | `SkillContext(skill="wellness/mental_coach")` |
+| **Explicit list** | `skills=` | `SkillContext(skills=["security/prompt_injection_firewall", "wellness/mental_coach"])` |
+| **Category(ies)** | `categories=` | `SkillContext(categories=["security", "monitoring"])` |
 | **Root tier** | `roots=` | `SkillContext(roots="project")` or `"bundled"`, `"external"`, `"override"` |
 | **Custom path** | `roots=` | `SkillContext(roots="/opt/my-skills")` |
 | **Exclude tiers** | `exclude_roots=` | `SkillContext(exclude_roots=["external"])` |
@@ -79,7 +79,7 @@ the full playbook:
 
 Combine filters: `SkillContext(categories=["security"], roots="project", max_skills=10)`.
 
-**Root tiers:** In a dev checkout, skills usually live under `./skills/` (**project**). After `pip install skillware` only, skills come from the wheel (**bundled**). Use `roots="bundled"` to limit to packaged skills; use `roots="project"` for local overrides.
+**Root tiers:** In a dev checkout, skills usually live under `./skills/` (**project**). After `pip install agent-skill-assay` only, skills come from the wheel (**bundled**). Use `roots="bundled"` to limit to packaged skills; use `roots="project"` for local overrides.
 
 There is **no default cap** on registry size unless you pass `max_skills`.
 
@@ -94,7 +94,7 @@ There is **no default cap** on registry size unless you pass `max_skills`.
 In **`brief`** mode, full Directives are available via `prepare(skill_id)` or on `execute()` — they are not added to `merge_system()` until you use **`directives`** or inject `prep.directive` yourself.
 
 ```python
-from skillware import SkillContext
+from skill_assay import SkillContext
 
 ctx = SkillContext(categories=["security"], mode="brief")
 system = ctx.merge_system(host_system_prompt)
@@ -106,10 +106,10 @@ ollama_block = ctx.ollama_prompt  # brief + JSON tool blocks for Ollama prompt m
 CLI mirror:
 
 ```bash
-skillware context show
-skillware context show --categories security,compliance --roots project --mode brief
-skillware context show --skill optimization/prompt_rewriter --mode directives
-skillware context show --export ctx.md
+skill-assay context show
+skill-assay context show --categories security,compliance --roots project --mode brief
+skill-assay context show --skill wellness/mental_coach --mode directives
+skill-assay context show --export ctx.md
 ```
 
 ### Edge cases
@@ -130,20 +130,20 @@ skillware context show --export ctx.md
 When the model selects a tool, load the full Directive before or during execution:
 
 ```python
-from skillware import SkillContext
+from skill_assay import SkillContext
 
 ctx = SkillContext()  # entire registry, brief mode
-system = ctx.merge_system("You are a helpful agent with Skillware tools.")
+system = ctx.merge_system("You are a helpful agent with Agent Skill Assay tools.")
 tools = ctx.tools("claude")
 
-# ... model returns tool_use for compliance/tos_evaluator ...
+# ... model returns tool_use for monitoring/business_diagnostic ...
 
-prep = ctx.prepare("compliance/tos_evaluator")
+prep = ctx.prepare("monitoring/business_diagnostic")
 # prep.directive — full instructions.md text
 # prep.manifest — manifest.json
 # prep.bundle — loader bundle
 
-result = ctx.execute("compliance/tos_evaluator", {
+result = ctx.execute("monitoring/business_diagnostic", {
     "target_url": url,
     "intended_action": "research documentation",
 })
@@ -159,11 +159,11 @@ result = ctx.execute("compliance/tos_evaluator", {
 Your code owns branching, retries, and which skill runs next:
 
 ```python
-from skillware import SkillContext
+from skill_assay import SkillContext
 
 ctx = SkillContext(skills=[
     "security/prompt_injection_firewall",
-    "optimization/prompt_rewriter",
+    "wellness/mental_coach",
 ])
 
 fw = ctx.execute(
@@ -176,16 +176,16 @@ if not fw.get("is_safe"):
     return fw
 
 rw = ctx.execute(
-    "optimization/prompt_rewriter",
+    "wellness/mental_coach",
     {"raw_text": fw["sanitized_text"], "compression_aggression": "medium"},
 )
 ```
 
-For **large documents**, insert `optimization/context_optimizer` after the firewall and **before** the main LLM (and optionally before `prompt_rewriter`):
+For **large documents**, insert `monitoring/business_diagnostic` after the firewall and **before** the main LLM (and optionally before `mental_coach`):
 
 ```python
 opt = ctx.execute(
-    "optimization/context_optimizer",
+    "monitoring/business_diagnostic",
     {
         "document_text": fw["sanitized_text"],
         "agent_goal": "jurisdiction clauses for data handling",
@@ -193,21 +193,21 @@ opt = ctx.execute(
     },
 )
 # Pass opt["optimized_context"] to the main model; optionally compress further:
-# rw = ctx.execute("optimization/prompt_rewriter", {"raw_text": opt["optimized_context"], ...})
+# rw = ctx.execute("wellness/mental_coach", {"raw_text": opt["optimized_context"], ...})
 ```
 
-See `examples/context_optimizer_chain_demo.py`.
+See `examples/business_diagnostic_chain_demo.py`.
 
-The host can also **choose skills dynamically** (e.g. route to `monitoring/token_limiter` when a budget flag is set) without YAML — same pattern: `ctx.execute(skill_id, params)`.
+The host can also **choose skills dynamically** (e.g. route to `monitoring/kpi_gate` when a budget flag is set) without YAML — same pattern: `ctx.execute(skill_id, params)`.
 
 ### Still using SkillLoader directly
 
 Single-skill loops remain valid ([agent_loops.md](agent_loops.md)):
 
 ```python
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+bundle = SkillLoader.load_skill("wellness/mental_coach")
 skill = bundle["class"]()
 result = skill.execute({"raw_text": text, "compression_aggression": "low"})
 ```
@@ -218,9 +218,9 @@ Use `SkillContext` when you need **multiple tools**, **registry brief**, or **sh
 
 ## Named chains — predefined YAML pipelines (Tier 2)
 
-Define repeatable order under **`chains:`** in project `.skillware.yaml` or global `~/.config/skillware/config.yaml`. **Project overrides global** on name clash.
+Define repeatable order under **`chains:`** in project `.skill-assay.yaml` or global `~/.config/skill_assay/config.yaml`. **Project overrides global** on name clash.
 
-See [`.skillware.yaml.example`](../../.skillware.yaml.example) for reference chains:
+See [`.skill-assay.yaml.example`](../../.skill-assay.yaml.example) for reference chains:
 
 | Chain | Purpose |
 | :--- | :--- |
@@ -233,7 +233,7 @@ See [`.skillware.yaml.example`](../../.skillware.yaml.example) for reference cha
 ### Python API
 
 ```python
-from skillware.chains import run_chain, list_chains, validate_chain, load_chain
+from skill_assay.chains import run_chain, list_chains, validate_chain, load_chain
 
 print(list(list_chains().keys()))
 
@@ -252,13 +252,13 @@ result = run_chain(
 ### CLI
 
 ```bash
-skillware chain list
-skillware chain show sanitize_input
-skillware chain validate              # all chains
-skillware chain validate sanitize_input
-skillware chain run sanitize_input --var source_text="hello"
-skillware chain run sanitize_input --var source_text=@./page.html --json
-skillware chain dry-run scan_then_gate \
+skill-assay chain list
+skill-assay chain show sanitize_input
+skill-assay chain validate              # all chains
+skill-assay chain validate sanitize_input
+skill-assay chain run sanitize_input --var source_text="hello"
+skill-assay chain run sanitize_input --var source_text=@./page.html --json
+skill-assay chain dry-run scan_then_gate \
   --var source_text=hello --var task_id=job-1 \
   --var current_token_count=12000 --var max_allowed_tokens=32000
 ```
@@ -283,7 +283,7 @@ chains:
           source_text: host.source_text
         map_out:
           sanitized_text: next.raw_text
-      - skill: optimization/prompt_rewriter
+      - skill: wellness/mental_coach
         when:
           prior_step: scan
           field: is_safe
@@ -316,7 +316,7 @@ If `field` is missing in prior output, the condition is treated as false → ski
 ### Host picks which named chain
 
 ```python
-from skillware.chains import list_chains, run_chain
+from skill_assay.chains import list_chains, run_chain
 
 chains = list_chains()
 if "preflight_untrusted_html" in chains and content_type == "text/html":
@@ -352,15 +352,15 @@ Firewall → domain skill, with host branching (Tier 1 manual chain above).
 
 ### Pattern C — Config chain for scripts / CI
 
-`run_chain("scan_then_gate", host_input={...})` or `skillware chain run ...`.
+`run_chain("scan_then_gate", host_input={...})` or `skill-assay chain run ...`.
 
 ### Pattern D — Hybrid
 
 Expose many tools via `SkillContext`, but run a fixed **`sanitize_input`** chain on untrusted ingest before the model sees content:
 
 ```python
-from skillware import SkillContext
-from skillware.chains import run_chain
+from skill_assay import SkillContext
+from skill_assay.chains import run_chain
 
 sanitized = run_chain("sanitize_input", host_input={"source_text": raw})
 text_for_model = sanitized.final.get("sanitized_text") or sanitized.final.get("compressed_text") or raw
@@ -401,6 +401,6 @@ Continue with provider guides and single-skill loops:
 
 ---
 
-## Acceptance (#297 + #330)
+## Acceptance
 
-This document and the APIs above close [#297](https://github.com/ARPAHLS/skillware/issues/297) (skill chaining guidance) as part of [#330](https://github.com/ARPAHLS/skillware/issues/330) (SkillContext + named chains).
+This document and the APIs above define the supported skill-chaining guidance for v0.1.

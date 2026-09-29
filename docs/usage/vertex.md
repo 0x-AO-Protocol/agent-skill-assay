@@ -1,12 +1,12 @@
 # Integration Guide: Google Vertex AI (Gemini)
 
-Vertex AI Gemini models use the **same tool schema** as the Gemini API. Use `SkillLoader.to_gemini_tool()` — no separate Skillware adapter. Auth and client init differ from the consumer API key path.
+Vertex AI Gemini models use the **same tool schema** as the Gemini API. Use `SkillLoader.to_gemini_tool()` — no separate Agent Skill Assay adapter. Auth and client init differ from the consumer API key path.
 
 ## Install
 
 ```bash
-pip install "skillware[gemini]"
-pip install "skillware[<category>_<skill>]"
+pip install "agent-skill-assay[gemini]"
+pip install "agent-skill-assay[<category>_<skill>]"
 ```
 
 ## Client pattern
@@ -19,12 +19,12 @@ import os
 import google.genai as genai
 from google.genai import types
 
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 
-bundle = SkillLoader.load_skill("finance/wallet_screening")
+bundle = SkillLoader.load_skill("monitoring/kpi_gate")
 skill = bundle["class"](
     config={"ETHERSCAN_API_KEY": os.environ.get("ETHERSCAN_API_KEY")}
 )
@@ -59,7 +59,7 @@ Handle `function_call` parts and `skill.execute()` as in [gemini.md](gemini.md).
 
 ## Hosting
 
-Run Skillware on Compute Engine, GKE, or Cloud Run — `pip install skillware`, attach a service account with Vertex access, use ADC. See [enterprise_cloud.md](enterprise_cloud.md).
+Run Agent Skill Assay on Compute Engine, GKE, or Cloud Run — `pip install agent-skill-assay`, attach a service account with Vertex access, use ADC. See [enterprise_cloud.md](enterprise_cloud.md).
 
 ## Related
 

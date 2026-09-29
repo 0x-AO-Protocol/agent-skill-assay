@@ -1,12 +1,12 @@
 # Integration Guide: Azure OpenAI
 
-Azure OpenAI deployments use the **OpenAI Chat Completions tools schema**. Use `SkillLoader.to_openai_tool()` — no separate Skillware adapter.
+Azure OpenAI deployments use the **OpenAI Chat Completions tools schema**. Use `SkillLoader.to_openai_tool()` — no separate Agent Skill Assay adapter.
 
 ## Install
 
 ```bash
-pip install "skillware[openai]"
-pip install "skillware[<category>_<skill>]"
+pip install "agent-skill-assay[openai]"
+pip install "agent-skill-assay[<category>_<skill>]"
 ```
 
 ## Client pattern
@@ -16,12 +16,12 @@ import os
 
 from openai import AzureOpenAI
 
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 
-bundle = SkillLoader.load_skill("compliance/tos_evaluator")
+bundle = SkillLoader.load_skill("monitoring/business_diagnostic")
 skill = bundle["class"]()
 tool = SkillLoader.to_openai_tool(bundle)
 
@@ -56,7 +56,7 @@ Confirm your deployment supports **function / tool calling** in the Azure model 
 
 ## Hosting
 
-Run Skillware on Azure VM, App Service, or AKS the same way as any Python app — see [enterprise_cloud.md](enterprise_cloud.md).
+Run Agent Skill Assay on Azure VM, App Service, or AKS the same way as any Python app — see [enterprise_cloud.md](enterprise_cloud.md).
 
 ## Related
 

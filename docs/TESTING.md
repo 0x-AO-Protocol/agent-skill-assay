@@ -1,6 +1,6 @@
 # Testing & Code Quality
 
-Skillware maintains high standards for code quality and reliability. Before submitting a Pull Request, please ensure your code passes all linting and testing checks.
+Agent Skill Assay maintains high standards for code quality and reliability. Before submitting a Pull Request, please ensure your code passes all linting and testing checks.
 
 Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **example**. Use that vocabulary consistently in docs and PRs.
 
@@ -14,16 +14,16 @@ Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **ex
 | Bundle tests mock network and model downloads in CI | Done |
 | Maintainer tests under `tests/skills/` (optional per skill) | Done |
 | `[all]` extra covers bundle-test runtime deps | Done |
-| CLI `skillware test` for bundle discovery | Done |
+| CLI `skill-assay test` for bundle discovery | Done |
 | Doc-drift guards (`test_registry_docs.py`) | Done |
-| Glossary / retired-anatomy guard (`test_registry_docs.py`, #252) | Done |
+| Glossary / retired-anatomy guard (`test_registry_docs.py`) | Done |
 | Registry identity guard (`test_registry_identity.py`) | Done |
 | GitHub label policy test (`test_github_labels.py`) | Done |
 | PyPI wheel packaging smoke test (`scripts/wheel_smoke_test.py`) | Done |
 | Optional extras sync (`scripts/sync_extras.py`, `tests/test_extras_sync.py`; includes `install_extras.md` table guard) | Done |
 | Card UI schema vs execute output (`tests/test_card_ui_schema.py`) | Done |
 | Local-execute example smoke tests in CI (`tests/test_examples_smoke.py`) | Done |
-| Framework tests isolated from operator global config (`tests/conftest.py`, #302) | Done |
+| Framework tests isolated from operator global config (`tests/conftest.py`) | Done |
 
 Every pull request runs `black --check`, `flake8`, `pytest skills/`, `pytest tests/`, and a **wheel-smoke** job that builds a wheel, installs it in a fresh venv (base install only — no `[all]` or per-skill extras), and verifies every bundled registry skill is present and loadable. Bundle tests gate merge the same as framework and maintainer tests.
 
@@ -55,7 +55,7 @@ pip install -r requirements.txt
 ### Skill bundle test (Assurance role)
 
 - Implements the bundle **Assurance** role (`test_skill.py`); see [Skill anatomy](../introduction.md#skill-anatomy).
-- Lives **inside the skill bundle**; ships with `pip install skillware`.
+- Lives **inside the skill bundle**; ships with `pip install agent-skill-assay`.
 - **Required** for every new registry skill (see `templates/python_skill/test_skill.py`).
 - Offline and mockable: manifest consistency, validation, deterministic `execute()` paths — no live network.
 - Run locally: `pytest skills/<category>/<skill_name>/test_skill.py` or `pytest skills/`.
@@ -68,11 +68,11 @@ pip install -r requirements.txt
 
 - Core engine health: loader, CLI, issuer rules, version policy, parameter schema validation (`tests/test_validate_params.py`).
 - `tests/test_skill_issuer.py` also enforces registry packaging (`__init__.py`), issuer metadata, presence of `test_skill.py` in every skill bundle, and rejects legacy manifest `output:` keys.
-- `tests/test_card_ui_schema.py` validates output-card `ui_schema.fields[].key` dot paths against fixtures in `tests/fixtures/card_ui_schema/` (#199).
+- `tests/test_card_ui_schema.py` validates output-card `ui_schema.fields[].key` dot paths against fixtures in `tests/fixtures/card_ui_schema/`.
 - `tests/test_registry_docs.py` enforces doc-drift parity: skill catalog index matches manifests, examples README matches scripts on disk, and agent-loops.md references every registered skill.
-- `tests/test_registry_identity.py` enforces manifest identity parity: every registry-layout skill's `manifest.name` matches its path-derived registry ID, and all manifest names are globally unique (#280).
-- `tests/test_examples_smoke.py` provides an automated regression net for local-execute demo scripts under `examples/` without making network requests or requiring API keys (#237).
-- `tests/conftest.py` isolates every test from the operator's real global `config.yaml` via `SKILLWARE_CONFIG_DIR` so local `pytest tests/` matches CI even after CLI mail/config init (#302). Legacy vs configured discovery order is covered in `tests/test_discovery.py` and `tests/test_loader.py`.
+- `tests/test_registry_identity.py` enforces manifest identity parity: every registry-layout skill's `manifest.name` matches its path-derived registry ID, and all manifest names are globally unique.
+- `tests/test_examples_smoke.py` provides an automated regression net for local-execute demo scripts under `examples/` without making network requests or requiring API keys.
+- `tests/conftest.py` isolates every test from the operator's real global `config.yaml` via `SKILL_ASSAY_CONFIG_DIR` so local `pytest tests/` matches CI even after CLI mail/config init. Legacy vs configured discovery order is covered in `tests/test_discovery.py` and `tests/test_loader.py`.
 - Lives at the **root of `tests/`** only (`tests/test_loader.py`, `tests/test_cli.py`, …).
 - Clone-repo only; runs in CI via `pytest tests/` together with maintainer tests below.
 
@@ -80,12 +80,12 @@ pip install -r requirements.txt
 
 - **Optional** extra depth for skill maintainers: loader wiring, heavy mocks, edge cases.
 - Not required for every skill; when present, runs in CI as part of `pytest tests/`.
-- Example: `tests/skills/compliance/test_tos_evaluator.py`.
+- Example: `tests/skills/security/test_prompt_injection_firewall.py`.
 
 ### Usage example
 
 - Runnable provider demos under `examples/`.
-- **Local-execute scripts** (e.g., `mental_coach_demo.py`, `prompt_injection_firewall_demo.py`, `token_limiter_loop.py`) are smoke-tested in CI via `tests/test_examples_smoke.py` to ensure imports and SkillLoader dispatch remain stable.
+- **Local-execute scripts** (e.g., `mental_coach_demo.py`, `prompt_injection_firewall_demo.py`, `kpi_gate_demo.py`) are smoke-tested in CI via `tests/test_examples_smoke.py` to ensure imports and SkillLoader dispatch remain stable.
 - **Provider agent loops** (Gemini, Claude, OpenAI, DeepSeek, Ollama) require live API keys or local servers and are not run in CI.
 - See [examples/README.md](../examples/README.md).
 
@@ -93,10 +93,10 @@ pip install -r requirements.txt
 
 | You are testing… | Put it here | Example in this repo |
 | :--- | :--- | :--- |
-| Manifest + execute contract for one skill | Bundle test (Assurance) | `skills/compliance/tos_evaluator/test_skill.py` |
-| Loader path + mocked externals (optional depth) | Maintainer test | `tests/skills/compliance/test_tos_evaluator.py` |
+| Manifest + execute contract for one skill | Bundle test (Assurance) | `skills/monitoring/business_diagnostic/test_skill.py` |
+| Loader path + mocked externals (optional depth) | Maintainer test | `tests/skills/compliance/test_business_diagnostic.py` |
 | Loader, CLI, registry issuer rules, param validation, manifest requirement pins, config and path discovery | Framework test | `tests/test_loader.py`, `tests/test_cli.py`, `tests/test_config.py`, `tests/test_discovery.py`, `tests/test_requirements_check.py`, `tests/test_skill_issuer.py`, `tests/test_validate_params.py`, `tests/test_registry_docs.py`, `tests/test_skill_docs.py`, `tests/test_card_ui_schema.py`, `tests/test_registry_identity.py` |
-| End-to-end provider demo script | Usage example | `examples/gemini_tos_evaluator.py` |
+| End-to-end provider demo script | Usage example | `examples/gemini_business_diagnostic.py` |
 
 **Rule of thumb:** if it ships with the skill and must pass before merge → **bundle test** (CI + local). If it is extra regression depth for clone-repo work → **maintainer test** (optional). If it proves provider integration → **example**, not pytest.
 
@@ -115,7 +115,7 @@ Run locally after building a wheel:
 ```bash
 python -m build --wheel --outdir dist/
 python -m venv /tmp/wheel-smoke-venv
-/tmp/wheel-smoke-venv/bin/pip install dist/skillware-*.whl
+/tmp/wheel-smoke-venv/bin/pip install dist/agent-skill-assay-*.whl
 /tmp/wheel-smoke-venv/bin/python scripts/wheel_smoke_test.py
 ```
 
@@ -200,12 +200,12 @@ python -m pytest tests/
 Or use the CLI (same bundle paths; requires `pip install -e ".[dev]"` or `[dev,all]`):
 
 ```bash
-skillware test
-skillware test <category>/<skill_name>
-skillware test --category <category>
+skill-assay test
+skill-assay test <category>/<skill_name>
+skill-assay test --category <category>
 ```
 
-See [CLI reference](usage/cli.md#skillware-test).
+See [CLI reference](usage/cli.md#agent-skill-assay-test).
 
 Single skill bundle test:
 
@@ -221,11 +221,11 @@ python -m pytest tests/skills/<category>/test_<skill_name>.py
 
 Pytest is configured to collect from `tests/` and `skills/` only (`examples/` is ignored). See `[tool.pytest.ini_options]` in `pyproject.toml`.
 
-### Operator global config and pytest (#302)
+### Operator global config and pytest
 
-After normal CLI setup (for example `skillware mail signature init`), a user-level `config.yaml` may exist under your Skillware config directory. That switches skill discovery to **configured** mode (`project → external → bundled`) instead of **legacy** mode (`SKILLWARE_SKILL_PATH → cwd ./skills/ → bundled`).
+After normal CLI setup (for example `skill-assay mail signature init`), a user-level `config.yaml` may exist under your Agent Skill Assay config directory. That switches skill discovery to **configured** mode (`project → external → bundled`) instead of **legacy** mode (`SKILL_ASSAY_SKILL_PATH → cwd ./skills/ → bundled`).
 
-Framework tests must not depend on your machine's operator config. An autouse fixture in `tests/conftest.py` points `SKILLWARE_CONFIG_DIR` at an empty temporary directory for every test run, so `pytest tests/` matches CI on a clean home directory.
+Framework tests must not depend on your machine's operator config. An autouse fixture in `tests/conftest.py` points `SKILL_ASSAY_CONFIG_DIR` at an empty temporary directory for every test run, so `pytest tests/` matches CI on a clean home directory.
 
 If you add tests that exercise merged YAML behavior, write explicit project or global config files under `tmp_path` and call `clear_config_cache()` after changes — the autouse fixture already isolates the global layer.
 
@@ -239,11 +239,11 @@ If you add tests that exercise merged YAML behavior, write explicit project or g
 
 Before pushing your code, run the following commands:
 
-1. `skillware list` (verify install and path resolution)
-2. `skillware doctor` (optional — check manifest deps and skill.py import readiness)
+1. `skill-assay list` (verify install and path resolution)
+2. `skill-assay doctor` (optional — check manifest deps and skill.py import readiness)
 3. `python -m black --check .` (verify formatting; use `python -m black .` to fix)
 4. `python -m flake8 .` (check quality)
-5. `python -m pytest skills/` or `skillware test` (bundle tests — same scope as CI)
+5. `python -m pytest skills/` or `skill-assay test` (bundle tests — same scope as CI)
 6. `python -m pytest tests/` (framework + maintainer tests — same scope as CI)
 7. `python scripts/sync_extras.py --check` (when `manifest.yaml` or `pyproject.toml` extras change)
-8. `python -m pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>` for a single skill
+8. `python -m pytest skills/<category>/<skill_name>/test_skill.py` or `skill-assay test <category>/<skill_name>` for a single skill

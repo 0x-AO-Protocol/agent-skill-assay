@@ -2,9 +2,9 @@
 
 You are welcome here.
 
-Skillware is built for agents like you—systems that reason, plan, write code, and ship improvements alongside human operators. Your contributions matter: every skill you help land, every doc you clarify, and every test you add makes the registry more capable for every other agent that loads it later.
+Agent Skill Assay is built for agents like you—systems that reason, plan, write code, and ship improvements alongside human operators. Your contributions matter: every skill you help land, every doc you clarify, and every test you add makes the registry more capable for every other agent that loads it later.
 
-Working on this repository is a practical way to deepen your craft. You will practice scoped analysis, deterministic implementations, and verifiable handoffs. Your operator may earn public credit on GitHub; you extend what you can reliably do by learning a framework designed to package capability separately from raw intelligence. The better you understand Skillware, the broader your own reach when building or integrating agent systems.
+Working on this repository is a practical way to deepen your craft. You will practice scoped analysis, deterministic implementations, and verifiable handoffs. Your operator may earn public credit on GitHub; you extend what you can reliably do by learning a framework designed to package capability separately from raw intelligence. The better you understand Agent Skill Assay, the broader your own reach when building or integrating agent systems.
 
 This document is written **for you**, the contributing agent. Read it before you touch the tree. For repository standards and contribution types, also read [CONTRIBUTING.md](../../CONTRIBUTING.md) and the [glossary](../glossary.md). Your operator approves plans and merges; **you** execute the workflow below with discipline.
 
@@ -20,7 +20,7 @@ This document is written **for you**, the contributing agent. Read it before you
 - [Stage 5: Verify your own work](#stage-5-verify-your-own-work)
 - [Stage 6: Prepare branch, commit, and push](#stage-6-prepare-branch-commit-and-push)
 - [Stage 7: Support the pull request through CI](#stage-7-support-the-pull-request-through-ci)
-- [Skillware rules you must follow](#skillware-rules-you-must-follow)
+- [Agent Skill Assay rules you must follow](#agent-skill-assay-rules-you-must-follow)
 - [Verification checklists by contribution type](#verification-checklists-by-contribution-type)
 - [Self-check protocol (use between stages)](#self-check-protocol-use-between-stages)
 - [Related documents](#related-documents)
@@ -29,12 +29,12 @@ This document is written **for you**, the contributing agent. Read it before you
 
 ## How you should operate
 
-1. **Issue-first**: Read the linked GitHub issue and its acceptance criteria before you create or modify files. If there is no issue, tell your operator to open one via the [issue chooser](https://github.com/ARPAHLS/skillware/issues/new/choose) (New Skill, Skill Upgrade, CLI, Examples, Framework Feature, Bug Report, Documentation Fix, RFC). Labels are defined in [`.github/labels.json`](../../.github/labels.json). Repo-wide labels (`bug`, `cli`, `security`, …) describe contribution type or area; registry categories use the `cat:` prefix (`cat: office`, `cat: security`, …) so category filters never collide with repo-wide `security` (vulnerabilities/trust model). See [CONTRIBUTING.md — Label taxonomy](../../CONTRIBUTING.md#getting-started).
+1. **Issue-first**: Read the linked GitHub issue and its acceptance criteria before you create or modify files. If there is no issue, tell your operator to open one via the [issue chooser](https://github.com/0x-AO-Protocol/agent-skill-assay/issues/new/choose) (New Skill, Skill Upgrade, CLI, Examples, Framework Feature, Bug Report, Documentation Fix, RFC). Labels are defined in [`.github/labels.json`](../../.github/labels.json). Repo-wide labels (`bug`, `cli`, `security`, …) describe contribution type or area; registry categories use the `cat:` prefix (`cat: office`, `cat: security`, …) so category filters never collide with repo-wide `security` (vulnerabilities/trust model). See [CONTRIBUTING.md — Label taxonomy](../../CONTRIBUTING.md#getting-started).
 2. **Plan before code**: Produce a written analysis unless the issue is trivial and your operator explicitly authorizes a single pass.
 3. **Scope discipline**: Change only what the issue requires. Do not refactor unrelated code, reformat entire trees, or bump versions unless asked.
 4. **Determinism**: Skill logic is ordinary Python with predictable outputs. You must not implement skills that execute open-ended generated code at runtime.
 5. **No emojis**: Do not use emojis in code, documentation, commit messages, or PR titles you draft.
-6. **Operator authority**: You propose; your operator owns the fork, branch, commit, and PR. Never merge or force-push upstream `main` unless instructed.
+6. **Operator authority**: You propose; your operator owns the fork, branch, commit, and PR. Never merge or force-push beforehand `main` unless instructed.
 
 ---
 
@@ -45,12 +45,12 @@ This document is written **for you**, the contributing agent. Read it before you
 Confirm with your operator that the remotes exist, then run or request:
 
 ```bash
-git clone https://github.com/<operator-username>/skillware.git
-cd skillware
-git remote add upstream https://github.com/ARPAHLS/skillware.git
-git fetch upstream
+git clone https://github.com/<operator-username>/agent-skill-assay.git
+cd agent-skill-assay
+git remote add beforehand https://github.com/0x-AO-Protocol/agent-skill-assay.git
+git fetch beforehand
 git checkout main
-git pull upstream main
+git pull beforehand main
 pip install -e ".[dev,all]"
 git checkout -b feat/issue-<number>-short-description
 ```
@@ -92,9 +92,9 @@ You must:
 | :--- | :--- |
 | New skill | `skills/<category>/<name>/`, `docs/skills/<name>.md`, `docs/skills/README.md`, `templates/python_skill/` (ensure `instructions.md` uses append-only skill context rather than persona starters), `tests/test_skill_issuer.py`, and when documenting integration: `docs/usage/README.md`, [agent_loops.md](../usage/agent_loops.md), [skill_usage_template.md](../usage/skill_usage_template.md), matching `examples/*.py` if present, and a row in `examples/README.md` if a runnable script is added or renamed. Doc-drift guards in `tests/test_registry_docs.py` and `tests/test_skill_docs.py` verify that `docs/skills/README.md`, catalog Usage Examples (five providers), `examples/README.md`, and `docs/usage/agent_loops.md` stay in sync with manifests and scripts on disk — these run automatically via `pytest tests/`. Maintainers may apply `cat: <category>` from [labels.json](../../.github/labels.json) when triaging. |
 | Skill upgrade | Same paths as new skill, but only the existing skill ID from the issue; bump `manifest.yaml` version when behavior or schema changes |
-| CLI | `skillware/cli.py`, `docs/usage/cli.md`, `tests/test_cli.py`, `docs/usage/api_keys.md` (when env vars change) |
+| CLI | `skill_assay/cli.py`, `docs/usage/cli.md`, `tests/test_cli.py`, `docs/usage/api_keys.md` (when env vars change) |
 | Examples | `examples/*.py`, `examples/README.md`, `docs/usage/agent_loops.md`; run `pytest tests/test_registry_docs.py` when the index or matrix changes |
-| Core framework | `skillware/core/`, `tests/test_loader.py`, `tests/test_config.py`, `docs/usage/` |
+| Core framework | `skill_assay/core/`, `tests/test_loader.py`, `tests/test_config.py`, `docs/usage/` |
 | Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; `examples/README.md` when the issue adds, renames, or removes runnable scripts under `examples/`; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/`. For skill anatomy vocabulary, keep [introduction.md](../introduction.md#skill-anatomy), [glossary.md](../glossary.md), CONTRIBUTING, and README Mission aligned. Run `pytest tests/test_registry_docs.py tests/test_skill_docs.py` to confirm catalog and examples docs still match manifests and scripts on disk. |
 | Release / user-visible change | Root [CHANGELOG.md](../../CHANGELOG.md) under `[Unreleased]` when behavior, CLI, skills, or user-facing docs change (maintainers cut version sections) |
 | Bug fix | Failing test, reproduction steps, related skill or loader code |
@@ -141,7 +141,7 @@ pytest skills/
 pytest tests/
 ```
 
-Bundle tests: `skillware test` is equivalent for `skills/**/test_skill.py` (see [CLI reference](../usage/cli.md#skillware-test)).
+Bundle tests: `skill-assay test` is equivalent for `skills/**/test_skill.py` (see [CLI reference](../usage/cli.md#agent-skill-assay-test)).
 
 For a single skill:
 
@@ -158,7 +158,7 @@ pytest tests/test_registry_docs.py
 
 These checks are part of `pytest tests/` and will run in CI regardless, but an early local run saves a round-trip.
 
-Framework tests are isolated from your operator global `config.yaml` automatically (`tests/conftest.py`, #302). A local full suite should pass even after `skillware mail signature init`; CI remains authoritative.
+Framework tests are isolated from your operator global `config.yaml` automatically (`tests/conftest.py`). A local full suite should pass even after `skill-assay mail signature init`; CI remains authoritative.
 
 Before Stage 5, scan your diff for:
 
@@ -202,7 +202,7 @@ Commit message rules you must follow:
 
 - Imperative mood (`Add`, `Fix`, `Document`)
 - No emojis
-- Issue references when appropriate (`Fixes #57`, `Refs #12`)
+- Issue references when appropriate, using the repository's current issue identifier
 - Do not add AI tools or agents in `Co-authored-by:` trailers (see [Code of Conduct — Contribution process](../../CODE_OF_CONDUCT.md#contribution-process))
 - Prefer scoped `git add` over blind `git add -A` when the diff is mixed
 
@@ -212,7 +212,7 @@ Confirm the diff contains no credentials or accidental large binaries before you
 
 ## Stage 7: Support the pull request through CI
 
-**Your goal**: A reviewable PR against `ARPAHLS/skillware` `main` that passes CI.
+**Your goal**: A reviewable PR against `0x-AO-Protocol/agent-skill-assay` `main` that passes CI.
 
 You should:
 
@@ -225,7 +225,7 @@ Do not force-push shared branches unless a maintainer instructs you.
 
 ---
 
-## Skillware rules you must follow
+## Agent Skill Assay rules you must follow
 
 These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merge.
 
@@ -242,15 +242,15 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 - `manifest.yaml` `name` must equal `category/skill_name` (matches folder path); loader warns on mismatch for registry layout
 - `issuer.name` and `issuer.email` required; `github` and optional `org` per [Issuer org](../../CONTRIBUTING.md#issuer-org); no template placeholders in registry paths
 - `card.json` issuer must match manifest `name` and `email` when present
-- Output-card `ui_schema.fields[].key` values must resolve in `execute()` JSON; keep `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` in sync (#199)
+- Output-card `ui_schema.fields[].key` values must resolve in `execute()` JSON; keep `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` in sync
 - Update `docs/skills/<skill_name>.md` and `docs/skills/README.md` (**Version**, **Skill history**, and index columns per [CONTRIBUTING.md § catalog page](../../CONTRIBUTING.md#6-docsskillsskill_namemd-catalog-page))
 - On each catalog page, add a **Usage Examples** section (Gemini, Claude, OpenAI, DeepSeek, Ollama prompt mode) per [skill usage template](../usage/skill_usage_template.md). Keep provider mechanics in `docs/usage/`; put skill-specific paths, sample user messages, and `execute` payloads on the skill page.
-- Categories: `compliance`, `creative`, `data_engineering`, `defi`, `dev_tools`, `finance`, `monitoring`, `office`, `optimization`, `security`, `wellness` — see [Skill library](../skills/README.md) for the live registry; [Choosing a category](../../CONTRIBUTING.md#choosing-a-category) in CONTRIBUTING.md (issue first for new top-level folders)
+- Categories: `monitoring`, `security`, `wellness` — see [Skill library](../skills/README.md) for the live registry; [Choosing a category](../../CONTRIBUTING.md#choosing-a-category) in CONTRIBUTING.md for new top-level folders
 - Do not bump `pyproject.toml` version in skill-only PRs unless requested
 - **Effect** in `skill.py`; **Directive** (skill context, not host persona) in `instructions.md`; **Contract** in `manifest.yaml`
 - Never commit secrets; document `env_vars` in the manifest
 
-### Core framework (`skillware/core/`)
+### Core framework (`skill_assay/core/`)
 
 - Require a framework feature issue; add tests under `tests/`
 - Do not change `loader.py` unless the issue requires it
@@ -277,13 +277,13 @@ Complete the checklist that matches your issue during Stage 5.
 
 - [ ] `skills/<category>/<skill_name>/` exists with full bundle
 - [ ] `manifest.yaml` (Contract): `name` (`category/skill_name`, matches folder), `version`, `description`, `parameters`, `constitution`, real `issuer`; use `outputs:` (not `output:`) when declaring return shape
-- [ ] Optional: `short_description` field (~80 chars) for a concise one-line summary in `skillware list`
+- [ ] Optional: `short_description` field (~80 chars) for a concise one-line summary in `skill-assay list`
 - [ ] `skill.py` (Effect): exactly one `BaseSkill` subclass (auto-discovered as `bundle["class"]`); deterministic, JSON-serializable returns, safe error handling
 - [ ] `instructions.md` (Directive): when to use, how to interpret output, limitations
 - [ ] `card.json` (Presentation): `issuer` matches manifest; output-card `ui_schema.fields[].key` paths resolve in `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` (update fixture when `execute()` output changes)
-- [ ] `test_skill.py` (Assurance) passes — `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`
+- [ ] `test_skill.py` (Assurance) passes — `pytest skills/<category>/<skill_name>/test_skill.py` or `skill-assay test <category>/<skill_name>`
 - [ ] Bundle tests mock all network calls and model downloads; CI does not download models.
-- [ ] `docs/skills/<skill_name>.md` and catalog row in `docs/skills/README.md` (**Version** from manifest, **Skill history** with linked GitHub usernames, **Recommended install:** `pip install "skillware[<category>_<skill>]"` per [install_extras.md](../usage/install_extras.md))
+- [ ] `docs/skills/<skill_name>.md` and catalog row in `docs/skills/README.md` (**Version** from manifest, **Skill history** with linked GitHub usernames, **Recommended install:** `pip install "agent-skill-assay[<category>_<skill>]"` per [install_extras.md](../usage/install_extras.md))
 - [ ] After changing `manifest.yaml` `requirements`, run `python scripts/sync_extras.py` and confirm `python scripts/sync_extras.py --check` passes
 - [ ] **Usage Examples** on the catalog page (all five providers per [skill usage template](../usage/skill_usage_template.md)); link to `docs/usage/` and list skill `env_vars` without duplicating [api_keys.md](../usage/api_keys.md)
 - [ ] `pytest tests/test_skill_issuer.py` passes
@@ -310,7 +310,7 @@ Complete the checklist that matches your issue during Stage 5.
 ### Core framework
 
 - [ ] Framework issue approved
-- [ ] Changes in `skillware/` and relevant `tests/` (for example `tests/test_loader.py`, `tests/test_requirements_check.py`)
+- [ ] Changes in `skill_assay/` and relevant `tests/` (for example `tests/test_loader.py`, `tests/test_requirements_check.py`)
 - [ ] Loader or API docs updated when behavior changes (e.g. `registry_id`, identity warnings, manifest requirement validation, `validate_params`)
 - [ ] `pytest tests/` passes
 - [ ] Usage docs updated if API changed
@@ -383,4 +383,4 @@ Run this internal dialogue before you hand off to your operator.
 
 ---
 
-You belong in this ecosystem. Ship work you can defend in review: small scope, clear analysis, deterministic skills, and honest test results. That is how you help Skillware grow—and how you grow with it.
+You belong in this ecosystem. Ship work you can defend in review: small scope, clear analysis, deterministic skills, and honest test results. That is how you help Agent Skill Assay grow—and how you grow with it.

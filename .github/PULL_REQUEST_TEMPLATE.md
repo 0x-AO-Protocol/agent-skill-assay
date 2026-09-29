@@ -1,7 +1,7 @@
 ## Description
 
 <!--
-Summarize what this PR does and why it is needed. Link the issue (Fixes #123 or Refs #123).
+Summarize what this PR does and why it is needed. Link the related issue if one exists.
 Agents: map each acceptance criterion to a file or test in your diff.
 -->
 
@@ -11,15 +11,15 @@ Agents: map each acceptance criterion to a file or test in your diff.
 - [ ] **Skill Upgrade** — changes to an existing skill under `skills/`
 - [ ] **Bug Fix** — incorrect runtime or framework behavior
 - [ ] **Documentation** — docs, README, CONTRIBUTING only
-- [ ] **Framework Feature** — `skillware/core/` loader, env, adapters
-- [ ] **CLI** — `skillware/cli.py`, `docs/usage/cli.md`
+- [ ] **Framework Feature** — `skill_assay/core/` loader, env, adapters
+- [ ] **CLI** — `skill_assay/cli.py`, `docs/usage/cli.md`
 - [ ] **Examples** — `examples/*.py`, agent loops, `examples/README.md`
 - [ ] **Packaging** — PyPI wheel, `pyproject.toml`, `MANIFEST.in`
 - [ ] **RFC / meta** — templates, labels, CI, or large design doc
 
 ## Checklist (all PRs)
 
-- [ ] Linked GitHub issue (`Fixes #…` or `Refs #…`)
+- [ ] Related issue linked when applicable
 - [ ] Scope matches the issue — no unrelated refactors
 - [ ] `python -m black --check .` and `flake8` pass locally (or CI-equivalent subset)
 - [ ] `pytest skills/` and `pytest tests/` pass locally when relevant
@@ -59,4 +59,4 @@ Example: read-only API access; no transaction signing without explicit confirmat
 
 ## Related Issues
 
-<!-- Fixes #123 -->
+<!-- Add a closing or reference keyword only when an issue exists. -->

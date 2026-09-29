@@ -2,11 +2,11 @@
 
 **Domain:** `security`
 **Skill ID:** `security/prompt_injection_firewall`
-**Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([@ARPAHLS](https://github.com/ARPAHLS), [AO](https://github.com/0x-AO-Protocol)) · **Contact:** masa88keith@gmail.com
+**Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) · **Project contact:** m@orblabs.ch
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 31 Jul 2026
+**Version**: `0.1.0` — 25 Sep 2026
 <!-- skill-doc-meta:end -->
-**Recommended install:** `pip install "skillware[security_prompt_injection_firewall]"`. See [Install extras](../usage/install_extras.md).
+**Recommended install:** `pip install "agent-skill-assay[security_prompt_injection_firewall]"`. See [Install extras](../usage/install_extras.md).
 
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
@@ -25,6 +25,13 @@ Often composed in host chains — for example **`sanitize_input`**. See [Skill c
 5. Instruction-override lexicon families (negation, role reset, exfiltration, hijack, authority, boundary spoof)
 6. Corroboration and mention-vs-use downgrades controlled by `sensitivity`
 
+### Detector IDs
+
+The manifest, instructions, catalog, and test fixtures use this same detector
+set: `hidden_markup`, `invisible_unicode`, `confusable_skeleton`,
+`encoded_payload`, `instruction_lexicon`, `context_mismatch`, and
+`resource_limits`.
+
 ## Bundle layout
 
 The skill lives in `skills/security/prompt_injection_firewall/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
@@ -37,7 +44,9 @@ The skill lives in `skills/security/prompt_injection_firewall/`. [Skill anatomy]
 * `input_mode` (string, optional): `auto` (default), `plain`, `html`, or `markdown`.
 
 **Outputs Schema:**
-* `is_safe` (boolean): `false` when the corroboration rule marks the text unsafe.
+* `is_safe` (boolean): `true` only when the completed scan is safe under the
+  selected profile and has not hit a resource limit or critical exfiltration
+  failure. Profile changes thresholds, never the meaning of safe.
 * `risk_level` (string): Aggregated risk (`none`, `low`, `medium`, `high`, `critical`).
 * `detected_threat` (string): Primary human-readable threat summary when unsafe.
 * `findings` (array): Structured findings with `category`, `channel`, `severity`, `span`, `evidence`, and optional `pattern_id`.
@@ -52,7 +61,7 @@ No environment variables. The scanner is offline-only and does not call cloud AP
 ## Example Usage (Direct)
 
 ```python
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("security/prompt_injection_firewall")
 skill = bundle["class"]()
@@ -86,7 +95,7 @@ Sample user message: *Scan this scraped page text for prompt injection before su
 ### Direct execute
 
 ```python
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("security/prompt_injection_firewall")
 skill = bundle["class"]()
@@ -105,8 +114,8 @@ print(result["is_safe"], result["sanitized_text"])
 import os
 import google.genai as genai
 from google.genai import types
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("security/prompt_injection_firewall")
@@ -148,8 +157,8 @@ for part in response.candidates[0].content.parts:
 ```python
 import os
 import anthropic
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("security/prompt_injection_firewall")
@@ -175,8 +184,8 @@ for block in response.content:
 import json
 import os
 from openai import OpenAI
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("security/prompt_injection_firewall")
@@ -203,8 +212,8 @@ if message.tool_calls:
 import json
 import os
 from openai import OpenAI
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("security/prompt_injection_firewall")
@@ -232,7 +241,7 @@ if message.tool_calls:
 
 ```python
 import json
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("security/prompt_injection_firewall")
 skill = bundle["class"]()
@@ -251,7 +260,7 @@ print(json.dumps(result, indent=2))
 ```
 ## Notes
 
-Companion to `compliance/pii_masker`: run PII masking and prompt-injection scanning at the same trust boundary before cloud model calls.
+Companion to `security/prompt_injection_firewall`: run PII masking and prompt-injection scanning at the same trust boundary before cloud model calls.
 
 To run tests specifically for this skill:
 
@@ -264,16 +273,6 @@ pytest skills/security/prompt_injection_firewall/test_skill.py
 <!-- skill-history:begin -->
 ## Skill history
 
-Commits that touched this skill bundle or its catalog page ([`security/prompt_injection_firewall`](https://github.com/ARPAHLS/skillware/tree/main/skills/security/prompt_injection_firewall)).
-
-| Commit | Description | Date | Version | Contributors |
-| :--- | :--- | :--- | :--- | :--- |
-| [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
-| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
-| [`4096824`](https://github.com/ARPAHLS/skillware/commit/4096824fbaeb87a2b48a90d1ba2bec29cf3a1766) | docs: document issuer.org policy and align ARPA-driven registry skills (#295) (#316) | 28 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
-| [`1071c08`](https://github.com/ARPAHLS/skillware/commit/1071c08) | Add security/prompt_injection_firewall skill (#267) | 31 Jul 2026 | `0.1.0` | [@mrmasa88](https://github.com/mrmasa88) |
+The public v0.1 page records the current AO release. Source provenance is
+maintained in the private source-of-record archive.
 <!-- skill-history:end -->
-
-## Enterprise disclaimer
-
-This skill is provided for demonstration and integration purposes. It is intended as a starting point that you can adapt to your own threat model, datasets, and operational requirements. For an enterprise-grade version with dedicated support, SLAs, and customization, contact skills@arpacorp.net.

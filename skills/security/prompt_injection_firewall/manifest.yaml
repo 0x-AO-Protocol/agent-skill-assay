@@ -5,11 +5,30 @@ description: >
   hidden HTML payloads, invisible Unicode smuggling, confusable evasion, nested encodings,
   and instruction override attempts before untrusted text reaches an LLM.
 short_description: "Offline prompt-injection firewall with local detectors and sanitization."
+detectors:
+  - hidden_markup
+  - invisible_unicode
+  - confusable_skeleton
+  - encoded_payload
+  - instruction_lexicon
+  - context_mismatch
+  - resource_limits
 issuer:
   name: Masa
   email: masa88keith@gmail.com
   github: mrmasa88
-  org: ARPAHLS, AO
+  org: AO
+trust_tier: L0
+provenance:
+  source: agent-skill-assay-sources@406444f51930aabffd1da9a9fb3b5f58b85a3415:skills/security/prompt_injection_firewall
+  content_sha256: 02781c0d502d4a4116c7e9067f27d7a88284cefd30793c8ae98c9fb0a616d1c1
+  ported_on: "2026-09-25"
+economic_effect:
+  claim: "Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption."
+  baseline_task: "The same task performed by an LLM agent without this skill (prompt-only)."
+  metric: "LLM tokens (input + output) per task run."
+  method: "Run the skill's reference fixtures through (a) the baseline agent and (b) the same agent calling the skill; publish the median tokens per run for both and the reduction."
+norm_version: norms-1.0.0
 category: security
 parameters:
   type: object
@@ -39,7 +58,11 @@ parameters:
 outputs:
   is_safe:
     type: boolean
-    description: False when the corroboration rule marks the text unsafe at the chosen sensitivity.
+    description: >
+      True only when the completed scan finds no profile-independent resource
+      limit or critical exfiltration failure and the selected sensitivity
+      profile does not mark the findings unsafe. Profile changes thresholds,
+      never the meaning of safe.
   risk_level:
     type: string
     description: Aggregated risk level (none, low, medium, high, critical).

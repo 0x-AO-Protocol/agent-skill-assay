@@ -8,7 +8,7 @@ body:
       value: |
         Use this for **existing** skills under `skills/<category>/<name>/` — new actions, data updates, manifest version bumps, test expansion.
 
-        For credential-heavy skills (e.g. `office/gmail_handler`, `defi/evm_tx_handler`), mention env vars, dry-run behavior, and confirmation gates in the issue body.
+        For credential-heavy skills, mention env vars, dry-run behavior, and confirmation gates in the issue body.
 
         For a **new** registry skill, use **New Skill Proposal** instead.
 
@@ -17,7 +17,7 @@ body:
     attributes:
       label: Skill ID
       description: Full registry ID
-      placeholder: office/gmail_handler
+      placeholder: monitoring/kpi_gate
     validations:
       required: true
 

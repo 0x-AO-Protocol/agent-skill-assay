@@ -1,6 +1,6 @@
 """Deterministic business-KPI gate: {metrics, policy, benchmarks?} -> findings[].
 
-Implements the interface frozen in ARPAHLS/skillware issue #317. Validation is
+Implements the published v0.1 interface. Validation is
 fail-closed and runs in four stages: (1) strict stdlib schema checks on all
 three inputs, (2) cross-checks between inputs, (3) honesty floors, and
 (4) rule evaluation in declared order. Contract violations return an error
@@ -18,11 +18,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
-from skillware.core.base_skill import BaseSkill
+from skill_assay.core.base_skill import BaseSkill
 
 REGISTRY_ID = "monitoring/kpi_gate"
 
-# Closed error registry: contract violations only. These codes are the skill's
+# Finite error registry: contract violations only. These codes are the skill's
 # identity and never change per operator.
 INVALID_METRICS_SCHEMA = "INVALID_METRICS_SCHEMA"
 INVALID_POLICY_SCHEMA = "INVALID_POLICY_SCHEMA"
@@ -478,7 +478,7 @@ def _evaluate_rules(
                 )
                 continue
             if metric_values[denominator] < requires["min_denominator"]:
-                # Canonical refusal shape pinned by the #317 output contract.
+                # Canonical refusal shape for the published output contract.
                 findings.append(_insufficient(metric, floor_reason))
                 continue
 
@@ -497,7 +497,7 @@ def _evaluate_rules(
         }
         if "applies_to" in rule["check"]:
             # Reserved in v1: shape-validated and echoed, no evaluation
-            # semantics (issue #317 scope).
+            # semantics are intentionally inert in v0.1.
             detail["applies_to"] = list(rule["check"]["applies_to"])
         severity = rule["severity"]
         findings.append(

@@ -12,7 +12,7 @@ from pathlib import Path
 
 import yaml
 
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 
 def _bundle_dir(module) -> Path:

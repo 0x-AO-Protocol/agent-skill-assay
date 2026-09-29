@@ -1,6 +1,6 @@
-# Skillware Vision
+# Agent Skill Assay Vision
 
-Skillware is an open registry and Python framework for **installable agent capabilities**. A Skill is not a prompt snippet or a server spec. It is a self-contained bundle: executable logic, instructions for the model, safety rules, and a schema any supported LLM can call. You install know-how the same way you install libraries with `pip`.
+Agent Skill Assay is an open registry and Python framework for **installable agent capabilities**. A Skill is not a prompt snippet or a server spec. It is a self-contained bundle: executable logic, instructions for the model, safety rules, and a schema any supported LLM can call. You install know-how the same way you install libraries with `pip`.
 
 This page is the long-form story behind the project. For a scannable overview, start with [README.md](../README.md). For technical contrasts with MCP, LangChain, and similar approaches, see [COMPARISON.md](../COMPARISON.md).
 
@@ -10,11 +10,11 @@ This page is the long-form story behind the project. For a scannable overview, s
 
 Every new agent project used to mean rewriting tool definitions, system prompts, and safety checks from scratch. The same wallet check, PDF parser, or data pipeline showed up again under different names, tied to one model API or one framework.
 
-We wanted something closer to how operating systems ship software. `apt-get` installs packages. `pip` installs libraries. **Skillware installs capability.** One bundle works across Gemini, Claude, OpenAI, DeepSeek, and Ollama because the loader adapts manifests at runtime instead of locking you to one vendor.
+We wanted something closer to how operating systems ship software. `apt-get` installs packages. `pip` installs libraries. **Agent Skill Assay installs capability.** One bundle works across Gemini, Claude, OpenAI, DeepSeek, and Ollama because the loader adapts manifests at runtime instead of locking you to one vendor.
 
 That decoupling matters in practice. Teams can swap models without rewriting tools. Open source contributors can ship a skill once and have it run everywhere the loader supports. Operators keep governance and attribution in the bundle instead of scattered across prompts.
 
-For a longer argument against markdown-only skill files, see the essay [*skills.md is Dead: Why Your Agents Need Skillware*](https://dev.to/arpa/skillsmd-is-dead-why-your-agents-need-skillware-2g59) (extended reading).
+For background on the bundle model, see [Introduction](introduction.md).
 
 ---
 
@@ -24,7 +24,7 @@ Markdown instructions and web search can describe a task. They cannot guarantee 
 
 Prompt-only flows burn context reading rules, then ask the model to invent code on every run. That is slow, expensive, and hard to audit. Web search adds latency and misses signals that live in structured data or on-chain history.
 
-Skillware bundles **deterministic Python**, **local datasets**, **tests**, and **governance** in one installable unit. The model decides *when* to call a skill. The skill decides *how* the work runs. Results are repeatable. Boundaries are written down in `manifest.yaml` and enforced in code.
+Agent Skill Assay bundles **deterministic Python**, **local datasets**, **tests**, and **governance** in one installable unit. The model decides *when* to call a skill. The skill decides *how* the work runs. Results are repeatable. Boundaries are written down in `manifest.yaml` and enforced in code.
 
 That split is the difference between a demo and something you can ship. Instructions alone leave execution quality to the model's mood that day. A skill gives you the same JSON shape, the same error handling, and the same audit trail on run one and run one thousand.
 
@@ -34,18 +34,18 @@ That split is the difference between a demo and something you can ship. Instruct
 
 Consider screening an Ethereum wallet for sanctions exposure and risky counterparties. That is not a single API call. It is layered work: load OFAC and related lists, scan transaction history, flag mixer or drainer interactions, score risk, and return a structured report the model can summarize.
 
-The [`finance/wallet_screening`](../skills/finance/wallet_screening/) skill packages all of that. Bundled JSON datasets sit beside the Python runner. Optional Etherscan access enriches live chain data. The agent receives a tool schema plus `instructions.md` that teach it how to interpret the JSON verdict.
+The [`monitoring/kpi_gate`](../skills/monitoring/kpi_gate/) skill packages all of that. Bundled JSON datasets sit beside the Python runner. Optional Etherscan access enriches live chain data. The agent receives a tool schema plus `instructions.md` that teach it how to interpret the JSON verdict.
 
-Multi-layer screening runs locally in one `execute()` call. No generated scraper. No ad-hoc script the model wrote five minutes ago. For skill-level detail, see [wallet_screening.md](skills/wallet_screening.md). For how this task compares to prompts, MCP, or enterprise APIs, see the [wallet screening table](../COMPARISON.md#wallet-screening-same-task-different-approaches) in [COMPARISON.md](../COMPARISON.md).
+Multi-layer screening runs locally in one `execute()` call. No generated scraper. No ad-hoc script the model wrote five minutes ago. For skill-level detail, see [kpi_gate.md](skills/kpi_gate.md). For how this task compares to prompts, MCP, or enterprise APIs, see the [wallet screening table](../COMPARISON.md#wallet-screening-same-task-different-approaches) in [COMPARISON.md](../COMPARISON.md).
 
 ---
 
 ## Built for agents
 
-Skillware is designed so agents and their operators can discover, vet, and integrate capabilities without reinventing the wheel.
+Agent Skill Assay is designed so agents and their operators can discover, vet, and integrate capabilities without reinventing the wheel.
 
 - **Manifests** declare inputs, outputs, dependencies, and constitution in `manifest.yaml`.
-- **`skillware list`**, **`skillware paths`**, **`skillware config show`**, **`skillware doctor`**, **`skillware examples`** / **`skillware list --examples`**, and **`skillware test`** (CLI) surface the local registry, path tiers, merged config, load readiness, the runnable example index, and bundle tests.
+- **`skill-assay list`**, **`skill-assay paths`**, **`skill-assay config show`**, **`skill-assay doctor`**, **`skill-assay examples`** / **`skill-assay list --examples`**, and **`skill-assay test`** (CLI) surface the local registry, path tiers, merged config, load readiness, the runnable example index, and bundle tests.
 - **[Examples index](../examples/README.md)** maps runnable provider scripts to skills.
 - **[Usage guides](usage/README.md)** show the same load / tool-call / execute loop for Gemini, Claude, OpenAI, DeepSeek, and Ollama.
 - **[Agent contribution workflow](contributing/ai_native_workflow.md)** documents how supervised agents propose scoped changes and open PRs.
@@ -58,7 +58,7 @@ New contributors should not need to reverse-engineer the repo to find the right 
 
 ## Roadmap in four phases
 
-Skillware follows one thread: modular capability you can install, trust, and extend across models, machines, and people.
+Agent Skill Assay follows one thread: modular capability you can install, trust, and extend across models, machines, and people.
 
 ### v0: Modular Agent Skills
 
@@ -66,7 +66,7 @@ Skillware follows one thread: modular capability you can install, trust, and ext
 
 **In short:** A public registry, a stable loader, model adapters, tests, and docs. Install a skill and call it from any major LLM runtime. **You are here** (v0.4.x).
 
-**Example:** Your agent runs `pip install skillware`, loads a Terms-of-Service evaluator skill, then visits a site or ingests a document. It follows the skill's constitution and logic immediately: what to extract, what to flag, what never to scrape or store. No extra prompt engineering, no one-off tools, no separate subscription stack. The capability ships as one bundle.
+**Example:** Your agent runs `pip install agent-skill-assay`, loads a Terms-of-Service evaluator skill, then visits a site or ingests a document. It follows the skill's constitution and logic immediately: what to extract, what to flag, what never to scrape or store. No extra prompt engineering, no one-off tools, no separate subscription stack. The capability ships as one bundle.
 
 ---
 
@@ -106,16 +106,16 @@ Honest snapshot for **v0** (current v0.4.x line):
 
 - **Registry**: Skills under `skills/` with docs in [docs/skills/](skills/README.md).
 - **Loader**: Dynamic import, auto-discovered `bundle["class"]`, dependency checks, and adapters for major LLM tool formats.
-- **CLI**: `skillware list`, `skillware paths`, `skillware config show`, `skillware doctor`, `skillware test`, and an interactive menu (paths editor, grouped help), included with `pip install skillware`. Without a config file, resolution stays legacy (external → project → bundled); with `.skillware.yaml`, default order is project → external → bundled — bundled registry skills are always on, even with no local `skills/` folder. Use `skillware list --examples` and `skillware examples` to browse the runnable script index from the terminal.
+- **CLI**: `skill-assay list`, `skill-assay paths`, `skill-assay config show`, `skill-assay doctor`, `skill-assay test`, and an interactive menu (paths editor, grouped help), included with `pip install agent-skill-assay`. Without a config file, resolution stays legacy (external → project → bundled); with `.skill-assay.yaml`, default order is project → external → bundled — bundled registry skills are always on, even with no local `skills/` folder. Use `skill-assay list --examples` and `skill-assay examples` to browse the runnable script index from the terminal.
 - **Active work**: Contributor docs, registry integrity guards, and good first issues across docs and framework.
 
-Browse [open good first issues](https://github.com/ARPAHLS/skillware/issues?q=is%3Aopen+label%3A%22good+first+issue%22) if you want a low-risk entry point.
+Browse [open good first issues](https://github.com/0x-AO-Protocol/agent-skill-assay/issues?q=is%3Aopen+label%3A%22good+first+issue%22) if you want a low-risk entry point.
 
 ---
 
 ## Join us
 
-Skillware is community-built. We welcome human contributors and **supervised agents** following the same standards: small PRs, tests where they matter, no emojis in project prose, and honest issue links.
+Agent Skill Assay is community-built. We welcome human contributors and **supervised agents** following the same standards: small PRs, tests where they matter, no emojis in project prose, and honest issue links.
 
 - **[CONTRIBUTING.md](../CONTRIBUTING.md)** — fork, branch, skill standard, pull request process.
 - **[Agent Contribution Workflow](contributing/ai_native_workflow.md)** — how operators and agents ship reviewable work.

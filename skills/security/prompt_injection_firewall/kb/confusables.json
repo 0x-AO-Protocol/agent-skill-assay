@@ -4,8 +4,8 @@
     "skill": "security/prompt_injection_firewall",
     "purpose": "Local subset of Unicode TR39 confusable mappings for Latin-lookalike skeletons.",
     "version": "0.2",
-    "source": "skillware-authored subset inspired by UTS #39; not a verbatim import",
-    "license_note": "All mappings are skillware-authored lookalike pairs; no verbatim third-party confusables corpus import."
+    "source": "agent-skill-assay-authored subset inspired by UTS #39; not a verbatim import",
+    "license_note": "All mappings are agent-skill-assay-authored lookalike pairs; no verbatim third-party confusables corpus import."
   },
   "mappings": {
     "а": "a",

@@ -1,4 +1,4 @@
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 
 def run_demo():

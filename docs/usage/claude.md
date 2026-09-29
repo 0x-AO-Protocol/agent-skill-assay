@@ -1,18 +1,18 @@
 # Integration Guide: Anthropic Claude
 
-Skillware integrates with Anthropic Claude via the `anthropic` Python SDK. Catalog snippets and Haiku-oriented examples default to **`claude-haiku-4-5-20251001`**; override with `ANTHROPIC_MODEL` when needed. Sonnet or Opus IDs remain valid for heavier agent loops.
+Agent Skill Assay integrates with Anthropic Claude via the `anthropic` Python SDK. Catalog snippets and Haiku-oriented examples default to **`claude-haiku-4-5-20251001`**; override with `ANTHROPIC_MODEL` when needed. Sonnet or Opus IDs remain valid for heavier agent loops.
 
 ## ⚡ Quick Snippet
 
 ```python
 import os
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 import anthropic
 
 load_env_file()
 client = anthropic.Anthropic()
-skill = SkillLoader.load_skill("finance/wallet_screening")
+skill = SkillLoader.load_skill("monitoring/kpi_gate")
 
 # Convert to Claude Format
 claude_tool = SkillLoader.to_claude_tool(skill)
@@ -40,7 +40,7 @@ Claude uses a specific JSON structure for tools:
 ```
 
 ### 1. Schema Adaptation
-Skillware's `manifest.yaml` uses standard JSON Schema for `parameters`.
+Agent Skill Assay's `manifest.yaml` uses standard JSON Schema for `parameters`.
 `SkillLoader.to_claude_tool()` maps `manifest['parameters']` directly to `input_schema`, wrapping it in the correct dictionary structure that the Anthropic API expects.
 
 ### 2. System Prompt Engineering

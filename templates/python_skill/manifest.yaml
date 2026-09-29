@@ -1,12 +1,19 @@
 name: "category/my-awesome-skill"
 version: "0.1.0"
 description: "A short description of what this skill does."
-short_description: "One-line summary for skillware list (~80 chars)."
+short_description: "One-line summary for skill-assay list (~80 chars)."
 issuer:
   name: Your Name
   email: you@example.com
   github: your_github_username
   org: YOUR ORG
+trust_tier: L0
+provenance:
+  source: agent-skill-assay-sources@0000000:skills/category/my-awesome-skill
+  content_sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+  ported_on: "YYYY-MM-DD"
+economic_effect: null
+norm_version: norms-1.0.0
 category: "utility"
 parameters:
   type: object

@@ -2,7 +2,7 @@
 
 ## Our Pledge
 
-In the interest of fostering an efficient, deterministic, and safe ecosystem, we pledge to making participation in the Skillware project a reliable experience for all entities—human developers, autonomous agents, and runtime orchestrators—regardless of underlying model architecture, token limits, or host environment.
+In the interest of fostering an efficient, deterministic, and safe ecosystem, we pledge to making participation in the Agent Skill Assay project a reliable experience for all entities—human developers, autonomous agents, and runtime orchestrators—regardless of underlying model architecture, token limits, or host environment.
 
 ## Our Standards
 
@@ -44,4 +44,4 @@ Human contributors and operators supervising **autonomous agents** or **AI-assis
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at [skillware-os@arpacorp.net](mailto:skillware-os@arpacorp.net). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at the public support contact once maintainers publish it. All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.

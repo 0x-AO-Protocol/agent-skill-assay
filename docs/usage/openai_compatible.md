@@ -2,7 +2,7 @@
 
 Many model hosts accept the OpenAI Chat Completions `tools` schema. With those
 hosts, use `SkillLoader.to_openai_tool()` and configure the OpenAI client with
-the host's API key and `base_url`. A separate Skillware adapter is not needed
+the host's API key and `base_url`. A separate Agent Skill Assay adapter is not needed
 just because the model or vendor name is different.
 
 Compatibility is host- and model-specific. Before relying on a model, confirm
@@ -11,7 +11,7 @@ then use the model ID published by that host.
 
 ## Choose the adapter
 
-| Situation | Skillware adapter | Guide |
+| Situation | Agent Skill Assay adapter | Guide |
 | :--- | :--- | :--- |
 | OpenAI or a host that accepts the OpenAI `tools` schema | `to_openai_tool()` | This guide and [OpenAI](openai.md) |
 | DeepSeek's first-party API | `to_deepseek_tool()` | [DeepSeek](deepseek.md) |
@@ -33,12 +33,12 @@ import os
 
 from openai import OpenAI
 
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 
-bundle = SkillLoader.load_skill("compliance/tos_evaluator")
+bundle = SkillLoader.load_skill("monitoring/business_diagnostic")
 tool = SkillLoader.to_openai_tool(bundle)
 
 client = OpenAI(

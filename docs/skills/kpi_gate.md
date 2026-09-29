@@ -2,17 +2,17 @@
 
 **Domain:** `monitoring`
 **Skill ID:** `monitoring/kpi_gate`
-**Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol))
+**Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) · **Project contact:** m@orblabs.ch
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.0` — 29 Aug 2026
 <!-- skill-doc-meta:end -->
-**Recommended install:** `pip install "skillware[monitoring_kpi_gate]"`. See [Install extras](../usage/install_extras.md).
+**Recommended install:** `pip install "agent-skill-assay[monitoring_kpi_gate]"`. See [Install extras](../usage/install_extras.md).
 
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
-Deterministic **business-KPI gate**: `{metrics, policy, benchmarks?}` → `findings[]`. A metrics snapshot (JSON) is evaluated against an operator-maintained policy charter (versioned YAML) and optional versioned benchmark data, returning findings with two severities (`error`, `warning`) and one honest third state (`insufficient_data` with reason codes). Strict schemas on all three inputs, a closed rule set, and fail-closed contract errors from a closed registry. `execute()` is a pure function: no network, no side effects, identical input → identical output. Interface frozen in [issue #317](https://github.com/ARPAHLS/skillware/issues/317).
+Deterministic **business-KPI gate**: `{metrics, policy, benchmarks?}` → `findings[]`. A metrics snapshot (JSON) is evaluated against an operator-maintained policy charter (versioned YAML) and optional versioned benchmark data, returning findings with two severities (`error`, `warning`) and one honest third state (`insufficient_data` with reason codes). Strict schemas on all three inputs, a closed rule set, and fail-closed contract errors from a closed registry. `execute()` is a pure function: no network, no side effects, identical input → identical output. The v0.1 interface is defined by this bundle.
 
-Where [`monitoring/token_limiter`](token_limiter.md) covers resource-side monitoring, this skill adds business-metric monitoring to the category. It is an **auditor, not a data pipeline**: the snapshot is assembled upstream (exports, scripts, dashboards, or an agent that already gathered counts); the skill never fetches CRM, email, or analytics data.
+Where [`monitoring/kpi_gate`](kpi_gate.md) covers resource-side monitoring, this skill adds business-metric monitoring to the category. It is an **auditor, not a data pipeline**: the snapshot is assembled beforehand (exports, scripts, dashboards, or an agent that already gathered counts); the skill never fetches CRM, email, or analytics data.
 
 > **Skill chains:** Run after ingest or middleware steps in host-defined order — see [Skill chaining](../usage/skill_chaining.md).
 
@@ -84,14 +84,14 @@ No environment variables. Fully offline; all inputs are passed to `execute()`.
 
 ## Example Usage (Direct)
 
-The bundle ships the end-to-end example frozen in #317 (`fixtures/example_snapshot.json`, `fixtures/example_charter.yaml`, `kb/benchmarks_demo.json` — all values synthetic):
+The bundle ships a synthetic end-to-end example (`fixtures/example_snapshot.json`, `fixtures/example_charter.yaml`, `kb/benchmarks_demo.json`):
 
 ```python
 import json
 import os
 
 import yaml
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("monitoring/kpi_gate")
 skill = bundle["class"]()
@@ -156,8 +156,8 @@ USER_MESSAGE = (
 ```python
 import google.genai as genai
 from google.genai import types
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("monitoring/kpi_gate")
@@ -184,8 +184,8 @@ for part in response.candidates[0].content.parts:
 import os
 
 import anthropic
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("monitoring/kpi_gate")
@@ -212,8 +212,8 @@ import json
 import os
 
 from openai import OpenAI
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("monitoring/kpi_gate")
@@ -242,8 +242,8 @@ import json
 import os
 
 from openai import OpenAI
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("monitoring/kpi_gate")
@@ -273,7 +273,7 @@ if message.tool_calls:
 ```python
 import json
 
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("monitoring/kpi_gate")
 skill = bundle["class"]()
@@ -291,25 +291,17 @@ print(json.dumps(result, indent=2))
 
 ## Limitations (v1)
 
-- **No data acquisition**: the snapshot must be assembled upstream; the skill never fetches, scrapes, or polls anything.
+- **No data acquisition**: the snapshot must be assembled beforehand; the skill never fetches, scrapes, or polls anything.
 - **No causal inference**: findings report threshold breaches, not why they happened.
 - **No threshold optimization**: thresholds come from the charter and benchmarks; the skill never tunes them.
-- Derived-ratio metrics are declared and computed upstream like any other metric; the honesty floor (`requires.min_denominator`) gates them either way. Structured entity input is a possible v1.1 extension.
-- `applies_to` is reserved (see above); a pricing-validation sibling and ledger-driven benchmark revisions are deferred per #317.
+- Derived-ratio metrics are declared and computed beforehand like any other metric; the honesty floor (`requires.min_denominator`) gates them either way. Structured entity input is a possible v1.1 extension.
+- `applies_to` is reserved (see above); future policy extensions should preserve the current contract.
 
 ---
 
 <!-- skill-history:begin -->
 ## Skill history
 
-Commits that touched this skill bundle or its catalog page ([`monitoring/kpi_gate`](https://github.com/ARPAHLS/skillware/tree/main/skills/monitoring/kpi_gate)).
-
-| Commit | Description | Date | Version | Contributors |
-| :--- | :--- | :--- | :--- | :--- |
-| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
-| [`0d01991`](https://github.com/ARPAHLS/skillware/commit/0d019913ad7b87ad5447b564133bb03b270237d9) | Add monitoring/kpi_gate v0.1.0 implementing the issue #317 interface (#318) | 1 Sep 2026 | `0.1.0` | [@mrmasa88](https://github.com/mrmasa88) |
+The public v0.1 page records the current AO release. Source provenance is
+maintained in the private source-of-record archive.
 <!-- skill-history:end -->
-
-## Enterprise disclaimer
-
-This skill is provided for demonstration and integration purposes. It is intended as a starting point that you can adapt to your own metrics, charters, and operational requirements. For an enterprise-grade version of this skill with dedicated support, SLAs, and customization, contact skills@arpacorp.net.

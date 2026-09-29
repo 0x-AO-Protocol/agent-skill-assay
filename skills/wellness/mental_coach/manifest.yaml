@@ -9,6 +9,17 @@ issuer:
   email: masa88keith@gmail.com
   github: mrmasa88
   org: AO
+trust_tier: L0
+provenance:
+  source: agent-skill-assay-sources@de1c6b0880c90cd4cc6ed2b314b268187a1b4bd6:skills/wellness/mental_coach
+  content_sha256: ba14a923c40fc4312fa527e4e8db5ffd5f6963b7386857399d3b3f3631ce9888
+  ported_on: "2026-09-25"
+economic_effect:
+  claim: "Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption."
+  baseline_task: "The same task performed by an LLM agent without this skill (prompt-only)."
+  metric: "LLM tokens (input + output) per task run."
+  method: "Run the skill's reference fixtures through (a) the baseline agent and (b) the same agent calling the skill; publish the median tokens per run for both and the reduction."
+norm_version: norms-1.0.0
 category: wellness
 parameters:
   type: object

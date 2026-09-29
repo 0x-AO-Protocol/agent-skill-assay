@@ -1,17 +1,17 @@
-"""Tests for skillware.chains."""
+"""Tests for skill_assay.chains."""
 
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from skillware.chains import (
+from skill_assay.chains import (
     ChainDefinition,
     ChainStep,
     ChainValidationError,
     run_chain,
     validate_chain,
 )
-from skillware.core.chains_config import StepWhen
+from skill_assay.core.chains_config import StepWhen
 
 
 def _sanitize_chain() -> ChainDefinition:
@@ -25,7 +25,7 @@ def _sanitize_chain() -> ChainDefinition:
                 map_out={"sanitized_text": "next.raw_text"},
             ),
             ChainStep(
-                skill="optimization/prompt_rewriter",
+                skill="wellness/mental_coach",
                 when=StepWhen(prior_step="scan", field="is_safe", equals=True),
             ),
         ),
@@ -56,7 +56,7 @@ def test_run_chain_dry_run():
 
 
 def test_run_chain_skips_rewriter_when_unsafe():
-    with patch("skillware.chains.SkillLoader.load_skill") as load_skill:
+    with patch("skill_assay.chains.SkillLoader.load_skill") as load_skill:
         mock_skill = MagicMock()
         mock_skill.validate_params.return_value = True
         mock_skill.execute.return_value = {
@@ -78,7 +78,7 @@ def test_run_chain_skips_rewriter_when_unsafe():
 
 
 def test_run_chain_runs_rewriter_when_safe():
-    with patch("skillware.chains.SkillLoader.load_skill") as load_skill:
+    with patch("skill_assay.chains.SkillLoader.load_skill") as load_skill:
         firewall = MagicMock()
         firewall.validate_params.return_value = True
         firewall.execute.return_value = {
@@ -87,7 +87,7 @@ def test_run_chain_runs_rewriter_when_safe():
         }
         rewriter = MagicMock()
         rewriter.validate_params.return_value = True
-        rewriter.execute.return_value = {"compressed_text": "clean"}
+        rewriter.execute.return_value = {"policy_status": "clean"}
 
         def _load(skill_id, **kwargs):
             if skill_id.startswith("security/"):
@@ -108,7 +108,7 @@ def test_run_chain_runs_rewriter_when_safe():
         )
     assert result.status == "ok"
     assert result.steps[1].status == "ok"
-    assert result.final == {"compressed_text": "clean"}
+    assert result.final == {"policy_status": "clean"}
 
 
 def test_validate_chain_bad_prior_step():
@@ -116,7 +116,7 @@ def test_validate_chain_bad_prior_step():
         name="bad",
         steps=(
             ChainStep(
-                skill="optimization/prompt_rewriter",
+                skill="security/prompt_injection_firewall",
                 when=StepWhen(prior_step="missing", field="x", equals=True),
             ),
         ),

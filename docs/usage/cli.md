@@ -1,14 +1,14 @@
 # CLI Reference
 
-Skillware ships a `skillware` command-line tool for discovering and inspecting
+Agent Skill Assay ships a `skill-assay` command-line tool for discovering and inspecting
 skills installed locally. It mirrors the same path resolution order used by
 `SkillLoader.load_skill()`, so the skills listed are exactly the ones your
 agent can load.
 
 ## Splash
 
-The interactive CLI opens with a gradient-styled **SKILLWARE** ASCII logo, a
-version tagline, and footer links. The block art (from `skillware/cli.py`):
+The interactive CLI opens with a gradient-styled **SKILL ASSAY** ASCII logo, a
+version tagline, and footer links. The block art (from `skill_assay/cli.py`):
 
 ```text
   ███████╗██╗  ██╗██╗██╗     ██╗     ██╗    ██╗ █████╗ ██████╗ ███████╗
@@ -19,87 +19,84 @@ version tagline, and footer links. The block art (from `skillware/cli.py`):
   ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
 ```
 
-Tagline: `Skillware v{version} — Skill Management Framework`. Gradient colors
+Tagline: `Agent Skill Assay v{version} — Skill Management Framework`. Gradient colors
 follow the active [color theme](#color-themes). See
 [Interactive menu](#interactive-menu) for a terminal screenshot.
 
 ## Installation
 
-Install Skillware — `rich` is included as a core dependency:
+Install Agent Skill Assay — `rich` is included as a core dependency:
 
-    pip install skillware
+    pip install agent-skill-assay
 
 ## Running the CLI
 
-After installation, the `skillware` command is available directly:
+After installation, the `skill-assay` command is available directly:
 
-    skillware
-    skillware list
-    skillware doctor
-    skillware config show
-    skillware context show
-    skillware chain list
-    skillware theme ocean
-    skillware mail addressbook show
-    skillware test
-    skillware examples
-    skillware --version
+    agent-skill-assay
+    skill-assay list
+    skill-assay doctor
+    skill-assay config show
+    skill-assay context show
+    skill-assay chain list
+    skill-assay theme ocean
+    skill-assay mail addressbook show
+    skill-assay test
+    skill-assay examples
+    agent-skill-assay --version
 
-If `skillware` is not recognized, Python's `Scripts` directory may not be on
+If `skill-assay` is not recognized, Python's `Scripts` directory may not be on
 your PATH.
 
 **Unix** — verify with:
 
-    which skillware
+    which agent-skill-assay
 
 **Windows** — verify with:
 
-    where skillware
+    where agent-skill-assay
 
 If the command is not found, use the module fallback (works on any OS as long
 as Python is installed):
 
-    python -m skillware
-    python -m skillware list
-    python -m skillware test finance/wallet_screening
-    python -m skillware doctor optimization/prompt_rewriter
-    python -m skillware list --category compliance
-    python -m skillware --help
+    python -m skill_assay
+    python -m skill_assay list
+    python -m skill_assay test monitoring/kpi_gate
+    python -m skill_assay doctor wellness/mental_coach
+    python -m skill_assay list --category compliance
+    python -m skill_assay --help
 
 **Windows PATH fix** — add both `Python3x\` and `Python3x\Scripts\` to your
 system PATH, or use the `py` launcher:
 
-    py -3 -m pip install skillware
-    py -3 -m skillware list
+    py -3 -m pip install agent-skill-assay
+    py -3 -m skill-assay list
 
 ## Version advisory
 
-On CLI startup, Skillware checks the installed package version **once per process**.
-If you are on an **unsupported** release (below `0.3.5`, for example `0.3.4` or `0.2.9`), a single
-dim message is printed to stderr suggesting an upgrade to `>= 0.4.7`. Installs in the
-`0.3.5`–`0.4.6` band stay silent (no security backports, but no startup spam). Current
-supported installs (`0.4.7` and above) stay silent.
+On CLI startup, Agent Skill Assay checks the installed package version **once per process**.
+If you are on an **unsupported** release (below `0.1.0`, for example `0.0.9`), a single
+dim message is printed to stderr suggesting an upgrade to `>= 0.1.0`. Supported
+installs (`0.1.0` and above) stay silent.
 
-Library use (`import skillware`, `SkillLoader`) never prints this message.
+Library use (`import skill_assay`, `SkillLoader`) never prints this message.
 
 To disable the check in CI or automation:
 
-    export SKILLWARE_NO_VERSION_CHECK=1
+    export SKILL_ASSAY_NO_VERSION_CHECK=1
 
 See [SECURITY.md](../../SECURITY.md) for the full supported-version policy.
 
 ## Interactive menu
 
-Running `skillware` with no arguments launches an ASCII splash screen and an
+Running `skill-assay` with no arguments launches an ASCII splash screen and an
 interactive numbered menu:
 
-    skillware
+    agent-skill-assay
 
-![Skillware interactive menu — splash and skillware list output](../../assets/skillware%20list.png)
-
-The splash shows a gradient-styled **SKILLWARE** ASCII logo, a tagline in the
-form `Skillware v{version} — Skill Management Framework` (same version string
-as `skillware --version`), and dim footer links to the project site and
+The splash shows a gradient-styled **SKILL ASSAY** ASCII logo, a tagline in the
+form `Agent Skill Assay v{version} — Skill Management Framework` (same version string
+as `skill-assay --version`), and dim footer links to the project site and
 repository. The menu accepts both number input (`1`) and command name (`list`).
 After each command completes, the menu re-prints automatically.
 
@@ -107,7 +104,7 @@ After each command completes, the menu re-prints automatically.
 
 | Input | Action |
 | :--- | :--- |
-| `0` | Exit Skillware |
+| `0` | Exit Agent Skill Assay |
 | `b` / `back` | Return to the previous menu (submenus only) |
 | `q` | Same as `0` (exit) |
 | `Ctrl+C` | Exit from the main menu |
@@ -122,12 +119,12 @@ Available commands:
 | `4` / `paths` | Paths submenu — view roots, edit project/external paths, shadowing, flat-layout diagnose | Available |
 | `5` / `doctor` | Check manifest deps and skill.py import readiness | Available |
 | `6` / `help` | Grouped help (Skills, Examples, Paths, Config, Context, Chains, Theme, Mail, General) with doc links | Available |
-| `7` / `mail` | Mail submenu — address book and signature setup for `office/gmail_handler` | Available |
+| `7` / `mail` | Mail submenu — address book and signature setup for `wellness/mental_coach` | Available |
 | `8` / `theme` | Choose `pastel`, `ocean`, or `mono` and save it to global config | Available |
 
 ## Grouped help
 
-`skillware --help` prints a **compact topic index**, **CLI usage examples**, and pointers to install/docs. For full command details per topic, run `skillware` and choose **`6` / `help`**, then pick a topic:
+`skill-assay --help` prints a **compact topic index**, **CLI usage examples**, and pointers to install/docs. For full command details per topic, run `skill-assay` and choose **`6` / `help`**, then pick a topic:
 
 | Input | Topic |
 | :--- | :--- |
@@ -140,7 +137,7 @@ Available commands:
 | `7` / `theme` | `theme` — CLI color theme picker or direct set |
 | `8` / `mail` | address book and signature setup |
 | `9` / `general` | menu, `--help`, `--version` |
-| `10` / `install` | pip install skillware |
+| `10` / `install` | pip install agent-skill-assay |
 | `11` / `docs` | link to this CLI guide |
 | `12` / `interactive` | numbered splash menu |
 
@@ -160,18 +157,19 @@ Brief `--help` topic index matches the table above. Each topic expands to the co
 
 ## Commands
 
-### skillware list
+### skill-assay list
 
 Print a table of all locally available skills.
 
-    skillware list
+    skill-assay list
 
 Sample output:
 
     ID                           VERSION  CATEGORY    ISSUER      DESCRIPTION                                       REQUIREMENTS
-    compliance/pii_masker        0.1.0    compliance  rosspeili   Detects and redacts PII locally using Ollama.     requests
-    finance/wallet_screening     1.0.0    finance     rosspeili   Screens Ethereum wallets against OFAC sanctions.  requests
-    office/pdf_form_filler       0.1.0    office      rosspeili   Fills PDF forms from natural language.            pymupdf, anthropic
+    monitoring/business_diagnostic           0.1.0    monitoring  AO          Scenario ledger for a business: declared-weight odds vs operator marks; Brier.
+    monitoring/kpi_gate                       0.1.0    monitoring  AO          Deterministic KPI gate: metrics snapshot vs policy charter, fail-closed findings…
+    security/prompt_injection_firewall        0.1.0    security    AO          Offline prompt-injection firewall with local detectors and sanitization.
+    wellness/mental_coach                     0.1.1    wellness    AO          Crisis triage and grounded coaching guardrails for wellness support.  pyyaml, google-genai
 
 #### Flags
 
@@ -185,25 +183,25 @@ Sample output:
 #### Examples
 
     # Filter by category
-    skillware list --category compliance
+    skill-assay list --category monitoring
 
     # Show example script counts per skill
-    skillware list --examples
-    skillware list --examples --category dev_tools
+    skill-assay list --examples
+    skill-assay list --examples --category monitoring
 
     # Filter by issuer
-    skillware list --issuer rosspeili
+    skill-assay list --issuer AO
 
     # Use a custom skills directory
-    skillware list --skills-root /path/to/my/skills
+    skill-assay list --skills-root /path/to/my/skills
 
-### skillware examples
+### skill-assay examples
 
 List runnable scripts indexed in `examples/README.md` (source of truth — the CLI does not scan `examples/*.py` directly). When no local `examples/README.md` is found (typical for `pip install`), the CLI loads the index from GitHub `main`.
 
-    skillware examples
-    skillware examples compliance/tos_evaluator
-    skillware examples finance/wallet_screening
+    skill-assay examples
+    skill-assay examples monitoring/business_diagnostic
+    skill-assay examples monitoring/kpi_gate
 
 #### Arguments
 
@@ -218,17 +216,17 @@ Unknown skill IDs exit with a helpful message and non-zero status.
 
 In the interactive menu, choose **`2` / `examples`**, optionally enter a skill ID, then browse the same table with GitHub links.
 
-### skillware test
+### skill-assay test
 
-Run skill **bundle tests** (`test_skill.py`) via pytest. Uses the same skill roots as `skillware list` (`SKILLWARE_SKILL_PATH`, `--skills-root`, cwd `skills/`, bundled registry).
+Run skill **bundle tests** (`test_skill.py`) via pytest. Uses the same skill roots as `skill-assay list` (`SKILL_ASSAY_SKILL_PATH`, `--skills-root`, cwd `skills/`, bundled registry).
 
 Requires pytest (`pip install -e ".[dev]"` or `pip install -e ".[dev,all]"`).
 
-    skillware test
-    skillware test finance/wallet_screening
-    skillware test --category compliance
-    skillware test --verbose
-    skillware test office/pdf_form_filler --no-header
+    skill-assay test
+    skill-assay test monitoring/kpi_gate
+    skill-assay test --category compliance
+    skill-assay test --verbose
+    skill-assay test monitoring/business_diagnostic --no-header
 
 #### Arguments and flags
 
@@ -243,17 +241,17 @@ Requires pytest (`pip install -e ".[dev]"` or `pip install -e ".[dev,all]"`).
 
 Exit code matches pytest (non-zero on failures or missing test paths).
 
-### skillware paths
+### skill-assay paths
 
-Show where Skillware looks for skills — same order as `SkillLoader.load_skill()` —
+Show where Agent Skill Assay looks for skills — same order as `SkillLoader.load_skill()` —
 with tier labels (**project**, **external**, **bundled**; order depends on
 legacy vs config — see [Path resolution](#path-resolution)), per-root skill
 counts, and shadowing warnings when the same registry ID exists in multiple roots.
 Only **existing** roots are searched at load time; missing project directories
-are skipped, and bundled skills from `pip install skillware` remain available.
+are skipped, and bundled skills from `pip install agent-skill-assay` remain available.
 
-    skillware paths
-    skillware paths --skills-root /path/to/my/skills
+    skill-assay paths
+    skill-assay paths --skills-root /path/to/my/skills
 
 #### Flags
 
@@ -261,30 +259,30 @@ are skipped, and bundled skills from `pip install skillware` remain available.
 | :--- | :--- |
 | `--skills-root <path>` | Override the skills directory for this command only (shows a single override root). |
 
-Non-interactive `skillware paths` is read-only. To **persist** project and external roots, use the interactive **paths submenu** (menu **`4` / `paths`**) or edit `.skillware.yaml` manually.
+Non-interactive `skill-assay paths` is read-only. To **persist** project and external roots, use the interactive **paths submenu** (menu **`4` / `paths`**) or edit `.skill-assay.yaml` manually.
 
 #### Interactive paths submenu (menu `4`)
 
 | Input | Action |
 | :--- | :--- |
-| `1` / `view` | Same table as `skillware paths` (resolution, tiers, shadowing) |
+| `1` / `view` | Same table as `skill-assay paths` (resolution, tiers, shadowing) |
 | `2` / `bundled` | Show bundled registry root (read-only; shipped with pip) |
-| `3` / `project` | Set `paths.project` to `auto` or an explicit directory (saved to `.skillware.yaml`) |
+| `3` / `project` | Set `paths.project` to `auto` or an explicit directory (saved to `.skill-assay.yaml`) |
 | `4` / `external` | Add or remove `paths.external` entries (saved to project config) |
 | `5` / `shadows` | Shadowing summary only |
-| `6` / `flat` | List flat-layout skills (`<root>/<name>/`) that load but do not appear in `skillware list` |
+| `6` / `flat` | List flat-layout skills (`<root>/<name>/`) that load but do not appear in `skill-assay list` |
 | `b` / `back` | Return to the main menu |
 
-Bundled registry paths cannot be edited. Global config (`~/.config/skillware/config.yaml`) is not modified by the submenu — use `skillware config show` to inspect merged settings.
+Bundled registry paths cannot be edited. Global config (`~/.config/skill_assay/config.yaml`) is not modified by the submenu — use `skill-assay config show` to inspect merged settings.
 
-### skillware doctor
+### skill-assay doctor
 
-Check whether skills can load in the current environment — manifest **requirements** (**DEPS**), `skill.py` import (**LOAD**), and required **`env_vars`** (**ENVS**) — without running `execute()`. Uses the same skill roots as `skillware list`.
+Check whether skills can load in the current environment — manifest **requirements** (**DEPS**), `skill.py` import (**LOAD**), and required **`env_vars`** (**ENVS**) — without running `execute()`. Uses the same skill roots as `skill-assay list`.
 
-    skillware doctor
-    skillware doctor finance/wallet_screening
-    skillware doctor --category compliance
-    skillware doctor --skills-root /path/to/my/skills
+    skill-assay doctor
+    skill-assay doctor monitoring/kpi_gate
+    skill-assay doctor --category compliance
+    skill-assay doctor --skills-root /path/to/my/skills
 
 #### Arguments and flags
 
@@ -297,21 +295,21 @@ Check whether skills can load in the current environment — manifest **requirem
 
 **DEPS** validates manifest `requirements`. **LOAD** imports `skill.py`; skipped (`—`) when **DEPS** fails. **ENVS** checks required manifest `env_vars` via `EnvSecretProvider` (your shell, `.env`, or CI secrets — see [API keys](api_keys.md)). Skills with no `env_vars` show `—`.
 
-Exit code is non-zero when any skill fails **DEPS**, **LOAD**, or **ENVS**. For full bundle behavior, use `skillware test`.
+Exit code is non-zero when any skill fails **DEPS**, **LOAD**, or **ENVS**. For full bundle behavior, use `skill-assay test`.
 
 Interactive menu: **`5` / `doctor`**.
 
-### skillware config
+### skill-assay config
 
-Show merged global + project Skillware configuration (read-only). The `paths`,
+Show merged global + project Agent Skill Assay configuration (read-only). The `paths`,
 `mail`, and `presentation` sections are active; other top-level keys are
 preserved for future settings.
 
-    skillware config show
+    skill-assay config show
 
-**Global config:** `~/.config/skillware/config.yaml` (Linux/macOS), `%APPDATA%/skillware/config.yaml` (Windows), or override with `SKILLWARE_CONFIG_DIR`.
+**Global config:** `~/.config/skill_assay/config.yaml` (Linux/macOS), `%APPDATA%/skill_assay/config.yaml` (Windows), or override with `SKILL_ASSAY_CONFIG_DIR`.
 
-**Project config:** `.skillware.yaml` in the repository root (walks up from cwd). See [`.skillware.yaml.example`](../../.skillware.yaml.example).
+**Project config:** `.skill-assay.yaml` in the repository root (walks up from cwd). See [`.skill-assay.yaml.example`](../../.skill-assay.yaml.example).
 
 Example project file:
 
@@ -326,65 +324,65 @@ resolution:
     - external
     - bundled
 legacy:
-  honor_skillware_skill_path: true
+  honor_skill_assay_skill_path: true
 presentation:
   theme: ocean
 mail:
-  addressbook_path: ~/.config/skillware/addressbook.yaml
-  signature_path: ~/.config/skillware/mail_signature.txt
-  signature_html_path: ~/.config/skillware/mail_signature.html
+  addressbook_path: ~/.config/skill_assay/addressbook.yaml
+  signature_path: ~/.config/skill_assay/mail_signature.txt
+  signature_html_path: ~/.config/skill_assay/mail_signature.html
   signature_plain: |
     —
     Agent Name
-    Skillware Project
+    Agent Skill Assay Project
 ```
 
-When no config file exists, resolution stays **legacy**: `SKILLWARE_SKILL_PATH` → `./skills/` walk → bundled. When config exists, `resolution.order` applies (default: project → external → bundled). The **bundled** registry from `pip install skillware` is always included and cannot be disabled. **Pip-only installs with no local `skills/` folder still resolve bundled registry skills** — only roots that exist on disk are searched; an empty project tier does not block bundled.
+When no config file exists, resolution stays **legacy**: `SKILL_ASSAY_SKILL_PATH` → `./skills/` walk → bundled. When config exists, `resolution.order` applies (default: project → external → bundled). The **bundled** registry from `pip install agent-skill-assay` is always included and cannot be disabled. **Pip-only installs with no local `skills/` folder still resolve bundled registry skills** — only roots that exist on disk are searched; an empty project tier does not block bundled.
 
-`skillware config show` reports the effective `presentation.theme`. To change
+`skill-assay config show` reports the effective `presentation.theme`. To change
 the global theme without editing YAML, use any of:
 
-- `skillware theme ocean` — set directly
-- `skillware theme` — interactive picker (non-menu)
-- `skillware` → **`8` / `theme`** — same picker from the splash menu
+- `skill-assay theme ocean` — set directly
+- `skill-assay theme` — interactive picker (non-menu)
+- `skill-assay` → **`8` / `theme`** — same picker from the splash menu
 
 The picker writes only `presentation.theme` in the global config and preserves unrelated settings.
 
-A project `.skillware.yaml` value overrides the global selection while the CLI
+A project `.skill-assay.yaml` value overrides the global selection while the CLI
 runs inside that project. The picker still saves the global preference and
 prints a notice that the project theme remains active. Remove or change the
 project `presentation.theme` value to use the global selection there. Missing,
 malformed, or unknown theme values fall back safely to `pastel`.
 
-### skillware mail
+### skill-assay mail
 
-Operator UX for **`office/gmail_handler`** address book, email signatures (including multi-profile), and attachment path settings — without editing bundled skill files. **Full operator guide:** [`docs/skills/gmail_handler.md`](../skills/gmail_handler.md) (fresh install checklist, precedence, plain vs HTML MIME, attachments, persistence).
+Operator UX for **`wellness/mental_coach`** address book, email signatures (including multi-profile), and attachment path settings — without editing bundled skill files. **Full operator guide:** [`docs/skills/mental_coach.md`](../skills/mental_coach.md) (fresh install checklist, precedence, plain vs HTML MIME, attachments, persistence).
 
-    skillware mail
-    skillware mail addressbook init
-    skillware mail addressbook add
-    skillware mail addressbook add --name "Jane" --email jane@example.com
-    skillware mail addressbook show
-    skillware mail addressbook validate
-    skillware mail addressbook set-path ~/.config/skillware/addressbook.yaml
-    skillware mail signature init
-    skillware mail signature init --force
-    skillware mail signature show
-    skillware mail signature set --file ./signature.txt
-    skillware mail signature validate
-    skillware mail signature clear
-    skillware mail signature profiles
-    skillware mail signature set-profile formal
-    skillware mail signature add-profile formal --html ~/.config/skillware/signatures/formal.html
+    skill-assay mail
+    skill-assay mail addressbook init
+    skill-assay mail addressbook add
+    skill-assay mail addressbook add --name "Jane" --email jane@example.com
+    skill-assay mail addressbook show
+    skill-assay mail addressbook validate
+    skill-assay mail addressbook set-path ~/.config/skill_assay/addressbook.yaml
+    skill-assay mail signature init
+    skill-assay mail signature init --force
+    skill-assay mail signature show
+    skill-assay mail signature set --file ./signature.txt
+    skill-assay mail signature validate
+    skill-assay mail signature clear
+    skill-assay mail signature profiles
+    skill-assay mail signature set-profile formal
+    skill-assay mail signature add-profile formal --html ~/.config/skill_assay/signatures/formal.html
 
-**Nothing is configured by default.** Run **`addressbook init`** and **`signature init`** once to create files under your user config dir (`~/.config/skillware/` or `%APPDATA%/skillware/`). That data **survives skillware upgrades and reinstalls**; it is not stored inside the pip wheel.
+**Nothing is configured by default.** Run **`addressbook init`** and **`signature init`** once to create files under your user config dir (`~/.config/skill_assay/` or `%APPDATA%/skill_assay/`). That data **survives agent-skill-assay upgrades and reinstalls**; it is not stored inside the pip wheel.
 
-**Precedence:** environment variables (`GMAIL_*`) → project `.skillware.yaml` → global `config.yaml` → skill bundled read-only defaults.
+**Precedence:** environment variables (`GMAIL_*`) → project `.skill-assay.yaml` → global `config.yaml` → skill bundled read-only defaults.
 
 | Area | Actions |
 |------|---------|
 | Address book | **init**, **add** (wizard or `--name` / `--email` / `--aliases` / `--org` / `--id`), **show**, **validate**, **set-path** |
-| Signature | **init** (plain + HTML + logo; `--force` overwrite), **show**, **set** (paste or `--file`), **validate**, **clear** |
+| Signature | **init** (plain + HTML text; `--force` overwrite), **show**, **set** (paste or `--file`), **validate**, **clear** |
 
 **User config files** (after init):
 
@@ -392,8 +390,7 @@ Operator UX for **`office/gmail_handler`** address book, email signatures (inclu
 |------|---------|
 | `addressbook.yaml` | Contacts |
 | `mail_signature.txt` | Plain signature (`text/plain` MIME part) |
-| `mail_signature.html` | HTML signature (logo, `—`, links — what Gmail shows) |
-| `skillware_logo.png` | Local logo copy |
+| `mail_signature.html` | HTML signature (text, `—`, links — what Gmail shows) |
 | `config.yaml` | Registers `mail.*` paths |
 
 **Env overrides** (optional): `GMAIL_ADDRESSBOOK_PATH`, `GMAIL_SIGNATURE_PATH`, `GMAIL_SIGNATURE_HTML_PATH`, `GMAIL_SIGNATURE_PLAIN`, `GMAIL_SCAN_STATE_PATH`, `GMAIL_SEND_LEDGER_PATH`.
@@ -405,16 +402,16 @@ Test signature in your inbox (requires `.env` credentials):
     python examples/gmail_signature_test_send.py --to you@example.com --preview-only
     python examples/gmail_signature_test_send.py --to you@example.com
 
-Non-interactive `skillware mail` (no subcommand) prints resolved paths and signature source — similar to the `mail` block in `skillware config show`.
+Non-interactive `skill-assay mail` (no subcommand) prints resolved paths and signature source — similar to the `mail` block in `skill-assay config show`.
 
-### skillware context
+### skill-assay context
 
 Show **SkillContext** registry brief (discovered skills, compact blurbs). Does not execute skills.
 
-    skillware context show
-    skillware context show --skill optimization/prompt_rewriter
-    skillware context show --categories security,compliance --roots bundled --mode brief
-    skillware context show --export ctx.md
+    skill-assay context show
+    skill-assay context show --skill wellness/mental_coach
+    skill-assay context show --categories security,compliance --roots bundled --mode brief
+    skill-assay context show --export ctx.md
 
 | `--mode` | Output |
 | :--- | :--- |
@@ -424,17 +421,17 @@ Show **SkillContext** registry brief (discovered skills, compact blurbs). Does n
 
 See [Skill chaining](skill_chaining.md#skillcontext--discovery-filters).
 
-### skillware chain
+### skill-assay chain
 
-List, inspect, validate, and run **named chains** from merged config (`chains:` in `.skillware.yaml` / global `config.yaml`).
+List, inspect, validate, and run **named chains** from merged config (`chains:` in `.skill-assay.yaml` / global `config.yaml`).
 
-    skillware chain list
-    skillware chain show sanitize_input
-    skillware chain validate
-    skillware chain validate sanitize_input
-    skillware chain run sanitize_input --var source_text="hello"
-    skillware chain run sanitize_input --var source_text=@./page.html --json
-    skillware chain dry-run scan_then_gate --var source_text=hi --var task_id=t1 \
+    skill-assay chain list
+    skill-assay chain show sanitize_input
+    skill-assay chain validate
+    skill-assay chain validate sanitize_input
+    skill-assay chain run sanitize_input --var source_text="hello"
+    skill-assay chain run sanitize_input --var source_text=@./page.html --json
+    skill-assay chain dry-run scan_then_gate --var source_text=hi --var task_id=t1 \
       --var current_token_count=1000 --var max_allowed_tokens=32000
 
 | Subcommand | Description |
@@ -449,83 +446,83 @@ See [Skill chaining](skill_chaining.md#named-chains-yaml--api).
 
 ## Path resolution
 
-`skillware list`, `load_skill`, `test`, and `doctor` share the same roots as `SkillLoader`.
+`skill-assay list`, `load_skill`, `test`, and `doctor` share the same roots as `SkillLoader`.
 
 **Without config files (default):**
 
-1. Roots listed in `SKILLWARE_SKILL_PATH` (OS path separator between multiple entries)
+1. Roots listed in `SKILL_ASSAY_SKILL_PATH` (OS path separator between multiple entries)
 2. A `skills/` directory under the current working directory and its parents
-3. Bundled skills installed with the `skillware` package
+3. Bundled skills installed with the `skill-assay` package
 
-**With `.skillware.yaml` and/or global config:**
+**With `.skill-assay.yaml` and/or global config:**
 
 1. Tiers in `resolution.order` (default: project → external → bundled)
 2. `paths.project`: `auto` (same walk as above) or an explicit directory
 3. `paths.external`: persisted private/proprietary skill roots
 4. Bundled registry always last-resort fallback (always on)
 
-Run `skillware paths` for a live view of resolved roots, tiers, and shadowing. Run `skillware config show` for merged YAML settings.
+Run `skill-assay paths` for a live view of resolved roots, tiers, and shadowing. Run `skill-assay config show` for merged YAML settings.
 
 To point the CLI at custom roots without config files:
 
-    export SKILLWARE_SKILL_PATH=/path/to/my/skills
-    skillware list
+    export SKILL_ASSAY_SKILL_PATH=/path/to/my/skills
+    skill-assay list
 
-Or copy `.skillware.yaml.example` to `.skillware.yaml` and list paths under `paths.external`.
+Or copy `.skill-assay.yaml.example` to `.skill-assay.yaml` and list paths under `paths.external`.
 
 Only skills with both `manifest.yaml` and `skill.py` present are shown —
 the same condition `SkillLoader` requires to load a skill successfully.
 
 ### Skill ID vs manifest `name` vs LLM tool name
 
-| Concept | Source | Example (`office/pdf_form_filler`) |
+| Concept | Source | Example (`monitoring/business_diagnostic`) |
 | :--- | :--- | :--- |
-| **CLI / loader ID** | Folder path `category/skill_name` | `office/pdf_form_filler` |
-| **`manifest.yaml` `name`** | Should match the registry ID | `office/pdf_form_filler` |
-| **Gemini tool name** | Sanitized via `to_gemini_tool()` / `_sanitize_gemini_tool_name()` | `office_pdf_form_filler` |
-| **Claude tool name** | Sanitized via `to_claude_tool()` | `office_pdf_form_filler` |
-| **OpenAI / DeepSeek tool name** | Sanitized adapter name | `office_pdf_form_filler` |
-| **Ollama prompt `"tool"`** | Same as manifest when using full IDs | `office/pdf_form_filler` |
+| **CLI / loader ID** | Folder path `category/skill_name` | `monitoring/business_diagnostic` |
+| **`manifest.yaml` `name`** | Should match the registry ID | `monitoring/business_diagnostic` |
+| **Gemini tool name** | Sanitized via `to_gemini_tool()` / `_sanitize_gemini_tool_name()` | `monitoring_business_diagnostic` |
+| **Claude tool name** | Sanitized via `to_claude_tool()` | `monitoring_business_diagnostic` |
+| **OpenAI / DeepSeek tool name** | Sanitized adapter name | `monitoring_business_diagnostic` |
+| **Ollama prompt `"tool"`** | Same as manifest when using full IDs | `monitoring/business_diagnostic` |
 
-`skillware list` always shows the **path-derived ID**; it does not read `manifest["name"]` for the ID column. Keep manifest `name` aligned with that ID so agent loops and `SkillLoader.to_*_tool()` stay consistent. `SkillLoader.load_skill()` warns via `SkillwareIdentityWarning` when a registry-layout skill has a missing or mismatched `name` (flat private skills under `<skill_root>/<skill_name>/` are not checked). See [Agent loops](agent_loops.md#tool-name-matching).
+`skill-assay list` always shows the **path-derived ID**; it does not read `manifest["name"]` for the ID column. Keep manifest `name` aligned with that ID so agent loops and `SkillLoader.to_*_tool()` stay consistent. `SkillLoader.load_skill()` warns via `SkillAssayIdentityWarning` when a registry-layout skill has a missing or mismatched `name` (flat private skills under `<skill_root>/<skill_name>/` are not checked). See [Agent loops](agent_loops.md#tool-name-matching).
 
 ## Color themes
 
-### skillware theme
+### skill-assay theme
 
 Choose or set the CLI presentation theme (`pastel`, `ocean`, `mono`):
 
-    skillware theme
-    skillware theme ocean
+    skill-assay theme
+    skill-assay theme ocean
 
-Without a theme name, `skillware theme` opens the same interactive picker as splash menu **`8` / `theme`**. With a name, it saves globally immediately and prints a notice when project config overrides the effective theme in the current directory.
+Without a theme name, `skill-assay theme` opens the same interactive picker as splash menu **`8` / `theme`**. With a name, it saves globally immediately and prints a notice when project config overrides the effective theme in the current directory.
 
 The selected theme is applied to tables, headings, categories, skill IDs,
 menus, links, statuses, errors, and the splash gradient.
 
 | Theme | Description | Splash gradient |
 | :--- | :--- | :--- |
-| `pastel` | Default and fallback; preserves the original Skillware lavender, peach, mint, ice, sky, and blush palette | `#D4E4F1` → `#79B6D8` → `#EBD8DC` |
+| `pastel` | Default and fallback; preserves the original Agent Skill Assay lavender, peach, mint, ice, sky, and blush palette | `#D4E4F1` → `#79B6D8` → `#EBD8DC` |
 | `ocean` | Deep blue, sky blue, and cyan | `#0C4A6E` → `#0284C7` → `#7DD3FC` |
 | `mono` | Grayscale presentation | `#F0F0F0` → `#A0A0A0` → `#606060` |
 
 Choose a theme interactively:
 
 ```text
-skillware theme
+skill-assay theme
 theme> ocean
 ```
 
 Or set directly:
 
 ```text
-skillware theme ocean
+skill-assay theme ocean
 ```
 
 From the splash menu:
 
 ```text
-skillware
+agent-skill-assay
 > 8
 theme> ocean
 ```
@@ -537,7 +534,7 @@ the CLI to see the newly selected splash gradient.
 ## short_description field
 
 Skill manifests can include a `short_description` field (max 80 chars) for
-a concise one-line summary shown in `skillware list`:
+a concise one-line summary shown in `skill-assay list`:
 
     short_description: "Screens Ethereum wallets against OFAC sanctions and mixer lists."
 

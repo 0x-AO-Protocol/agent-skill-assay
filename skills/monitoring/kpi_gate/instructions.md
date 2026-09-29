@@ -61,7 +61,7 @@ A completed run returns `status: "completed"` with `policy_id`,
   absent from the snapshot. When a granularity floor or a missing denominator
   caused the refusal, `detail.unmet_floor` names it (`granularity` or
   `denominator`); the canonical below-minimum-denominator refusal keeps the
-  exact shape pinned by issue #317.
+  exact shape documented by this bundle.
 
 A contract violation returns `status: "error"` with
 `error.code` from the closed registry (`INVALID_METRICS_SCHEMA`,

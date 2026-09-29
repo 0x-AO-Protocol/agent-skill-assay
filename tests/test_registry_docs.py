@@ -11,9 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SKILL_PATTERN = re.compile(r"`([\w-]+/[\w-]+)`")
 EXAMPLE_PATTERN = re.compile(r"^\|[^|]*`([\w-]+\.py)`", re.MULTILINE)
 
-# TODO: script examples/issue_resolver_github_context.py is a shared helper module and
-#       should be renamed to examples/issue_resolver_common.py (see #183).
-GRANDFATHERED_EXAMPLES: set[str] = {"issue_resolver_github_context.py"}
+GRANDFATHERED_EXAMPLES: set[str] = set()
 
 
 def get_manifested_skills(skills_root: Path) -> set[str]:
@@ -205,7 +203,7 @@ def test_catalog_pages_have_skill_specific_recommended_install(
     manifested_skills: set[str],
 ):
     """Every catalog page recommends the per-skill pip extra."""
-    from skillware.core.extras import registry_id_to_extra
+    from skill_assay.core.extras import registry_id_to_extra
 
     docs_root = REPO_ROOT / "docs" / "skills"
     missing = []
@@ -214,7 +212,7 @@ def test_catalog_pages_have_skill_specific_recommended_install(
         page = docs_root / f"{Path(skill_id).name}.md"
         content = page.read_text(encoding="utf-8")
         extra = registry_id_to_extra(skill_id)
-        needle = f"skillware[{extra}]"
+        needle = f"agent-skill-assay[{extra}]"
         if needle not in content:
             missing.append(f"{page.name}: expected Recommended install with {needle!r}")
 
@@ -274,7 +272,7 @@ def test_skill_library_index_has_version_column():
 
 
 def test_glossary_exists_with_canonical_terms():
-    """Glossary documents roles and anatomy used across the repo (#252)."""
+    """Glossary documents roles and anatomy used across the repo."""
     text = (REPO_ROOT / "docs" / "glossary.md").read_text(encoding="utf-8")
     for term in (
         "**Operator**",
@@ -289,7 +287,7 @@ def test_glossary_exists_with_canonical_terms():
 
 
 def test_core_docs_avoid_retired_anatomy_labels():
-    """Mind/Body/Conscience are not used as skill roles in core docs (#252, #326)."""
+    """Retired anatomy labels are not used as skill roles in core docs."""
     paths = [
         REPO_ROOT / "README.md",
         REPO_ROOT / "CONTRIBUTING.md",
@@ -312,12 +310,8 @@ def test_core_docs_avoid_retired_anatomy_labels():
     )
 
 
-def test_mica_examples_avoid_mind_metaphor():
-    """MiCA example system prompts do not use retired Mind wording (#252)."""
-    for name in (
-        "mica_claude_flow.py",
-        "mica_ollama_flow.py",
-        "mica_rag_flow.py",
-    ):
+def test_skill_examples_avoid_retired_mind_metaphor():
+    """Remaining example scripts do not use retired Mind wording."""
+    for name in ("mental_coach_demo.py", "kpi_gate_demo.py"):
         text = (REPO_ROOT / "examples" / name).read_text(encoding="utf-8")
         assert "in your Mind" not in text, name

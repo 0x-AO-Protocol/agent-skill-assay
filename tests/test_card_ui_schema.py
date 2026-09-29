@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from skillware.core.ui_schema import (
+from skill_assay.core.ui_schema import (
     is_output_card_ui_schema,
     normalize_fixture_samples,
     validate_card_ui_schema,
@@ -70,7 +70,7 @@ def test_card_ui_schema_keys_match_execute_output_fixture(skill_id, skill_dir):
     assert fixture_path.is_file(), (
         f"{rel}: add execute() output fixture at "
         f"{fixture_path.relative_to(REPO_ROOT).as_posix()} "
-        f"for card.json ui_schema validation (#199)"
+        f"for card.json ui_schema validation"
     )
 
     with open(fixture_path, encoding="utf-8") as handle:

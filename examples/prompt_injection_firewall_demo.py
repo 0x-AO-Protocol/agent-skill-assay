@@ -5,7 +5,7 @@ Scans untrusted text offline (no network, no API keys) and prints the
 firewall verdict plus sanitized output.
 """
 
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 
 def run_demo():

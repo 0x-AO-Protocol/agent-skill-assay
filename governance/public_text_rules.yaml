@@ -1,0 +1,6 @@
+version: "1.0"
+scope: "Current working-tree text files intended for publication"
+pattern_source: "Hashed checks in scripts/public_text_lint.py."
+allow:
+  - path: "THIRD_PARTY_NOTICES"
+    reason: "Required MIT attribution for inherited framework files"

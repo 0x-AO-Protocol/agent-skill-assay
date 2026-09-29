@@ -1,10 +1,10 @@
 # Enterprise cloud usage
 
-Skillware is plain Python — it runs anywhere you can `pip install skillware` (laptop, EC2, GCE, AKS, Cloud Run, on-prem VM). **Where the framework runs** and **which LLM API your agent calls** are separate choices.
+Agent Skill Assay is plain Python — it runs anywhere you can `pip install agent-skill-assay` (laptop, EC2, GCE, AKS, Cloud Run, on-prem VM). **Where the framework runs** and **which LLM API your agent calls** are separate choices.
 
 ## Two layers
 
-| Layer | Question | Skillware answer |
+| Layer | Question | Agent Skill Assay answer |
 | :--- | :--- | :--- |
 | **Host** | Where does my agent process run? | Any Python 3.10+ environment. Install once, load skills, call `execute()`. |
 | **Model API** | Which endpoint does the loop call for inference? | Pick the adapter that matches the wire format (see below). |
@@ -29,10 +29,10 @@ Do **not** add a new adapter per cloud vendor when the schema is already covered
 Same steps on AWS EC2, Google Compute Engine, or Azure VM:
 
 ```bash
-pip install skillware
-pip install "skillware[<category>_<skill>]"   # skill runtime deps
-pip install "skillware[bedrock]"              # or [gemini], [openai], …
-skillware list
+pip install agent-skill-assay
+pip install "agent-skill-assay[<category>_<skill>]"   # skill runtime deps
+pip install "agent-skill-assay[bedrock]"              # or [gemini], [openai], …
+skill-assay list
 ```
 
 Configure:

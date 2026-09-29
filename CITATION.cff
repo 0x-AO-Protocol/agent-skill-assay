@@ -1,49 +1,24 @@
-# Citation metadata for ARPAHLS/skillware.
-# Prefer the Zenodo concept DOI under identifiers; keep version in methods text.
-# Validate: pip install cffconvert && cffconvert -i CITATION.cff -f apalike
+# Citation metadata for 0x-AO-Protocol/agent-skill-assay.
 cff-version: 1.2.0
 message: >-
-  If you use this software, please cite it using the metadata below.
-  Prefer the Zenodo concept DOI (10.5281/zenodo.21552745).
-  Also record the Skillware version you used (PyPI or Git tag) for reproducibility.
+  If you use this software, please cite Agent Skill Assay using the metadata below.
 type: software
-title: Skillware
+title: Agent Skill Assay
 abstract: >-
-  Skillware is an open-source Python framework for modular, self-contained skill
-  management for machines. It provides a loadable skill registry with manifests,
-  constitution and safety constraints, deterministic execute() implementations,
-  and adapters for logical system providers — whether LLM APIs, hosted inference,
-  or local runtimes.
-version: "0.5.5"
-date-released: "2026-09-14"
+  Agent Skill Assay is an AO registry and Python runtime for modular,
+  self-contained agent skill bundles with deterministic execute()
+  implementations, manifests, safety constraints, and host adapters.
+version: "0.1.0"
+date-released: "2026-09-25"
 license: MIT
-repository-code: "https://github.com/ARPAHLS/skillware"
-url: "https://skillware.site"
+repository-code: "https://github.com/0x-AO-Protocol/agent-skill-assay"
+url: "https://github.com/0x-AO-Protocol/agent-skill-assay"
 authors:
-  - family-names: Peilivanidis
-    given-names: Vladimiros
-    alias: Ross Peili
-    email: vpeilivanidis@gmail.com
-    affiliation: "ARPA Hellenic Logical Systems"
-    website: "https://github.com/rosspeili"
-  - name: "ARPA Hellenic Logical Systems"
-    email: skillware-os@arpacorp.net
-    website: "https://arpacorp.net"
+  - name: "AO"
 keywords:
-  - skillware
+  - agent-skill-assay
   - python
-  - ai
   - ai-agents
   - agent-skills
-  - autonomous-agents
-  - llm-tools
-  - function-calling
-  - local-ai
-  - sovereign-ai
   - skill-registry
-  - open-source
-  - dev-tools
-identifiers:
-  - type: doi
-    value: 10.5281/zenodo.21552745
-    description: Concept DOI (all versions)
+  - hard-skills

@@ -7,10 +7,10 @@ from pathlib import Path
 
 import pytest
 
-from skillware.core.loader import (
-    SKILLWARE_SKILL_PATH_ENV,
+from skill_assay.core.loader import (
+    SKILL_ASSAY_SKILL_PATH_ENV,
     SkillLoader,
-    SkillwareIdentityWarning,
+    SkillAssayIdentityWarning,
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -22,19 +22,19 @@ def test_load_skill_not_found():
 
 
 def test_load_skill_registry_has_manifest():
-    bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
-    assert bundle["manifest"].get("name") == "optimization/prompt_rewriter"
-    assert bundle["registry_id"] == "optimization/prompt_rewriter"
-    assert bundle["class"].__name__ == "PromptRewriter"
+    bundle = SkillLoader.load_skill("security/prompt_injection_firewall")
+    assert bundle["manifest"].get("name") == "security/prompt_injection_firewall"
+    assert bundle["registry_id"] == "security/prompt_injection_firewall"
+    assert bundle["class"].__name__ == "PromptInjectionFirewallSkill"
     assert SkillLoader.get_skill_class(bundle) is bundle["class"]
 
 
 def test_load_skill_inspect_mode_skips_module_exec():
     bundle = SkillLoader.load_skill(
-        "optimization/prompt_rewriter",
+        "security/prompt_injection_firewall",
         execute_module=False,
     )
-    assert bundle["manifest"].get("name") == "optimization/prompt_rewriter"
+    assert bundle["manifest"].get("name") == "security/prompt_injection_firewall"
     assert bundle["instructions"]
     assert bundle["module"] is None
     assert bundle["class"] is None
@@ -52,7 +52,7 @@ def test_load_skill_module_import_error_after_preflight(tmp_path, monkeypatch):
     )
     (skill_dir / "skill.py").write_text(
         "import undeclared_hidden_pkg\n"
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class HiddenImportSkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {}\n",
@@ -67,11 +67,11 @@ def test_load_skill_module_import_error_after_preflight(tmp_path, monkeypatch):
 def test_load_skill_can_skip_requirement_check():
     """Packaging smoke installs base wheel only; optional extras may be absent."""
     bundle = SkillLoader.load_skill(
-        "compliance/mica_module",
+        "wellness/mental_coach",
         check_requirements=False,
     )
-    assert bundle["manifest"].get("name") == "compliance/mica_module"
-    assert bundle["class"].__name__ == "MiCAModuleSkill"
+    assert bundle["manifest"].get("name") == "wellness/mental_coach"
+    assert bundle["class"].__name__ == "MentalCoachSkill"
 
 
 def test_load_skill_missing_requirements_suggests_skill_extra(monkeypatch):
@@ -84,8 +84,10 @@ def test_load_skill_missing_requirements_suggests_skill_extra(monkeypatch):
 
     monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
 
-    with pytest.raises(ImportError, match=r"skillware\[compliance_mica_module\]"):
-        SkillLoader.load_skill("compliance/mica_module")
+    with pytest.raises(
+        ImportError, match=r"agent-skill-assay\[wellness_mental_coach\]"
+    ):
+        SkillLoader.load_skill("wellness/mental_coach")
 
 
 def test_load_skill_unpinned_requirement_ignores_installed_version(
@@ -101,7 +103,7 @@ def test_load_skill_unpinned_requirement_ignores_installed_version(
         encoding="utf-8",
     )
     (skill_dir / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class UnpinnedSkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {}\n",
@@ -126,7 +128,7 @@ def test_load_skill_rejects_unsatisfied_version_specifier(tmp_path, monkeypatch)
         encoding="utf-8",
     )
     (skill_dir / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class PinnedSkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {}\n",
@@ -136,7 +138,7 @@ def test_load_skill_rejects_unsatisfied_version_specifier(tmp_path, monkeypatch)
     monkeypatch.setattr(
         importlib.util, "find_spec", lambda name, package=None: object()
     )
-    monkeypatch.setattr("skillware.core.extras.version", lambda _name: "1.0.0")
+    monkeypatch.setattr("skill_assay.core.extras.version", lambda _name: "1.0.0")
 
     with pytest.raises(ImportError, match="unsatisfied version requirements"):
         SkillLoader.load_skill("demo/pinned")
@@ -152,7 +154,7 @@ def test_load_skill_accepts_satisfied_version_specifier(tmp_path, monkeypatch):
         encoding="utf-8",
     )
     (skill_dir / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class PinnedOkSkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {}\n",
@@ -162,16 +164,16 @@ def test_load_skill_accepts_satisfied_version_specifier(tmp_path, monkeypatch):
     monkeypatch.setattr(
         importlib.util, "find_spec", lambda name, package=None: object()
     )
-    monkeypatch.setattr("skillware.core.extras.version", lambda _name: "2.1.0")
+    monkeypatch.setattr("skill_assay.core.extras.version", lambda _name: "2.1.0")
 
     bundle = SkillLoader.load_skill("demo/pinned_ok")
     assert bundle["class"].__name__ == "PinnedOkSkill"
 
 
 def test_load_skill_class_is_instantiable():
-    bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+    bundle = SkillLoader.load_skill("security/prompt_injection_firewall")
     skill = bundle["class"]()
-    result = skill.execute({"raw_text": "hello world"})
+    result = skill.execute({"source_text": "hello world"})
     assert "error" not in result
 
 
@@ -201,7 +203,7 @@ def test_discover_skill_class_rejects_multiple_subclasses(tmp_path, monkeypatch)
         encoding="utf-8",
     )
     (skill_dir / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class FirstSkill(BaseSkill):\n"
         "    @property\n"
         "    def manifest(self):\n"
@@ -223,9 +225,9 @@ def test_discover_skill_class_rejects_multiple_subclasses(tmp_path, monkeypatch)
 
 def test_load_skill_registry_id_matches_bundled_skills():
     with warnings.catch_warnings():
-        warnings.simplefilter("error", SkillwareIdentityWarning)
-        bundle = SkillLoader.load_skill("compliance/tos_evaluator")
-    assert bundle["registry_id"] == "compliance/tos_evaluator"
+        warnings.simplefilter("error", SkillAssayIdentityWarning)
+        bundle = SkillLoader.load_skill("wellness/mental_coach")
+    assert bundle["registry_id"] == "wellness/mental_coach"
 
 
 def test_flat_skill_skips_identity_validation(tmp_path, monkeypatch):
@@ -237,7 +239,7 @@ def test_flat_skill_skips_identity_validation(tmp_path, monkeypatch):
         encoding="utf-8",
     )
     (skill_dir / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class FlatSkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {}\n",
@@ -245,34 +247,34 @@ def test_flat_skill_skips_identity_validation(tmp_path, monkeypatch):
     )
     monkeypatch.chdir(tmp_path)
     with warnings.catch_warnings():
-        warnings.simplefilter("error", SkillwareIdentityWarning)
+        warnings.simplefilter("error", SkillAssayIdentityWarning)
         bundle = SkillLoader.load_skill("my_flat_skill")
     assert bundle["registry_id"] is None
 
 
 def test_registry_layout_mismatch_warns(tmp_path, monkeypatch):
-    skill_dir = tmp_path / "skills" / "finance" / "bad_manifest"
+    skill_dir = tmp_path / "skills" / "monitoring" / "bad_manifest"
     skill_dir.mkdir(parents=True)
     (skill_dir / "manifest.yaml").write_text(
-        "name: finance/wrong_name\nversion: 0.1.0\ndescription: test\n"
+        "name: monitoring/wrong_name\nversion: 0.1.0\ndescription: test\n"
         "parameters:\n  type: object\n  properties: {}\n",
         encoding="utf-8",
     )
     (skill_dir / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class BadManifestSkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {}\n",
         encoding="utf-8",
     )
     monkeypatch.chdir(tmp_path)
-    with pytest.warns(SkillwareIdentityWarning, match="does not match registry path"):
-        bundle = SkillLoader.load_skill("finance/bad_manifest")
-    assert bundle["registry_id"] == "finance/bad_manifest"
+    with pytest.warns(SkillAssayIdentityWarning, match="does not match registry path"):
+        bundle = SkillLoader.load_skill("monitoring/bad_manifest")
+    assert bundle["registry_id"] == "monitoring/bad_manifest"
 
 
 def test_registry_layout_missing_name_warns(tmp_path, monkeypatch):
-    skill_dir = tmp_path / "skills" / "office" / "no_name"
+    skill_dir = tmp_path / "skills" / "security" / "no_name"
     skill_dir.mkdir(parents=True)
     (skill_dir / "manifest.yaml").write_text(
         "version: 0.1.0\ndescription: test\n"
@@ -280,16 +282,16 @@ def test_registry_layout_missing_name_warns(tmp_path, monkeypatch):
         encoding="utf-8",
     )
     (skill_dir / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class NoNameSkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {}\n",
         encoding="utf-8",
     )
     monkeypatch.chdir(tmp_path)
-    with pytest.warns(SkillwareIdentityWarning, match="missing 'name'"):
-        bundle = SkillLoader.load_skill("office/no_name")
-    assert bundle["registry_id"] == "office/no_name"
+    with pytest.warns(SkillAssayIdentityWarning, match="missing 'name'"):
+        bundle = SkillLoader.load_skill("security/no_name")
+    assert bundle["registry_id"] == "security/no_name"
 
 
 def test_env_root_registry_layout_validates(tmp_path, monkeypatch):
@@ -302,16 +304,16 @@ def test_env_root_registry_layout_validates(tmp_path, monkeypatch):
         encoding="utf-8",
     )
     (skill_dir / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class EnvRegistrySkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {}\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(root))
+    monkeypatch.setenv(SKILL_ASSAY_SKILL_PATH_ENV, str(root))
     monkeypatch.chdir(tmp_path)
     with warnings.catch_warnings():
-        warnings.simplefilter("error", SkillwareIdentityWarning)
+        warnings.simplefilter("error", SkillAssayIdentityWarning)
         bundle = SkillLoader.load_skill("monitoring/env_registry_skill")
     assert bundle["registry_id"] == "monitoring/env_registry_skill"
 
@@ -325,7 +327,7 @@ def test_resolve_skill_from_project_skills_dir(tmp_path, monkeypatch):
         encoding="utf-8",
     )
     (skill_dir / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class LocalSkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {}\n",
@@ -347,13 +349,13 @@ def test_resolve_skill_from_env_path(tmp_path, monkeypatch):
         encoding="utf-8",
     )
     (skill_dir / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class EnvSkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {}\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(root))
+    monkeypatch.setenv(SKILL_ASSAY_SKILL_PATH_ENV, str(root))
     monkeypatch.chdir(tmp_path)
     bundle = SkillLoader.load_skill("env_skill")
     assert bundle["manifest"]["name"] == "env_skill"
@@ -361,7 +363,7 @@ def test_resolve_skill_from_env_path(tmp_path, monkeypatch):
 
 
 def test_resolve_skill_prefers_env_over_cwd_legacy(tmp_path, monkeypatch):
-    """Legacy mode (no YAML config): SKILLWARE_SKILL_PATH wins over cwd ./skills/."""
+    """Legacy mode (no YAML config): SKILL_ASSAY_SKILL_PATH wins over cwd ./skills/."""
     env_root = tmp_path / "env_root"
     env_skill = env_root / "shared_id"
     env_skill.mkdir(parents=True)
@@ -371,7 +373,7 @@ def test_resolve_skill_prefers_env_over_cwd_legacy(tmp_path, monkeypatch):
         encoding="utf-8",
     )
     (env_skill / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class EnvSkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {'source': 'env'}\n",
@@ -386,22 +388,22 @@ def test_resolve_skill_prefers_env_over_cwd_legacy(tmp_path, monkeypatch):
         encoding="utf-8",
     )
     (cwd_skill / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class CwdSkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {'source': 'cwd'}\n",
         encoding="utf-8",
     )
 
-    monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(env_root))
+    monkeypatch.setenv(SKILL_ASSAY_SKILL_PATH_ENV, str(env_root))
     monkeypatch.chdir(tmp_path)
     bundle = SkillLoader.load_skill("shared_id")
     assert bundle["manifest"]["name"] == "from_env"
 
 
 def test_resolve_skill_prefers_cwd_over_env_in_configured_mode(tmp_path, monkeypatch):
-    """Configured mode (#246 default order): project ./skills/ wins over env path."""
-    from skillware.core.config import PROJECT_CONFIG_FILENAME, clear_config_cache
+    """Configured mode default order: project ./skills/ wins over env path."""
+    from skill_assay.core.config import PROJECT_CONFIG_FILENAME, clear_config_cache
 
     env_root = tmp_path / "env_root"
     env_skill = env_root / "shared_id"
@@ -412,7 +414,7 @@ def test_resolve_skill_prefers_cwd_over_env_in_configured_mode(tmp_path, monkeyp
         encoding="utf-8",
     )
     (env_skill / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class EnvSkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {'source': 'env'}\n",
@@ -428,7 +430,7 @@ def test_resolve_skill_prefers_cwd_over_env_in_configured_mode(tmp_path, monkeyp
         encoding="utf-8",
     )
     (cwd_skill / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class CwdSkill(BaseSkill):\n"
         "    def execute(self, **kwargs):\n"
         "        return {'source': 'cwd'}\n",
@@ -439,7 +441,7 @@ def test_resolve_skill_prefers_cwd_over_env_in_configured_mode(tmp_path, monkeyp
         encoding="utf-8",
     )
 
-    monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(env_root))
+    monkeypatch.setenv(SKILL_ASSAY_SKILL_PATH_ENV, str(env_root))
     monkeypatch.chdir(project_dir)
     clear_config_cache()
     bundle = SkillLoader.load_skill("shared_id")
@@ -458,6 +460,7 @@ def test_wheel_includes_skill_manifest(tmp_path):
             "wheel",
             str(REPO_ROOT),
             "--no-deps",
+            "--no-build-isolation",
             "-w",
             str(wheel_dir),
         ],
@@ -466,17 +469,18 @@ def test_wheel_includes_skill_manifest(tmp_path):
         text=True,
     )
 
-    wheels = list(wheel_dir.glob("skillware-*.whl"))
+    wheels = list(wheel_dir.glob("agent_skill_assay-*.whl"))
     assert len(wheels) == 1
     wheel_path = wheels[0]
 
     with zipfile.ZipFile(wheel_path) as archive:
         names = archive.namelist()
         assert any(
-            n.endswith("skills/compliance/tos_evaluator/manifest.yaml") for n in names
+            n.endswith("skills/wellness/mental_coach/manifest.yaml") for n in names
         )
         assert any(
-            n.endswith("skills/office/pdf_form_filler/manifest.yaml") for n in names
+            n.endswith("skills/security/prompt_injection_firewall/manifest.yaml")
+            for n in names
         )
 
 
@@ -504,7 +508,7 @@ def test_to_ollama_prompt():
 def test_to_gemini_tool():
     sample_bundle = {
         "manifest": {
-            "name": "finance/wallet_screening",
+            "name": "monitoring/kpi_gate",
             "parameters": {
                 "type": "object",
                 "properties": {"param1": {"type": "string"}},
@@ -513,7 +517,7 @@ def test_to_gemini_tool():
     }
     tool = SkillLoader.to_gemini_tool(sample_bundle)
     decl = tool.function_declarations[0]
-    assert decl.name == "finance_wallet_screening"
+    assert decl.name == "monitoring_kpi_gate"
     assert type(tool).__name__ == "Tool"
     # Gemini requires UPPERCASE types for Protobufs
     assert decl.parameters.type.name == "OBJECT"
@@ -522,12 +526,10 @@ def test_to_gemini_tool():
 
 def test_sanitize_gemini_tool_name():
     assert (
-        SkillLoader._sanitize_gemini_tool_name("compliance/tos_evaluator")
-        == "compliance_tos_evaluator"
+        SkillLoader._sanitize_gemini_tool_name("wellness/mental_coach")
+        == "wellness_mental_coach"
     )
-    assert (
-        SkillLoader._sanitize_gemini_tool_name("wallet_screening") == "wallet_screening"
-    )
+    assert SkillLoader._sanitize_gemini_tool_name("kpi_gate") == "kpi_gate"
     assert SkillLoader._sanitize_gemini_tool_name("") == "unknown_tool"
     assert SkillLoader._sanitize_gemini_tool_name("a" * 80).startswith("a")
     assert len(SkillLoader._sanitize_gemini_tool_name("a" * 80)) == 64
@@ -550,25 +552,23 @@ def test_to_claude_tool():
 
     registry_bundle = {
         "manifest": {
-            "name": "optimization/prompt_rewriter",
+            "name": "security/prompt_injection_firewall",
             "description": "desc",
             "parameters": {"type": "object", "properties": {}},
         }
     }
     assert (
         SkillLoader.to_claude_tool(registry_bundle)["name"]
-        == "optimization_prompt_rewriter"
+        == "security_prompt_injection_firewall"
     )
 
 
 def test_sanitize_openai_tool_name():
     assert (
-        SkillLoader._sanitize_openai_tool_name("compliance/tos_evaluator")
-        == "compliance_tos_evaluator"
+        SkillLoader._sanitize_openai_tool_name("wellness/mental_coach")
+        == "wellness_mental_coach"
     )
-    assert (
-        SkillLoader._sanitize_openai_tool_name("wallet_screening") == "wallet_screening"
-    )
+    assert SkillLoader._sanitize_openai_tool_name("kpi_gate") == "kpi_gate"
     assert SkillLoader._sanitize_openai_tool_name("") == "unknown_tool"
     assert SkillLoader._sanitize_openai_tool_name("a" * 80).startswith("a")
     assert len(SkillLoader._sanitize_openai_tool_name("a" * 80)) == 64
@@ -577,7 +577,7 @@ def test_sanitize_openai_tool_name():
 def test_to_openai_tool():
     sample_bundle = {
         "manifest": {
-            "name": "compliance/tos_evaluator",
+            "name": "wellness/mental_coach",
             "description": "Evaluate site policy.",
             "parameters": {
                 "type": "object",
@@ -588,7 +588,7 @@ def test_to_openai_tool():
     }
     tool = SkillLoader.to_openai_tool(sample_bundle)
     assert tool["type"] == "function"
-    assert tool["function"]["name"] == "compliance_tos_evaluator"
+    assert tool["function"]["name"] == "wellness_mental_coach"
     assert tool["function"]["description"] == "Evaluate site policy."
     assert tool["function"]["parameters"]["type"] == "object"
     assert "target_url" in tool["function"]["parameters"]["properties"]
@@ -596,15 +596,15 @@ def test_to_openai_tool():
 
 def test_sanitize_deepseek_tool_name():
     assert (
-        SkillLoader._sanitize_deepseek_tool_name("compliance/tos_evaluator")
-        == "compliance_tos_evaluator"
+        SkillLoader._sanitize_deepseek_tool_name("wellness/mental_coach")
+        == "wellness_mental_coach"
     )
 
 
 def test_to_deepseek_tool():
     sample_bundle = {
         "manifest": {
-            "name": "compliance/tos_evaluator",
+            "name": "wellness/mental_coach",
             "description": "Evaluate site policy.",
             "parameters": {
                 "type": "object",
@@ -615,13 +615,13 @@ def test_to_deepseek_tool():
     }
     tool = SkillLoader.to_deepseek_tool(sample_bundle)
     assert tool["type"] == "function"
-    assert tool["function"]["name"] == "compliance_tos_evaluator"
+    assert tool["function"]["name"] == "wellness_mental_coach"
 
 
 def test_sanitize_bedrock_tool_name():
     assert (
-        SkillLoader._sanitize_bedrock_tool_name("compliance/tos_evaluator")
-        == "compliance_tos_evaluator"
+        SkillLoader._sanitize_bedrock_tool_name("wellness/mental_coach")
+        == "wellness_mental_coach"
     )
     assert SkillLoader._sanitize_bedrock_tool_name("") == "unknown_tool"
 
@@ -629,7 +629,7 @@ def test_sanitize_bedrock_tool_name():
 def test_to_bedrock_tool():
     sample_bundle = {
         "manifest": {
-            "name": "compliance/tos_evaluator",
+            "name": "wellness/mental_coach",
             "description": "Evaluate site policy.",
             "parameters": {
                 "type": "object",
@@ -640,7 +640,7 @@ def test_to_bedrock_tool():
     }
     tool = SkillLoader.to_bedrock_tool(sample_bundle)
     spec = tool["toolSpec"]
-    assert spec["name"] == "compliance_tos_evaluator"
+    assert spec["name"] == "wellness_mental_coach"
     assert spec["description"] == "Evaluate site policy."
     assert spec["inputSchema"]["json"]["type"] == "object"
     assert "target_url" in spec["inputSchema"]["json"]["properties"]
@@ -649,11 +649,11 @@ def test_to_bedrock_tool():
 def test_bedrock_tool_name_matches_openai_sanitization():
     sample_bundle = {
         "manifest": {
-            "name": "finance/wallet_screening",
-            "description": "Screen wallets.",
+            "name": "monitoring/kpi_gate",
+            "description": "Evaluate metrics.",
             "parameters": {"type": "object", "properties": {}},
         }
     }
     openai_name = SkillLoader.to_openai_tool(sample_bundle)["function"]["name"]
     bedrock_name = SkillLoader.to_bedrock_tool(sample_bundle)["toolSpec"]["name"]
-    assert bedrock_name == openai_name == "finance_wallet_screening"
+    assert bedrock_name == openai_name == "monitoring_kpi_gate"

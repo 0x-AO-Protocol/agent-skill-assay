@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "skillware:monitoring/kpi_gate:benchmarks:1",
+  "$id": "agent-skill-assay:monitoring/kpi_gate:benchmarks:1",
   "type": "object",
   "required": ["schema_version", "benchmark_version", "as_of", "sources", "values"],
   "additionalProperties": false,

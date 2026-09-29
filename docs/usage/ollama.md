@@ -1,6 +1,6 @@
-# Using Ollama with Skillware
+# Using Ollama with Agent Skill Assay
 
-Skillware natively supports [Ollama](https://ollama.com/), enabling you to run open-source models completely locally while seamlessly utilizing skills. Ollama's tool-calling format is directly compatible with Skillware's manifest structure.
+Agent Skill Assay natively supports [Ollama](https://ollama.com/), enabling you to run open-source models completely locally while seamlessly utilizing skills. Ollama's tool-calling format is directly compatible with Agent Skill Assay's manifest structure.
 
 ## Prerequisites
 
@@ -23,14 +23,14 @@ Here is a simple example demonstrating how to load a skill and execute it using 
 import json
 import re
 import ollama
-from skillware.core.loader import SkillLoader
-from skillware.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
 
 # Load Env for API Keys if any needed by skills
 load_env_file()
 
 # 1. Load the Skill dynamically
-SKILL_PATH = "finance/wallet_screening"
+SKILL_PATH = "monitoring/kpi_gate"
 skill_bundle = SkillLoader.load_skill(SKILL_PATH)
 wallet_skill = skill_bundle["class"]()
 # Or: WalletScreeningSkill = getattr(skill_bundle["module"], "WalletScreeningSkill"); wallet_skill = WalletScreeningSkill()
@@ -102,12 +102,12 @@ if tool_match:
 For more than one tool, use [`SkillContext`](skill_chaining.md) instead of concatenating per-skill prompts by hand:
 
 ```python
-from skillware import SkillContext
+from skill_assay import SkillContext
 
 ctx = SkillContext(
     skills=[
-        "finance/wallet_screening",
-        "optimization/prompt_rewriter",
+        "monitoring/kpi_gate",
+        "wellness/mental_coach",
     ],
     mode="brief",  # one-line registry summary in system; full Directive on prepare/execute
 )

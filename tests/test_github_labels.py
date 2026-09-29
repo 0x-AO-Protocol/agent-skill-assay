@@ -10,15 +10,7 @@ GITHUB_LABEL_DESCRIPTION_MAX = 100
 
 # Keep in sync with .github/ISSUE_TEMPLATE/01_skill_proposal.yml category dropdown.
 REGISTRY_CATEGORIES = (
-    "compliance",
-    "creative",
-    "data_engineering",
-    "defi",
-    "dev_tools",
-    "finance",
     "monitoring",
-    "office",
-    "optimization",
     "security",
     "wellness",
 )

@@ -1,6 +1,6 @@
 # API Keys for Skills
 
-Skills that call external APIs declare credential names in `manifest.yaml` under **`env_vars`**. Bundled skills resolve them with `BaseSkill.credential(name)` — **host `config` first**, then `os.environ` for local `.env` workflows. This page covers local setup, cloud injection, and `skillware doctor` checks.
+Skills that call external APIs declare credential names in `manifest.yaml` under **`env_vars`**. Bundled skills resolve them with `BaseSkill.credential(name)` — **host `config` first**, then `os.environ` for local `.env` workflows. This page covers local setup, cloud injection, and `skill-assay doctor` checks.
 
 ---
 
@@ -30,13 +30,13 @@ A single workflow may need both: for example, a skill that screens wallets may r
 
 ## Framework environment variables
 
-These are read by Skillware itself (loader and CLI), not by individual skills:
+These are read by Agent Skill Assay itself (loader and CLI), not by individual skills:
 
 | Variable | Purpose |
 | :--- | :--- |
-| `SKILLWARE_SKILL_PATH` | Extra filesystem roots for skill discovery (OS path separator between multiple entries). Without a config file, these are checked first (legacy order). When `.skillware.yaml` or global `config.yaml` exists, entries are merged into the **external** tier unless `legacy.honor_skillware_skill_path: false`. See [CLI — path resolution](cli.md#path-resolution). |
-| `SKILLWARE_CONFIG_DIR` | Override directory for global `config.yaml` (default: XDG `~/.config/skillware/` or `%APPDATA%/skillware/` on Windows). |
-| `SKILLWARE_NO_VERSION_CHECK` | Set to `1` to disable the CLI version advisory (useful in CI and automation). See [CLI reference](cli.md#version-advisory). |
+| `SKILL_ASSAY_SKILL_PATH` | Extra filesystem roots for skill discovery (OS path separator between multiple entries). Without a config file, these are checked first (legacy order). When `.skill-assay.yaml` or global `config.yaml` exists, entries are merged into the **external** tier unless `legacy.honor_skill_assay_skill_path: false`. See [CLI — path resolution](cli.md#path-resolution). |
+| `SKILL_ASSAY_CONFIG_DIR` | Override directory for global `config.yaml` (default: XDG `~/.config/skill_assay/` or `%APPDATA%/skill_assay/` on Windows). |
+| `SKILL_ASSAY_NO_VERSION_CHECK` | Set to `1` to disable the CLI version advisory (useful in CI and automation). See [CLI reference](cli.md#version-advisory). |
 
 Skill-specific names remain on each skill's catalog page and in `manifest.yaml` `env_vars`.
 
@@ -52,10 +52,10 @@ Copy the repository root template and fill in values:
 cp .env.example .env
 ```
 
-Skillware can load `.env` into the process environment before skills run:
+Agent Skill Assay can load `.env` into the process environment before skills run:
 
 ```python
-from skillware.core.env import load_env_file
+from skill_assay.core.env import load_env_file
 
 load_env_file()  # reads `.env` in the current working directory by default
 ```
@@ -64,7 +64,7 @@ Run your script from the repository root (or pass an explicit path: `load_env_fi
 
 Add `.env` to `.gitignore` (already ignored in this repository). Never commit real keys.
 
-When developing Skillware from a branch, use `pip install -e .` so bundled skills load the in-tree `BaseSkill.credential()` helper.
+When developing Agent Skill Assay from a branch, use `pip install -e .` so bundled skills load the in-tree `BaseSkill.credential()` helper.
 
 ### Shell export
 
@@ -103,10 +103,10 @@ docker run --env-file .env your-image python examples/gemini_wallet_check.py
 Production hosts inject credentials without polluting global `os.environ`:
 
 ```python
-from skillware.core.loader import SkillLoader
-from skillware.core.secrets import MappingSecretProvider, CallableSecretProvider
+from skill_assay.core.loader import SkillLoader
+from skill_assay.core.secrets import MappingSecretProvider, CallableSecretProvider
 
-bundle = SkillLoader.load_skill("finance/wallet_screening")
+bundle = SkillLoader.load_skill("monitoring/kpi_gate")
 config = SkillLoader.resolve_env_vars(
     bundle["manifest"],
     MappingSecretProvider({"ETHERSCAN_API_KEY": fetch_from_vault("etherscan")}),
@@ -117,13 +117,13 @@ skill = bundle["class"](config=config)
 Or multi-skill:
 
 ```python
-from skillware import SkillContext
+from skill_assay import SkillContext
 
 ctx = SkillContext(
     categories=["finance"],
     secret_provider={"ETHERSCAN_API_KEY": fetch_from_vault("etherscan")},
 )
-ctx.execute("finance/wallet_screening", {"address": "0x..."})
+ctx.execute("monitoring/kpi_gate", {"address": "0x..."})
 ```
 
 | Provider | Use when |
@@ -137,7 +137,7 @@ ctx.execute("finance/wallet_screening", {"address": "0x..."})
 
 **Local dev unchanged:** `load_env_file()` + default skill construction still reads `.env` via `credential()` fallback.
 
-**Check readiness:** `skillware doctor` reports missing **required** `env_vars` (**ENVS** column).
+**Check readiness:** `skill-assay doctor` reports missing **required** `env_vars` (**ENVS** column).
 
 Demo: [`examples/secret_provider_demo.py`](../../examples/secret_provider_demo.py).
 
@@ -182,7 +182,7 @@ These patterns apply to many skills; see individual skill pages for exact variab
 
 ### Dedicated agent mailbox (Gmail) — same rule as a dedicated agent wallet
 
-`office/gmail_handler` signs into Gmail as **`GMAIL_ADDRESS`** using **`GMAIL_APP_PASSWORD`**. Treat this like `AGENT_WALLET_PRIVATE_KEY` for `defi/evm_tx_handler`:
+`wellness/mental_coach` signs into Gmail as **`GMAIL_ADDRESS`** using **`GMAIL_APP_PASSWORD`**. Treat this like `AGENT_WALLET_PRIVATE_KEY` for `monitoring/kpi_gate`:
 
 | Do | Do not |
 | :--- | :--- |
@@ -196,7 +196,7 @@ export GMAIL_ADDRESS="agent-mailbox@example.com"
 export GMAIL_APP_PASSWORD="your-16-char-app-password"
 ```
 
-Optional path overrides: `GMAIL_ADDRESSBOOK_PATH`, `GMAIL_SIGNATURE_PATH`, `GMAIL_SIGNATURE_HTML_PATH`, `GMAIL_SIGNATURE_PLAIN`, `GMAIL_SIGNATURE_PROFILE`, `GMAIL_SCAN_STATE_PATH`, `GMAIL_SEND_LEDGER_PATH`. Operator setup (address book, signatures, multi-profile signatures, persistence): [`skillware mail`](cli.md#skillware-mail) and [Gmail Handler](../skills/gmail_handler.md#fresh-install-checklist).
+Optional path overrides: `GMAIL_ADDRESSBOOK_PATH`, `GMAIL_SIGNATURE_PATH`, `GMAIL_SIGNATURE_HTML_PATH`, `GMAIL_SIGNATURE_PLAIN`, `GMAIL_SIGNATURE_PROFILE`, `GMAIL_SCAN_STATE_PATH`, `GMAIL_SEND_LEDGER_PATH`. Operator setup (address book, signatures, multi-profile signatures, persistence): [`skill-assay mail`](cli.md#agent-skill-assay-mail) and [Gmail Handler](../skills/mental_coach.md#fresh-install-checklist).
 
 Preview and confirmation gates apply before send/reply; read the skill `instructions.md` before enabling live mail on any host agent.
 

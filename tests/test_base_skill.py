@@ -1,6 +1,6 @@
 """Tests for BaseSkill helpers."""
 
-from skillware.core.base_skill import BaseSkill
+from skill_assay.core.base_skill import BaseSkill
 
 
 class _CredentialProbeSkill(BaseSkill):

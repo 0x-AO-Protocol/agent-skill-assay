@@ -7,7 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from skillware.core.extras import (
+from skill_assay.core.extras import (
     GENERATED_BEGIN,
     GENERATED_END,
     build_extras_map,
@@ -25,8 +25,8 @@ INSTALL_EXTRAS = REPO_ROOT / "docs" / "usage" / "install_extras.md"
 # Optional lanes documented in install_extras.md but not generated from manifests.
 DOCUMENTED_OPTIONAL_EXTRAS = frozenset(
     {
-        "security_deceptive_ui_guard_render",
-        "data_engineering_semantic_web_proxy_tokenizer",
+        "security_prompt_injection_firewall",
+        "monitoring_business_diagnostic",
     }
 )
 

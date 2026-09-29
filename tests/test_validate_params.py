@@ -4,8 +4,8 @@ from typing import Any, Dict
 
 import pytest
 
-from skillware.core.base_skill import BaseSkill, SkillwareParamValidationError
-from skillware.core.loader import SkillLoader
+from skill_assay.core.base_skill import BaseSkill, SkillAssayParamValidationError
+from skill_assay.core.loader import SkillLoader
 
 
 class _SchemaSkill(BaseSkill):
@@ -37,20 +37,20 @@ def test_validate_params_accepts_valid_arguments():
 def test_validate_params_rejects_missing_required_field():
     skill = _SchemaSkill()
     with pytest.raises(
-        SkillwareParamValidationError, match="'query' is a required property"
+        SkillAssayParamValidationError, match="'query' is a required property"
     ):
         skill.validate_params({})
 
 
 def test_validate_params_rejects_wrong_type():
     skill = _SchemaSkill()
-    with pytest.raises(SkillwareParamValidationError, match="limit"):
+    with pytest.raises(SkillAssayParamValidationError, match="limit"):
         skill.validate_params({"query": "hello", "limit": "three"})
 
 
 def test_validate_params_rejects_non_object_arguments():
     skill = _SchemaSkill()
-    with pytest.raises(SkillwareParamValidationError, match="JSON object"):
+    with pytest.raises(SkillAssayParamValidationError, match="JSON object"):
         skill.validate_params([])  # type: ignore[arg-type]
 
 
@@ -75,5 +75,5 @@ def test_registry_mental_coach_validates_required_user_prompt():
 def test_registry_mental_coach_rejects_missing_user_prompt():
     bundle = SkillLoader.load_skill("wellness/mental_coach")
     skill = bundle["class"]()
-    with pytest.raises(SkillwareParamValidationError, match="user_prompt"):
+    with pytest.raises(SkillAssayParamValidationError, match="user_prompt"):
         skill.validate_params({})

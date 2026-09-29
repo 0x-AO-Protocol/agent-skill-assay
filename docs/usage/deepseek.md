@@ -1,6 +1,6 @@
 # Integration Guide: DeepSeek
 
-Skillware supports DeepSeek chat models via `SkillLoader.to_deepseek_tool()`. Use the official `openai` Python SDK pointed at the DeepSeek API base URL.
+Agent Skill Assay supports DeepSeek chat models via `SkillLoader.to_deepseek_tool()`. Use the official `openai` Python SDK pointed at the DeepSeek API base URL.
 
 This adapter is **separate** from `to_openai_tool()` even though the wire format is similar. Do not substitute one for the other in application code.
 
@@ -15,12 +15,12 @@ import os
 
 from openai import OpenAI
 
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 
-bundle = SkillLoader.load_skill("finance/wallet_screening")
+bundle = SkillLoader.load_skill("monitoring/kpi_gate")
 tool = SkillLoader.to_deepseek_tool(bundle)
 
 client = OpenAI(
@@ -53,7 +53,7 @@ Parameters come directly from the skill manifest JSON Schema.
 
 ### 2. Function name sanitization
 
-DeepSeek applies the same function-name rules as other OpenAI-compatible tool APIs. Manifest IDs with slashes are normalized (for example `compliance/tos_evaluator` becomes `compliance_tos_evaluator`).
+DeepSeek applies the same function-name rules as other OpenAI-compatible tool APIs. Manifest IDs with slashes are normalized (for example `monitoring/business_diagnostic` becomes `monitoring_business_diagnostic`).
 
 Match `tool_call.function.name` to `tool["function"]["name"]` from `to_deepseek_tool()`, not the raw manifest `name` string.
 
@@ -65,7 +65,7 @@ Pass `bundle["instructions"]` as the `system` role content so the model knows wh
 
 Use `client.chat.completions.create` with `tools=[deepseek_tool]`, handle `tool_calls`, run `skill.execute(...)`, append `tool` messages, and repeat.
 
-See `examples/deepseek_tos_evaluator.py`.
+See `examples/deepseek_business_diagnostic.py`.
 
 ---
 
@@ -77,12 +77,12 @@ import os
 
 from openai import OpenAI
 
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 
-bundle = SkillLoader.load_skill("compliance/tos_evaluator")
+bundle = SkillLoader.load_skill("monitoring/business_diagnostic")
 skill = bundle["class"]()
 # Or: skill = bundle["module"].TOSEvaluatorSkill()
 

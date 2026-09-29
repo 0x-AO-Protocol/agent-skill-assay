@@ -1,4 +1,4 @@
-"""Five-provider Usage Examples guard for skill catalog pages (#104)."""
+"""Five-provider Usage Examples guard for skill catalog pages."""
 
 from __future__ import annotations
 

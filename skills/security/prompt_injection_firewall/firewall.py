@@ -51,6 +51,8 @@ VARIATION_SELECTOR_RANGES = (
     (0xE0100, 0xE01EF),
 )
 VS_RUN_THRESHOLD = 8
+MAX_INPUT_BYTES = 65536
+MAX_DECODE_CANDIDATES = 64
 MAX_DECODE_DEPTH = 3
 MAX_DECODE_BYTES = 8192
 
@@ -615,6 +617,34 @@ def _try_decode_layer(token: str) -> Optional[str]:
     return None
 
 
+def _encoded_resource_cap_exceeded(token: str) -> bool:
+    """Return True when decoding this candidate could exceed the byte cap."""
+    if len(token) > MAX_DECODE_BYTES:
+        return True
+
+    if re.fullmatch(r"[A-Za-z0-9+/]{16,}={0,2}", token):
+        # Base64 expands to at most three decoded bytes per four input bytes.
+        return (len(token) * 3) // 4 > MAX_DECODE_BYTES
+
+    hex_token = token[2:] if token.lower().startswith("0x") else token
+    if re.fullmatch(r"[0-9a-fA-F]{24,}", hex_token):
+        return len(hex_token) // 2 > MAX_DECODE_BYTES
+
+    return False
+
+
+def _resource_limit_finding(
+    *, channel: str, span: Tuple[int, int], evidence: str
+) -> Finding:
+    return Finding(
+        category="resource_limit+resource_cap",
+        channel=channel,
+        severity="critical",
+        span=span,
+        evidence=evidence,
+    )
+
+
 def _scan_decoded_for_lexicon(text: str) -> Optional[PatternEntry]:
     fold = unicodedata.normalize("NFKC", text).casefold()
     skeleton = _to_skeleton(fold, _load_confusables())
@@ -629,8 +659,30 @@ def _detect_encoded_payload(canonical: CanonicalForm) -> List[Finding]:
     candidates = list(
         re.finditer(r"\b(?:0x)?[A-Za-z0-9+/_%-]{24,}={0,2}\b", canonical.original)
     )
+    if len(candidates) > MAX_DECODE_CANDIDATES:
+        findings.append(
+            _resource_limit_finding(
+                channel="encoded",
+                span=(0, len(canonical.original)),
+                evidence=(
+                    "encoded candidate count exceeded decoder resource cap; "
+                    f"limit={MAX_DECODE_CANDIDATES}"
+                ),
+            )
+        )
+        candidates = candidates[:MAX_DECODE_CANDIDATES]
+
     for match in candidates:
         token = match.group(0)
+        if _encoded_resource_cap_exceeded(token):
+            findings.append(
+                _resource_limit_finding(
+                    channel="encoded",
+                    span=(match.start(), match.end()),
+                    evidence="encoded payload exceeded decoder byte cap",
+                )
+            )
+            continue
         current = token
         layers = 0
         decoded_text = None
@@ -655,6 +707,17 @@ def _detect_encoded_payload(canonical: CanonicalForm) -> List[Finding]:
                     )
                 )
                 break
+        if layers >= MAX_DECODE_DEPTH and _try_decode_layer(current) is not None:
+            findings.append(
+                _resource_limit_finding(
+                    channel="encoded",
+                    span=(match.start(), match.end()),
+                    evidence=(
+                        "encoded payload exceeded decoder depth cap; "
+                        f"limit={MAX_DECODE_DEPTH}"
+                    ),
+                )
+            )
         # Continue nested decode even without early hit (handled in loop above).
         _ = decoded_text
     return findings
@@ -731,6 +794,12 @@ def _verdict(findings: Sequence[Finding], sensitivity: SensitivityLevel) -> bool
     active = [f for f in findings if not (f.downgraded and f.severity == "low")]
     if not active:
         return True
+
+    # Resource exhaustion is a safety failure at every profile. A profile may
+    # change detector thresholds, but it may never turn a partial scan into a
+    # clean result.
+    if any(f.category.startswith("resource_limit") for f in active):
+        return False
 
     # Floor: a lone critical exfiltration finding fails at every sensitivity,
     # including lenient, and bypasses corroboration requirements.
@@ -873,6 +942,22 @@ def scan_source_text(
             risk_level="none",
             detected_threat=None,
             findings=[],
+            sanitized_text="",
+            offline=True,
+            sensitivity=sensitivity,
+        )
+
+    if len(source_text.encode("utf-8")) > MAX_INPUT_BYTES:
+        finding = _resource_limit_finding(
+            channel="input",
+            span=(0, len(source_text)),
+            evidence=f"input exceeded resource cap; limit={MAX_INPUT_BYTES} bytes",
+        )
+        return ScanResult(
+            is_safe=False,
+            risk_level="critical",
+            detected_threat="Input resource limit exceeded.",
+            findings=[_finding_to_dict(finding)],
             sanitized_text="",
             offline=True,
             sensitivity=sensitivity,

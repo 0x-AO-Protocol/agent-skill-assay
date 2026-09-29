@@ -1,202 +1,59 @@
-# Install extras
+# Install Extras
 
-Skillware ships as **one PyPI wheel**. Every bundled registry skill is included on disk after `pip install skillware`. Optional **extras** add Python packages only — they do not download or hide skill bundles.
+Agent Skill Assay ships as one wheel. The four v0.1 skill bundles are included
+with the base install; extras add optional runtime dependencies.
 
-Use this guide to choose the smallest install that matches what you run. For loading skills after install, see [Finding skills on disk](README.md#finding-skills-on-disk).
-
-## Quick reference
+## Quick Reference
 
 | Goal | Install command |
 | :--- | :--- |
-| Framework + all skills on disk (no optional runtime packages) | `pip install skillware` |
-| **Recommended:** one bundled skill (always use this in docs) | `pip install "skillware[<category>_<skill>]"` |
-| All skills in a category | `pip install "skillware[<category>]"` |
-| Every bundled skill's runtime deps | `pip install "skillware[all]"` |
-| Agent SDK adapters (Gemini, Claude, OpenAI, Bedrock) | `pip install "skillware[gemini]"` (or `[claude]`, `[openai]`, `[bedrock]`, `[agents]`) |
-| Clone-repo development + tests | `pip install -e ".[dev,all]"` |
-| Development + agent SDK examples | `pip install -e ".[dev,all,agents]"` |
+| Framework and all four skills | `pip install agent-skill-assay` |
+| One bundled skill | `pip install "agent-skill-assay[<category>_<skill>]"` |
+| Every bundled skill dependency | `pip install "agent-skill-assay[all]"` |
+| Development and tests | `pip install -e ".[dev,all]"` |
+| Agent SDK examples | `pip install -e ".[dev,all,agents]"` |
 
-> **Pip rule:** `pip install "skillware[extra]"` always installs **core + extra** dependencies. There is no extra-only install without the `skillware` package.
-
-> **Shell quoting:** Use quotes on zsh and fish — e.g. `pip install "skillware[finance_wallet_screening]"`.
-
-> **Docs convention:** Catalog pages, examples, and skill guides always recommend the **per-skill extra** (`category_skill`), even when it is empty today. When a skill gains new manifest `requirements`, run `python scripts/sync_extras.py` — docs stay unchanged.
-
-## Base install
-
-```bash
-pip install skillware
-```
-
-Includes:
-
-- Core framework (`SkillLoader`, CLI, discovery)
-- All bundled registry skills under `site-packages/skills/`
-- Core runtime dependencies: `requests`, `pyyaml`, `python-dotenv`, `beautifulsoup4`, `packaging`, `jsonschema`, `rich`
-
-Does **not** include optional skill runtime packages (for example `web3`, `fastembed`, `pymupdf`, `google-genai`) or agent SDK packages (`anthropic`, `openai`). If you load a skill that needs them, `SkillLoader` raises an `ImportError` with suggested extras (see [Loader behavior](#loader-behavior)).
-
-## Which extra should I use?
-
-```mermaid
-flowchart TD
-    A[What are you running?] --> B{Single skill}
-    A --> C{Whole category}
-    A --> D{Many skills / full registry}
-    A --> E{Agent SDK examples}
-
-    B --> B1["pip install skillware[category_skill]"]
-    C --> C1["pip install skillware[category]"]
-    D --> D1["pip install skillware[all]"]
-    E --> E1["pip install skillware[gemini] or [claude] or [openai] or [bedrock] or [agents]"]
-
-    B1 --> F[Also need SDK? Add gemini/claude/openai/bedrock/agents]
-    C1 --> F
-    D1 --> F
-```
-
-- **Single skill in production or documentation** — always use the per-skill extra (`pip install "skillware[category_skill]"`), even when it adds no packages yet.
-- **Exploring a domain** — use the category extra.
-- **CI, contributors, or multi-skill apps** — use `[all]`.
-- **Runnable examples under `examples/`** — list each skill's extra plus an SDK extra (`[gemini]`, `[claude]`, …) when the provider is not local execute.
-
-Skill extras are **orthogonal** to SDK extras. Example: `office/pdf_form_filler` needs `[office_pdf_form_filler]` for `pymupdf` and `anthropic`; a Gemini agent loop around it also needs `[gemini]`.
+Every extra installs the core package as well. Empty skill extras are retained
+so documentation and install commands remain stable when a manifest gains a
+dependency.
 
 ## Category extras
 
-Union of non-core `requirements` from every skill in the category.
-
-| Extra | Skills | Packages installed |
+| Extra | Skills | Packages |
 | :--- | :--- | :--- |
-| `compliance` | `compliance/mica_module`, `compliance/pii_masker`, `compliance/tos_evaluator` | `google-genai` |
-| `creative` | `creative/bg_remover`, `creative/deck_builder` | `onnxruntime`, `pillow`, `python-pptx>=1.0.0`, `rembg>=2.0.0` |
-| `data_engineering` | `data_engineering/novelty_extractor`, `data_engineering/semantic_web_proxy`, `data_engineering/synthetic_generator` | `fastembed`, `numpy`, `trafilatura>=2.0.0` |
-| `defi` | `defi/evm_tx_handler` | `web3>=6.0.0` |
-| `dev_tools` | `dev_tools/issue_resolver` | *(none today)* |
-| `finance` | `finance/uk_companies_house_handler`, `finance/wallet_screening` | *(none today)* |
-| `monitoring` | `monitoring/token_limiter`, `monitoring/kpi_gate` | *(none today)* |
-| `office` | `office/gmail_handler`, `office/pdf_form_filler` | `anthropic`, `pymupdf` |
-| `optimization` | `optimization/context_optimizer`, `optimization/prompt_rewriter` | `fastembed`, `numpy` |
-| `security` | `security/deceptive_ui_guard`, `security/prompt_injection_firewall` | *(none today)* |
+| `monitoring` | `monitoring/business_diagnostic`, `monitoring/kpi_gate` | *(none today)* |
+| `security` | `security/prompt_injection_firewall` | *(none today)* |
 | `wellness` | `wellness/mental_coach` | `google-genai` |
-
-```bash
-pip install "skillware[defi]"
-```
-
-When a new category or skill lands, run `python scripts/sync_extras.py` after merging the skill manifest — category and skill rows appear in `pyproject.toml` automatically. Update this guide's tables when adding a category or skill with new packages.
 
 ## Skill extras
 
-One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registry `/` becomes `_`).
-
-| Extra | Registry ID | Packages | Notes |
-| :--- | :--- | :--- | :--- |
-| `compliance_mica_module` | `compliance/mica_module` | `google-genai` | |
-| `compliance_pii_masker` | `compliance/pii_masker` | *(none today)* | Use this extra in docs and installs |
-| `compliance_tos_evaluator` | `compliance/tos_evaluator` | *(none today)* | Use this extra in docs and installs |
-| `creative_bg_remover` | `creative/bg_remover` | `rembg>=2.0.0`, `pillow`, `onnxruntime` | |
-| `creative_deck_builder` | `creative/deck_builder` | `python-pptx>=1.0.0`, `pillow` | Editable PowerPoint presentation assembly |
-| `data_engineering_novelty_extractor` | `data_engineering/novelty_extractor` | `fastembed`, `numpy` | |
-| `data_engineering_semantic_web_proxy` | `data_engineering/semantic_web_proxy` | `trafilatura>=2.0.0` | |
-| `data_engineering_semantic_web_proxy_tokenizer` | `data_engineering/semantic_web_proxy` | `tiktoken` | Optional exact `cl100k_base` token counts; without it the skill falls back to its offline heuristic |
-| `data_engineering_synthetic_generator` | `data_engineering/synthetic_generator` | *(none today)* | Use this extra in docs and installs |
-| `defi_evm_tx_handler` | `defi/evm_tx_handler` | `web3>=6.0.0` | |
-| `dev_tools_issue_resolver` | `dev_tools/issue_resolver` | *(none today)* | Use this extra in docs and installs |
-| `finance_uk_companies_house_handler` | `finance/uk_companies_house_handler` | *(none today)* | Use this extra in docs and installs |
-| `finance_wallet_screening` | `finance/wallet_screening` | *(none today)* | Use this extra in docs and installs |
-| `monitoring_token_limiter` | `monitoring/token_limiter` | *(none today)* | Use this extra in docs and installs |
-| `monitoring_kpi_gate` | `monitoring/kpi_gate` | *(none today)* | Use this extra in docs and installs |
-| `office_gmail_handler` | `office/gmail_handler` | *(none today)* | Use this extra in docs and installs |
-| `office_pdf_form_filler` | `office/pdf_form_filler` | `pymupdf`, `anthropic` | |
-| `optimization_context_optimizer` | `optimization/context_optimizer` | `fastembed`, `numpy` | Local embedding model (~50 MB on first use) |
-| `optimization_prompt_rewriter` | `optimization/prompt_rewriter` | *(none today)* | Use this extra in docs and installs |
-| `security_prompt_injection_firewall` | `security/prompt_injection_firewall` | *(none today)* | Offline-only; no runtime deps |
-| `security_deceptive_ui_guard` | `security/deceptive_ui_guard` | *(none today)* | Offline HTML analysis; optional url fetch uses `requests` (core) |
-| `security_deceptive_ui_guard_render` | `security/deceptive_ui_guard` | `playwright` | Optional headless Playwright computed-style diffing (v0.2.0) |
-| `wellness_mental_coach` | `wellness/mental_coach` | `google-genai` | |
-
-```bash
-pip install "skillware[finance_wallet_screening]"
-```
-
-Empty extras (`[]`) are intentional — always use the per-skill extra in documentation and install commands so new manifest `requirements` do not require doc rewrites.
+| Extra | Registry ID | Packages |
+| :--- | :--- | :--- |
+| `monitoring_business_diagnostic` | `monitoring/business_diagnostic` | *(none today)* |
+| `monitoring_kpi_gate` | `monitoring/kpi_gate` | *(none today)* |
+| `security_prompt_injection_firewall` | `security/prompt_injection_firewall` | *(none today)* |
+| `wellness_mental_coach` | `wellness/mental_coach` | `google-genai` |
 
 ## Meta extras
 
 | Extra | Purpose | Packages |
 | :--- | :--- | :--- |
-| `all` | Deduped union of **all** bundled skill runtime deps (non-core) | `anthropic`, `fastembed`, `google-genai`, `numpy`, `onnxruntime`, `pillow`, `pymupdf`, `python-pptx>=1.0.0`, `rembg>=2.0.0`, `trafilatura>=2.0.0`, `web3>=6.0.0` |
-| `agents` | Union of all agent SDK extras | `google-genai`, `anthropic`, `openai` |
-| `dev` | Clone-repo lint and test tools | `pytest`, `pytest-mock`, `flake8`, `black` |
-
-`[all]` does **not** include SDK packages. For full local development matching skill bundle tests **and** agent examples:
-
-```bash
-pip install -e ".[dev,all,agents]"
-```
+| `all` | Every bundled skill runtime dependency | `google-genai` |
+| `agents` | Agent SDK integrations | `anthropic`, `openai`, `google-genai` |
+| `dev` | Development and test tooling | `pytest`, `pytest-mock`, `flake8`, `black`, `setuptools` |
 
 ## Agent SDK extras
 
-For `SkillLoader.to_gemini_tool()`, `to_claude_tool()`, `to_openai_tool()`, `to_bedrock_tool()`, and provider examples — not required for `execute()` on skills that do not call that SDK internally.
-
-| Extra | Package | Guide |
-| :--- | :--- | :--- |
-| `gemini` | `google-genai` | [gemini.md](gemini.md) |
-| `claude` | `anthropic` | [claude.md](claude.md) |
-| `openai` | `openai` | [openai.md](openai.md) |
-| `bedrock` | `boto3` | [bedrock.md](bedrock.md) |
-| `agents` | Gemini, Claude, OpenAI SDKs | [agent_loops.md](agent_loops.md) |
-| (routing) | — | [enterprise_cloud.md](enterprise_cloud.md) |
-
-```bash
-pip install "skillware[gemini]"
-```
-
-## Loader behavior
-
-When `SkillLoader.load_skill(..., check_requirements=True)` (default) validates manifest `requirements`:
-
-1. **Unpinned** entries (for example `requests`) — the importable module must exist.
-2. **Pinned** entries (for example `web3>=6.0.0`) — the module must exist and the installed distribution version must satisfy the specifier.
-
-On failure it raises `ImportError` with:
-
-1. Missing packages and/or version mismatches (required spec vs installed)
-2. Suggested `pip install "skillware[<category>_<skill>]"`
-3. Category and `[all]` fallbacks
-
-The loader does not install or upgrade packages — use pip extras or install the requirement strings yourself.
-
-Use `SkillLoader.load_skill(..., execute_module=False)` for inspect-only loads (manifest, instructions, card, and optional requirement pre-flight) without executing `skill.py`. The CLI `skillware doctor` command uses this mode for the **DEPS** column before attempting a full import for **LOAD**.
-
-Packaging smoke tests use `check_requirements=False` so a base wheel install can verify bundles without optional extras ([TESTING.md](../TESTING.md#packaging-smoke-test)).
-
-## Contributors
-
-1. List runtime packages in the skill's `manifest.yaml` `requirements` (source of truth).
-2. Run `python scripts/sync_extras.py` to regenerate category, skill, and `[all]` rows in `pyproject.toml`.
-3. CI and `tests/test_extras_sync.py` fail if generated extras drift from manifests.
-
-Core dependencies (`requests`, `pyyaml`, `beautifulsoup4`, …) should **not** be duplicated in extras — the sync script filters them automatically. Manifests may still list them for documentation; use `bs4` or `beautifulsoup4` interchangeably for Beautiful Soup.
-
-Hand-maintained extras (`dev`, `gemini`, `claude`, `openai`, `bedrock`, `agents`) live **above** the generated block in `pyproject.toml` and are not touched by the sync script.
-
-See [Packaging (PyPI and pip install)](../CONTRIBUTING.md#packaging-pypi-and-pip-install) in CONTRIBUTING.md.
-
-## Removed legacy extras
-
-Clean break in this release:
-
-| Removed | Replacement |
+| Extra | Package |
 | :--- | :--- |
-| `cli` | CLI ships on every install via `[project.scripts]` |
-| `embeddings` | `data_engineering_novelty_extractor` or `optimization_context_optimizer` (category `data_engineering` / `optimization`) |
-| Old `[all]` (mixed SDK + skills) | `[all]` = skill runtime only; use `[agents]` for SDKs |
+| `gemini` | `google-genai` |
+| `claude` | `anthropic` |
+| `openai` | `openai` |
+| `bedrock` | `boto3` |
+| `agents` | Gemini, Claude, and OpenAI SDKs |
 
-## See also
+## Loader Behavior
 
-- [Usage guides index](README.md)
-- [CLI reference](cli.md)
-- [Skill library](../skills/README.md)
-- [TESTING.md](../TESTING.md)
+`SkillLoader.load_skill()` checks manifest requirements before loading a skill.
+When a requirement is missing, the error includes the matching
+`agent-skill-assay[...]` install hint. The loader never installs packages.

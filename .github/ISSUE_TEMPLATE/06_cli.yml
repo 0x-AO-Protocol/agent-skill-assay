@@ -1,18 +1,18 @@
 name: "CLI"
-description: Report a bug or propose a change to the skillware command-line interface.
+description: Report a bug or propose a change to the agent-skill-assay command-line interface.
 title: "[CLI]: "
 labels: ["cli", "enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        Scope: `skillware/cli.py`, `skillware/cli_mail.py`, `skillware/__main__.py`, and [docs/usage/cli.md](https://github.com/ARPAHLS/skillware/blob/main/docs/usage/cli.md).
+        Scope: `skill_assay/cli.py`, `skill_assay/cli_mail.py`, `skill_assay/__main__.py`, and [docs/usage/cli.md](https://github.com/0x-AO-Protocol/agent-skill-assay/blob/main/docs/usage/cli.md).
 
-        Also in scope when the change touches merged YAML config: `skillware/core/config.py` (`.skillware.yaml`, global `config.yaml` under `SKILLWARE_CONFIG_DIR` / `%APPDATA%\\skillware` on Windows).
+        Also in scope when the change touches merged YAML config: `skill_assay/core/config.py` (`.skill-assay.yaml`, global `config.yaml` under `SKILL_ASSAY_CONFIG_DIR` / `%APPDATA%\\agent-skill-assay` on Windows).
 
         Splash menu (v0.5.1): `1=list`, `2=examples`, `3=test`, `4=paths`, `5=doctor`, `6=help`, `7=mail`.
 
-        For loader/path **resolution logic** in `skillware/core/loader.py` (not CLI UX), use **Framework Feature** or **Bug Report** (Core Framework).
+        For loader/path **resolution logic** in `skill_assay/core/loader.py` (not CLI UX), use **Framework Feature** or **Bug Report** (Core Framework).
 
   - type: dropdown
     id: change_type
@@ -30,19 +30,19 @@ body:
     attributes:
       label: Command or area
       options:
-        - skillware (interactive menu)
-        - skillware list
-        - skillware test
-        - skillware examples
-        - skillware doctor
-        - skillware config show
-        - skillware paths (read-only)
-        - skillware (menu 4 / paths) — interactive paths submenu
-        - skillware mail
-        - skillware (menu 7 / mail) — interactive mail submenu
-        - skillware (menu 6 / help) — tiered help
-        - skillware --help / --version
-        - python -m skillware
+        - agent-skill-assay (interactive menu)
+        - skill-assay list
+        - skill-assay test
+        - skill-assay examples
+        - skill-assay doctor
+        - skill-assay config show
+        - skill-assay paths (read-only)
+        - agent-skill-assay (menu 4 / paths) — interactive paths submenu
+        - skill-assay mail
+        - agent-skill-assay (menu 7 / mail) — interactive mail submenu
+        - agent-skill-assay (menu 6 / help) — tiered help
+        - agent-skill-assay --help / --version
+        - python -m skill_assay
         - Other
     validations:
       required: true
@@ -52,7 +52,7 @@ body:
     attributes:
       label: Install method
       options:
-        - pip install skillware (PyPI)
+        - pip install agent-skill-assay (PyPI)
         - pip install -e ".[dev]" or ".[dev,all]" (editable clone)
         - Both / unknown
     validations:
@@ -62,7 +62,7 @@ body:
     id: description
     attributes:
       label: Description
-      description: Expected vs actual behavior, or the feature you want. Note whether the change affects global config, project `.skillware.yaml`, or read-only CLI output.
+      description: Expected vs actual behavior, or the feature you want. Note whether the change affects global config, project `.skill-assay.yaml`, or read-only CLI output.
     validations:
       required: true
 
@@ -71,7 +71,7 @@ body:
     attributes:
       label: Steps to reproduce (bugs)
       placeholder: |
-        skillware mail signature show
+        skill-assay mail signature show
         Expected: ...
         Actual: ...
     validations:
@@ -82,7 +82,7 @@ body:
     attributes:
       label: Environment
       placeholder: |
-        Windows 11, Python 3.12, skillware 0.5.5
-        Config: ~/.config/skillware/config.yaml and/or .skillware.yaml
+        Windows 11, Python 3.12, agent-skill-assay 0.1.0
+        Config: ~/.config/skill_assay/config.yaml and/or .skill-assay.yaml
     validations:
       required: false

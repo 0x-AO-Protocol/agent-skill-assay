@@ -1,6 +1,6 @@
 """Tests for chain config parsing."""
 
-from skillware.core.chains_config import ChainDefinition, parse_chains_block
+from skill_assay.core.chains_config import ChainDefinition, parse_chains_block
 
 
 def test_parse_chains_legacy_placeholder():
@@ -21,7 +21,7 @@ def test_parse_sanitize_input_chain():
                     "map_out": {"sanitized_text": "next.raw_text"},
                 },
                 {
-                    "skill": "optimization/prompt_rewriter",
+                    "skill": "security/prompt_injection_firewall",
                     "when": {
                         "prior_step": "scan",
                         "field": "is_safe",

@@ -1,4 +1,4 @@
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 
 def test_prompt_injection_firewall_manifest():

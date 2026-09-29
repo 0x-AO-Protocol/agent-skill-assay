@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "skillware:monitoring/kpi_gate:metrics:1",
+  "$id": "agent-skill-assay:monitoring/kpi_gate:metrics:1",
   "type": "object",
   "required": ["schema_version", "period", "metrics"],
   "additionalProperties": false,

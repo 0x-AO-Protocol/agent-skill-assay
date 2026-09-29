@@ -1,11 +1,11 @@
-"""Tests for Skillware configuration and skill path discovery."""
+"""Tests for Agent Skill Assay configuration and skill path discovery."""
 
 from pathlib import Path
 
 import pytest
 import yaml
 
-from skillware.core.config import (
+from skill_assay.core.config import (
     DEFAULT_PRESENTATION_THEME,
     GLOBAL_CONFIG_DIR_ENV,
     PROJECT_CONFIG_FILENAME,
@@ -17,12 +17,12 @@ from skillware.core.config import (
     save_global_presentation_theme,
     save_project_config,
 )
-from skillware.core.discovery import (
-    SKILLWARE_SKILL_PATH_ENV,
+from skill_assay.core.discovery import (
+    SKILL_ASSAY_SKILL_PATH_ENV,
     SkillRootTier,
     get_skill_roots,
 )
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
 
 def _write_config(path: Path, body: str) -> None:
@@ -34,7 +34,7 @@ def _write_registry_skill(root: Path, category: str, name: str) -> None:
     skill_dir = root / category / name
     skill_dir.mkdir(parents=True)
     (skill_dir / "skill.py").write_text(
-        "from skillware.core.base_skill import BaseSkill\n"
+        "from skill_assay.core.base_skill import BaseSkill\n"
         "class S(BaseSkill):\n"
         "    @property\n"
         "    def manifest(self): return {'name': '%s/%s'}\n"
@@ -61,7 +61,7 @@ def test_no_config_files_uses_legacy_order(tmp_path, monkeypatch):
     project_root = tmp_path / "project" / "skills"
     project_root.mkdir(parents=True)
     monkeypatch.chdir(tmp_path / "project")
-    monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(env_root))
+    monkeypatch.setenv(SKILL_ASSAY_SKILL_PATH_ENV, str(env_root))
     monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(tmp_path / "empty-config"))
 
     roots = get_skill_roots()
@@ -75,7 +75,7 @@ def test_no_config_files_uses_legacy_order(tmp_path, monkeypatch):
 def test_project_config_external_paths(tmp_path, monkeypatch):
     external = tmp_path / "private-skills"
     external.mkdir()
-    _write_registry_skill(external, "office", "private_skill")
+    _write_registry_skill(external, "security", "private_skill")
 
     repo = tmp_path / "repo"
     repo.mkdir()
@@ -94,8 +94,8 @@ def test_project_config_external_paths(tmp_path, monkeypatch):
     assert any(root.path == external.resolve() for root in roots)
     assert roots[-1].tier == SkillRootTier.BUNDLED
 
-    bundle = SkillLoader.load_skill("office/private_skill")
-    assert bundle["manifest"]["name"] == "office/private_skill"
+    bundle = SkillLoader.load_skill("security/private_skill")
+    assert bundle["manifest"]["name"] == "security/private_skill"
 
 
 def test_config_resolution_order_project_before_external(tmp_path, monkeypatch):
@@ -115,13 +115,13 @@ def test_config_resolution_order_project_before_external(tmp_path, monkeypatch):
     )
     monkeypatch.chdir(repo)
     monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(tmp_path / "no-global"))
-    monkeypatch.delenv(SKILLWARE_SKILL_PATH_ENV, raising=False)
+    monkeypatch.delenv(SKILL_ASSAY_SKILL_PATH_ENV, raising=False)
 
     bundle = SkillLoader.load_skill("demo/from_project")
     assert bundle["manifest"]["name"] == "demo/from_project"
 
 
-def test_honor_skillware_skill_path_false_ignores_env(tmp_path, monkeypatch):
+def test_honor_skill_assay_skill_path_false_ignores_env(tmp_path, monkeypatch):
     env_root = tmp_path / "env-skills"
     env_root.mkdir()
     _write_registry_skill(env_root, "demo", "env_skill")
@@ -130,10 +130,10 @@ def test_honor_skillware_skill_path_false_ignores_env(tmp_path, monkeypatch):
     repo.mkdir()
     _write_config(
         repo / PROJECT_CONFIG_FILENAME,
-        "paths:\n  external: []\nlegacy:\n  honor_skillware_skill_path: false\n",
+        "paths:\n  external: []\nlegacy:\n  honor_skill_assay_skill_path: false\n",
     )
     monkeypatch.chdir(repo)
-    monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(env_root))
+    monkeypatch.setenv(SKILL_ASSAY_SKILL_PATH_ENV, str(env_root))
     monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(tmp_path / "no-global"))
 
     roots = get_skill_roots()
@@ -269,7 +269,7 @@ def test_cmd_config_show_includes_mail(tmp_path, monkeypatch):
     import io
     from rich.console import Console
 
-    from skillware.cli import cmd_config_show
+    from skill_assay.cli import cmd_config_show
 
     repo = tmp_path / "repo"
     repo.mkdir()
@@ -292,7 +292,7 @@ def test_cmd_config_show_reports_no_files(tmp_path, monkeypatch):
     import io
     from rich.console import Console
 
-    from skillware.cli import cmd_config_show
+    from skill_assay.cli import cmd_config_show
 
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(tmp_path / "empty"))

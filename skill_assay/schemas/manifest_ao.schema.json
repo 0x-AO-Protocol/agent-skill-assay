@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "name",
+    "version",
+    "issuer",
+    "trust_tier",
+    "provenance",
+    "norm_version"
+  ],
+  "properties": {
+    "name": {"type": "string", "minLength": 1},
+    "version": {"type": "string", "minLength": 1},
+    "issuer": {
+      "type": "object",
+      "required": ["org", "name", "github"],
+      "properties": {
+        "org": {"const": "AO"},
+        "name": {"type": "string", "minLength": 1},
+        "github": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "trust_tier": {"enum": ["L0", "L2", "L3", "L4"]},
+    "provenance": {
+      "type": "object",
+      "required": ["source", "content_sha256", "ported_on"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "pattern": "^agent-skill-assay-sources@[0-9a-f]{7,64}:.+"
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "ported_on": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "additionalProperties": false
+    },
+    "economic_effect": {
+      "type": ["object", "null"],
+      "properties": {
+        "claim": {"type": "string", "minLength": 1},
+        "baseline_task": {"type": "string", "minLength": 1},
+        "metric": {"type": "string", "minLength": 1},
+        "method": {"type": "string", "minLength": 1}
+      },
+      "required": ["claim", "baseline_task", "metric", "method"],
+      "additionalProperties": false
+    },
+    "norm_version": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": true
+}

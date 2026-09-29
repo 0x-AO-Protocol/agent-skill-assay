@@ -1,12 +1,12 @@
 # Integration Guide: AWS Bedrock Converse
 
-Use Skillware skills with models hosted on **Amazon Bedrock** via the **Converse** API and native tool-use schema.
+Use Agent Skill Assay skills with models hosted on **Amazon Bedrock** via the **Converse** API and native tool-use schema.
 
 ## Install
 
 ```bash
-pip install "skillware[bedrock]"
-pip install "skillware[compliance_tos_evaluator]"   # example skill extra
+pip install "agent-skill-assay[bedrock]"
+pip install "agent-skill-assay[monitoring_business_diagnostic]"   # example skill extra
 ```
 
 Installs [`boto3`](https://pypi.org/project/boto3/). Configure AWS credentials (IAM role on EC2/ECS/Lambda, or `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` locally) and set `AWS_REGION`.
@@ -14,14 +14,14 @@ Installs [`boto3`](https://pypi.org/project/boto3/). Configure AWS credentials (
 ## Adapter
 
 ```python
-from skillware.core.loader import SkillLoader
+from skill_assay.core.loader import SkillLoader
 
-bundle = SkillLoader.load_skill("compliance/tos_evaluator")
+bundle = SkillLoader.load_skill("monitoring/business_diagnostic")
 tool = SkillLoader.to_bedrock_tool(bundle)
 # tool → {"toolSpec": {"name", "description", "inputSchema": {"json": ...}}}
 ```
 
-Pass `tool` inside `toolConfig.tools` when calling `bedrock-runtime` `converse()`. Tool names use the same sanitization as OpenAI adapters (`finance/wallet_screening` → `finance_wallet_screening`).
+Pass `tool` inside `toolConfig.tools` when calling `bedrock-runtime` `converse()`. Tool names use the same sanitization as OpenAI adapters (`monitoring/kpi_gate` -> `monitoring_kpi_gate`).
 
 Claude, Llama, and other models on Bedrock share this Converse tool shape — you do not need a separate adapter per Bedrock model family.
 
@@ -32,12 +32,12 @@ import os
 
 import boto3
 
-from skillware.core.env import load_env_file
-from skillware.core.loader import SkillLoader
+from skill_assay.core.env import load_env_file
+from skill_assay.core.loader import SkillLoader
 
 load_env_file()
 
-bundle = SkillLoader.load_skill("compliance/tos_evaluator")
+bundle = SkillLoader.load_skill("monitoring/business_diagnostic")
 skill = bundle["class"]()
 tool = SkillLoader.to_bedrock_tool(bundle)
 tool_name = tool["toolSpec"]["name"]
@@ -94,7 +94,7 @@ for block in response["output"]["message"]["content"]:
         print(block["text"])
 ```
 
-Runnable copy: [`examples/bedrock_tos_evaluator.py`](../../examples/bedrock_tos_evaluator.py).
+Runnable copy: [`examples/bedrock_business_diagnostic.py`](../../examples/bedrock_business_diagnostic.py).
 
 ## Environment
 
@@ -107,7 +107,7 @@ Runnable copy: [`examples/bedrock_tos_evaluator.py`](../../examples/bedrock_tos_
 ## Multi-skill hosts
 
 ```python
-from skillware import SkillContext
+from skill_assay import SkillContext
 
 ctx = SkillContext(categories=["compliance"], mode="brief")
 tools = ctx.tools("bedrock")

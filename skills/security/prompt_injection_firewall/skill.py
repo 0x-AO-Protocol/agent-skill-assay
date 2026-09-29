@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 import yaml
 
-from skillware.core.base_skill import BaseSkill
+from skill_assay.core.base_skill import BaseSkill
 
 try:
     from .firewall import SensitivityLevel, scan_source_text
