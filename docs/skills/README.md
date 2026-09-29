@@ -1,7 +1,6 @@
 # Skill Library
 
-The v0.1 registry contains the AO-authored skills currently ported into this
-repository. Each skill page documents its bundle contract, runtime behavior,
+The v0.1 registry contains the AO-authored skills. Each skill page documents its bundle contract, runtime behavior,
 and tests.
 
 ## Security
