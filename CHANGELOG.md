@@ -6,7 +6,14 @@ The project uses Semantic Versioning. The public fork release line starts at v0.
 
 ## [Unreleased]
 
-- No user-facing changes yet.
+### Added
+
+- AO manifest schema: a second `provenance` form for bundles written in this repository, `anchor: repository` with `content_sha256` and `authored_on` (the UTC date of the commit that last refreshed the hash). The archive form used by the four imported bundles is unchanged.
+- `python scripts/provenance.py --hash <bundle_dir>` prints the content hash of one bundle.
+
+### Removed
+
+- `.github/workflows/codeql.yml`. Its results could not be processed while CodeQL default setup is enabled; default setup stays on and continues to scan the repository.
 
 ## [0.1.0] - 2026-09-25
 
