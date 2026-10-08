@@ -2,9 +2,12 @@
 """AO-native manifest fields and static provenance checks."""
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import jsonschema
+import pytest
 import yaml
 
 from scripts.provenance import content_sha256
@@ -65,3 +68,263 @@ def test_template_declares_the_ao_fields():
     )
     for field in ("trust_tier", "provenance", "economic_effect", "norm_version"):
         assert field in manifest
+
+
+def _minimal_manifest(provenance):
+    return {
+        "name": "category/skill_name",
+        "version": "0.1.0",
+        "issuer": {"org": "AO", "name": "Someone", "github": "someone"},
+        "trust_tier": "L0",
+        "provenance": provenance,
+        "norm_version": "norms-1.0.0",
+    }
+
+
+def _archive_block():
+    return {
+        "source": "agent-skill-assay-sources@0000000:skills/category/skill_name",
+        "content_sha256": "0" * 64,
+        "ported_on": "2026-09-25",
+    }
+
+
+def _repository_block():
+    return {
+        "anchor": "repository",
+        "content_sha256": "0" * 64,
+        "authored_on": "2026-10-08",
+    }
+
+
+def _is_valid(manifest) -> bool:
+    try:
+        jsonschema.validate(manifest, SCHEMA)
+    except jsonschema.ValidationError:
+        return False
+    return True
+
+
+def ao_manifest_failures(skills_root: Path) -> list[str]:
+    """Return one failure string per violated AO manifest rule under a skills root.
+
+    Every failure names the bundle and the field it concerns.
+    """
+    validator = jsonschema.Draft202012Validator(SCHEMA)
+    failures: list[str] = []
+    for manifest_path in sorted(skills_root.glob("*/*/manifest.yaml")):
+        bundle = manifest_path.parent
+        bundle_id = bundle.relative_to(skills_root).as_posix()
+        manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+        for error in validator.iter_errors(manifest):
+            field = ".".join(str(part) for part in error.absolute_path) or "<root>"
+            failures.append(f"{bundle_id}: {field}: {error.message}")
+        issuer = manifest.get("issuer") or {}
+        if issuer.get("org") != "AO":
+            failures.append(f"{bundle_id}: issuer.org: {issuer.get('org')!r}")
+        if manifest.get("norm_version") != "norms-1.0.0":
+            failures.append(
+                f"{bundle_id}: norm_version: {manifest.get('norm_version')!r}"
+            )
+        if manifest.get("economic_effect") != EXPECTED_ECONOMIC_EFFECT:
+            failures.append(
+                f"{bundle_id}: economic_effect: differs from the common text"
+            )
+        recorded = (manifest.get("provenance") or {}).get("content_sha256")
+        actual = content_sha256(bundle)
+        if recorded != actual:
+            failures.append(
+                f"{bundle_id}: provenance.content_sha256: "
+                f"recorded={recorded!r}, actual={actual}"
+            )
+    return failures
+
+
+def _write_bundle(skills_root: Path, manifest) -> Path:
+    bundle = skills_root / "category" / "skill_name"
+    bundle.mkdir(parents=True)
+    (bundle / "skill.py").write_text("VALUE = 1\n", encoding="utf-8")
+    (bundle / "manifest.yaml").write_text(
+        yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8"
+    )
+    return bundle
+
+
+def _repository_anchored_manifest(skills_root: Path):
+    """Write a bundle with a correct repository-anchored block; return its manifest."""
+    manifest = _minimal_manifest(_repository_block())
+    manifest["economic_effect"] = dict(EXPECTED_ECONOMIC_EFFECT)
+    bundle = _write_bundle(skills_root, manifest)
+    manifest["provenance"]["content_sha256"] = content_sha256(bundle)
+    (bundle / "manifest.yaml").write_text(
+        yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8"
+    )
+    return manifest
+
+
+def _rewrite_manifest(skills_root: Path, manifest) -> None:
+    (skills_root / "category" / "skill_name" / "manifest.yaml").write_text(
+        yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8"
+    )
+
+
+def test_schema_accepts_the_archive_provenance_form():
+    assert _is_valid(_minimal_manifest(_archive_block()))
+
+
+def test_schema_accepts_the_repository_anchored_provenance_form():
+    assert _is_valid(_minimal_manifest(_repository_block()))
+
+
+def test_schema_rejects_repository_anchor_without_content_hash():
+    block = _repository_block()
+    del block["content_sha256"]
+    assert not _is_valid(_minimal_manifest(block))
+
+
+def test_schema_rejects_repository_anchor_with_an_archive_pointer():
+    with_source = _repository_block()
+    with_source["source"] = _archive_block()["source"]
+    assert not _is_valid(_minimal_manifest(with_source))
+
+    with_ported_on = _repository_block()
+    with_ported_on["ported_on"] = "2026-09-25"
+    assert not _is_valid(_minimal_manifest(with_ported_on))
+
+    archive_with_anchor = _archive_block()
+    archive_with_anchor["anchor"] = "repository"
+    assert not _is_valid(_minimal_manifest(archive_with_anchor))
+
+
+@pytest.mark.parametrize(
+    "block",
+    [
+        pytest.param(
+            {**_repository_block(), "content_sha256": "0" * 63},
+            id="hash-wrong-length",
+        ),
+        pytest.param(
+            {**_repository_block(), "content_sha256": "A" * 64},
+            id="hash-upper-case",
+        ),
+        pytest.param(
+            {**_repository_block(), "authored_on": "2026/10/08"},
+            id="bad-authored-on",
+        ),
+        pytest.param({**_repository_block(), "anchor": "archive"}, id="bad-anchor"),
+        pytest.param({"content_sha256": "0" * 64}, id="neither-form"),
+    ],
+)
+def test_schema_rejects_malformed_provenance(block):
+    assert not _is_valid(_minimal_manifest(block))
+
+
+def test_every_bundle_meets_the_ao_manifest_contract():
+    assert ao_manifest_failures(ROOT / "skills") == []
+
+
+def test_ao_contract_check_passes_a_valid_repository_anchored_bundle(tmp_path):
+    skills_root = tmp_path / "skills"
+    _repository_anchored_manifest(skills_root)
+    assert ao_manifest_failures(skills_root) == []
+
+
+def _set_tier_outside_enum(manifest):
+    manifest["trust_tier"] = "L1"
+
+
+def _set_wrong_issuer_org(manifest):
+    manifest["issuer"]["org"] = "Someone Else"
+
+
+def _set_wrong_norm_version(manifest):
+    manifest["norm_version"] = "norms-0.9.0"
+
+
+def _alter_economic_effect(manifest):
+    manifest["economic_effect"]["claim"] = "A different claim."
+
+
+def _null_economic_effect(manifest):
+    manifest["economic_effect"] = None
+
+
+def _drop_content_hash(manifest):
+    del manifest["provenance"]["content_sha256"]
+
+
+def _set_wrong_content_hash(manifest):
+    manifest["provenance"]["content_sha256"] = "f" * 64
+
+
+@pytest.mark.parametrize(
+    ("change", "field"),
+    [
+        pytest.param(_set_tier_outside_enum, "trust_tier", id="tier-outside-enum"),
+        pytest.param(_set_wrong_issuer_org, "issuer.org", id="issuer-org"),
+        pytest.param(_set_wrong_norm_version, "norm_version", id="norm-version"),
+        pytest.param(
+            _alter_economic_effect, "economic_effect", id="economic-effect-altered"
+        ),
+        pytest.param(
+            _null_economic_effect, "economic_effect", id="economic-effect-null"
+        ),
+        pytest.param(
+            _drop_content_hash, "provenance.content_sha256", id="missing-hash"
+        ),
+        pytest.param(
+            _set_wrong_content_hash, "provenance.content_sha256", id="wrong-hash"
+        ),
+    ],
+)
+def test_ao_contract_check_flags_each_wrong_field(tmp_path, change, field):
+    skills_root = tmp_path / "skills"
+    manifest = _repository_anchored_manifest(skills_root)
+    assert ao_manifest_failures(skills_root) == []
+
+    change(manifest)
+    _rewrite_manifest(skills_root, manifest)
+    failures = ao_manifest_failures(skills_root)
+    assert failures
+    assert any(f": {field}: " in failure for failure in failures), failures
+
+
+def test_archive_form_is_used_only_by_the_pinned_bundles():
+    skills_root = ROOT / "skills"
+    archive_anchored = set()
+    for manifest_path in skills_root.glob("*/*/manifest.yaml"):
+        manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
+        if "source" in (manifest.get("provenance") or {}):
+            archive_anchored.add(
+                manifest_path.parent.relative_to(skills_root).as_posix()
+            )
+    assert archive_anchored == set(EXPECTED_SOURCES)
+
+
+def test_template_shows_the_repository_anchor():
+    manifest = yaml.safe_load(
+        (ROOT / "templates" / "python_skill" / "manifest.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    block = manifest["provenance"]
+    assert block["anchor"] == "repository"
+    assert "authored_on" in block
+    assert "source" not in block
+    assert "ported_on" not in block
+
+
+def test_provenance_hash_mode_prints_the_recorded_hash():
+    script = ROOT / "scripts" / "provenance.py"
+    for skill_id in EXPECTED_SOURCES:
+        bundle = ROOT / "skills" / skill_id
+        manifest = yaml.safe_load(
+            (bundle / "manifest.yaml").read_text(encoding="utf-8")
+        )
+        result = subprocess.run(
+            [sys.executable, str(script), "--hash", str(bundle)],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        assert result.stdout == manifest["provenance"]["content_sha256"] + "\n"
