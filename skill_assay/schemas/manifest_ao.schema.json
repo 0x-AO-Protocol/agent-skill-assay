@@ -24,23 +24,44 @@
     },
     "trust_tier": {"enum": ["L0", "L2", "L3", "L4"]},
     "provenance": {
-      "type": "object",
-      "required": ["source", "content_sha256", "ported_on"],
-      "properties": {
-        "source": {
-          "type": "string",
-          "pattern": "^agent-skill-assay-sources@[0-9a-f]{7,64}:.+"
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["source", "content_sha256", "ported_on"],
+          "properties": {
+            "source": {
+              "type": "string",
+              "pattern": "^agent-skill-assay-sources@[0-9a-f]{7,64}:.+"
+            },
+            "content_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "ported_on": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          "additionalProperties": false
         },
-        "content_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "ported_on": {
-          "type": "string",
-          "format": "date"
+        {
+          "type": "object",
+          "required": ["anchor", "content_sha256", "authored_on"],
+          "properties": {
+            "anchor": {"const": "repository"},
+            "content_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "authored_on": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "format": "date"
+            }
+          },
+          "additionalProperties": false
         }
-      },
-      "additionalProperties": false
+      ]
     },
     "economic_effect": {
       "type": ["object", "null"],
