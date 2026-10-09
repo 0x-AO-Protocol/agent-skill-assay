@@ -213,6 +213,18 @@ def test_schema_rejects_repository_anchor_with_an_archive_pointer():
         ),
         pytest.param({**_repository_block(), "anchor": "archive"}, id="bad-anchor"),
         pytest.param({"content_sha256": "0" * 64}, id="neither-form"),
+        pytest.param(
+            {**_repository_block(), "authored_on": "2026-02-31"},
+            id="impossible-authored-on",
+        ),
+        pytest.param(
+            {**_repository_block(), "authored_on": "\uff12\uff10\uff12\uff16-10-08"},
+            id="non-ascii-digits-authored-on",
+        ),
+        pytest.param(
+            {**_archive_block(), "ported_on": "yesterday"},
+            id="archive-ported-on-not-a-date",
+        ),
     ],
 )
 def test_schema_rejects_malformed_provenance(block):
@@ -257,6 +269,26 @@ def _set_wrong_content_hash(manifest):
     manifest["provenance"]["content_sha256"] = "f" * 64
 
 
+def _drop_trust_tier(manifest):
+    del manifest["trust_tier"]
+
+
+def _set_malformed_authored_on(manifest):
+    manifest["provenance"]["authored_on"] = "2026/10/08"
+
+
+def _set_impossible_authored_on(manifest):
+    manifest["provenance"]["authored_on"] = "2026-02-31"
+
+
+def _set_issuer_to_string(manifest):
+    manifest["issuer"] = "AO"
+
+
+def _set_provenance_to_string(manifest):
+    manifest["provenance"] = "repository"
+
+
 @pytest.mark.parametrize(
     ("change", "field"),
     [
@@ -275,6 +307,21 @@ def _set_wrong_content_hash(manifest):
         pytest.param(
             _set_wrong_content_hash, "provenance.content_sha256", id="wrong-hash"
         ),
+        pytest.param(_drop_trust_tier, "trust_tier", id="missing-tier"),
+        pytest.param(
+            _set_malformed_authored_on,
+            "provenance.authored_on",
+            id="malformed-authored-on",
+        ),
+        pytest.param(
+            _set_impossible_authored_on,
+            "provenance.authored_on",
+            id="impossible-authored-on",
+        ),
+        pytest.param(_set_issuer_to_string, "issuer", id="issuer-not-a-mapping"),
+        pytest.param(
+            _set_provenance_to_string, "provenance", id="provenance-not-a-mapping"
+        ),
     ],
 )
 def test_ao_contract_check_flags_each_wrong_field(tmp_path, change, field):
@@ -287,6 +334,23 @@ def test_ao_contract_check_flags_each_wrong_field(tmp_path, change, field):
     failures = ao_manifest_failures(skills_root)
     assert failures
     assert any(f": {field}: " in failure for failure in failures), failures
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        pytest.param("- a\n- b\n", id="list"),
+        pytest.param("name: [unclosed\n", id="malformed-yaml"),
+    ],
+)
+def test_ao_contract_check_reports_a_manifest_that_is_not_a_mapping(tmp_path, text):
+    skills_root = tmp_path / "skills"
+    _repository_anchored_manifest(skills_root)
+    (skills_root / "category" / "skill_name" / "manifest.yaml").write_text(
+        text, encoding="utf-8"
+    )
+    failures = ao_manifest_failures(skills_root)
+    assert any(": <root>: " in failure for failure in failures), failures
 
 
 def test_archive_form_is_used_only_by_the_pinned_bundles():
@@ -312,6 +376,7 @@ def test_template_shows_the_repository_anchor():
     assert "authored_on" in block
     assert "source" not in block
     assert "ported_on" not in block
+    assert set(block) == {"anchor", "content_sha256", "authored_on"}
 
 
 def test_provenance_hash_mode_prints_the_recorded_hash():
@@ -328,3 +393,23 @@ def test_provenance_hash_mode_prints_the_recorded_hash():
             check=True,
         )
         assert result.stdout == manifest["provenance"]["content_sha256"] + "\n"
+
+
+def test_provenance_hash_mode_hashes_the_current_bundle_content(tmp_path):
+    skills_root = tmp_path / "skills"
+    manifest = _repository_anchored_manifest(skills_root)
+    bundle = skills_root / "category" / "skill_name"
+    (bundle / "skill.py").write_text("VALUE = 2\n", encoding="utf-8")
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts" / "provenance.py"),
+            "--hash",
+            str(bundle),
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert result.stdout == content_sha256(bundle) + "\n"
+    assert result.stdout != manifest["provenance"]["content_sha256"] + "\n"
