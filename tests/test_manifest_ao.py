@@ -97,12 +97,49 @@ def _repository_block():
     }
 
 
+FORMAT_CHECKER = jsonschema.FormatChecker()
+
+_PROVENANCE_FORMS = SCHEMA["properties"]["provenance"]["oneOf"]
+REPOSITORY_FORM_INDEX = next(
+    index
+    for index, form in enumerate(_PROVENANCE_FORMS)
+    if "anchor" in form["required"]
+)
+ARCHIVE_FORM_INDEX = next(
+    index
+    for index, form in enumerate(_PROVENANCE_FORMS)
+    if "source" in form["required"]
+)
+
+
 def _is_valid(manifest) -> bool:
     try:
-        jsonschema.validate(manifest, SCHEMA)
+        jsonschema.validate(manifest, SCHEMA, format_checker=FORMAT_CHECKER)
     except jsonschema.ValidationError:
         return False
     return True
+
+
+def _schema_failures(error):
+    """Yield ``(field, message)`` pairs that name the field behind a schema error."""
+    path = list(error.absolute_path)
+    if error.validator == "oneOf" and path == ["provenance"]:
+        chosen = (
+            REPOSITORY_FORM_INDEX
+            if isinstance(error.instance, dict) and "anchor" in error.instance
+            else ARCHIVE_FORM_INDEX
+        )
+        for cause in error.context:
+            if cause.relative_schema_path[0] == chosen:
+                yield from _schema_failures(cause)
+        return
+    if error.validator == "required" and isinstance(error.instance, dict):
+        for name in error.validator_value:
+            if name not in error.instance:
+                field = ".".join(str(part) for part in path + [name])
+                yield field, f"{name!r} is a required property"
+        return
+    yield ".".join(str(part) for part in path) or "<root>", error.message
 
 
 def ao_manifest_failures(skills_root: Path) -> list[str]:
@@ -110,16 +147,30 @@ def ao_manifest_failures(skills_root: Path) -> list[str]:
 
     Every failure names the bundle and the field it concerns.
     """
-    validator = jsonschema.Draft202012Validator(SCHEMA)
+    validator = jsonschema.Draft202012Validator(SCHEMA, format_checker=FORMAT_CHECKER)
     failures: list[str] = []
     for manifest_path in sorted(skills_root.glob("*/*/manifest.yaml")):
         bundle = manifest_path.parent
         bundle_id = bundle.relative_to(skills_root).as_posix()
-        manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+        try:
+            manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError as exc:
+            reason = getattr(exc, "problem", None) or str(exc).splitlines()[0]
+            failures.append(f"{bundle_id}: <root>: invalid YAML: {reason}")
+            continue
+        if not isinstance(manifest, dict):
+            failures.append(f"{bundle_id}: <root>: not a mapping")
+            continue
+        seen: set[tuple[str, str]] = set()
         for error in validator.iter_errors(manifest):
-            field = ".".join(str(part) for part in error.absolute_path) or "<root>"
-            failures.append(f"{bundle_id}: {field}: {error.message}")
-        issuer = manifest.get("issuer") or {}
+            for field, message in _schema_failures(error):
+                if (field, message) in seen:
+                    continue
+                seen.add((field, message))
+                failures.append(f"{bundle_id}: {field}: {message}")
+        issuer = manifest.get("issuer")
+        if not isinstance(issuer, dict):
+            issuer = {}
         if issuer.get("org") != "AO":
             failures.append(f"{bundle_id}: issuer.org: {issuer.get('org')!r}")
         if manifest.get("norm_version") != "norms-1.0.0":
@@ -130,7 +181,10 @@ def ao_manifest_failures(skills_root: Path) -> list[str]:
             failures.append(
                 f"{bundle_id}: economic_effect: differs from the common text"
             )
-        recorded = (manifest.get("provenance") or {}).get("content_sha256")
+        provenance = manifest.get("provenance")
+        if not isinstance(provenance, dict):
+            provenance = {}
+        recorded = provenance.get("content_sha256")
         actual = content_sha256(bundle)
         if recorded != actual:
             failures.append(
