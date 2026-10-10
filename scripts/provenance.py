@@ -60,10 +60,18 @@ def check() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--check", action="store_true", help="verify recorded hashes")
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--check", action="store_true", help="verify recorded hashes")
+    mode.add_argument(
+        "--hash", metavar="BUNDLE_DIR", help="print the content hash of one bundle"
+    )
     args = parser.parse_args()
-    if not args.check:
-        parser.error("--check is required")
+    if args.hash is not None:
+        bundle = Path(args.hash)
+        if not bundle.is_dir():
+            parser.error(f"{args.hash} is not a directory")
+        print(content_sha256(bundle))
+        return 0
     return check()
 
 

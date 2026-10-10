@@ -9,9 +9,9 @@ issuer:
   org: YOUR ORG
 trust_tier: L0
 provenance:
-  source: agent-skill-assay-sources@0000000:skills/category/my-awesome-skill
+  anchor: repository
   content_sha256: "0000000000000000000000000000000000000000000000000000000000000000"
-  ported_on: "YYYY-MM-DD"
+  authored_on: "YYYY-MM-DD"
 economic_effect: null
 norm_version: norms-1.0.0
 category: "utility"
