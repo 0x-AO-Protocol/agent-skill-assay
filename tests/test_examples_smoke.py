@@ -41,6 +41,16 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
             "Demo complete.",
         ],
     ),
+    (
+        "outreach_manager_demo.py",
+        [
+            "office/outreach_manager",
+            "plan_id:",
+            "lead_id",
+            "fail-closed",
+            "Demo complete.",
+        ],
+    ),
 ]
 
 
