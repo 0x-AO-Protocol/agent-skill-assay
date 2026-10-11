@@ -102,6 +102,7 @@
           "expected_cap": {
             "type": "integer",
             "minimum": 1,
+            "maximum": 10000000,
             "description": "The profile's per-query result cap."
           },
           "search_url": {
@@ -124,11 +125,13 @@
       "properties": {
         "per_run_max_queries": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "maximum": 10000000
         },
         "per_day_max_rows": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "maximum": 10000000
         },
         "source": {
           "const": "platform_profile"
@@ -173,7 +176,7 @@
     },
     "criteria": {
       "type": "object",
-      "description": "The normalised specification lists that scoring needs (network excluded).",
+      "description": "The normalised specification lists that scoring needs (network excluded), each within its compile cap; ingest_leads re-checks them.",
       "required": [
         "titles",
         "keywords_include",
@@ -189,50 +192,71 @@
         "titles": {
           "type": "array",
           "items": {
-            "type": "string"
-          }
+            "type": "string",
+            "maxLength": 100
+          },
+          "maxItems": 20
         },
         "keywords_include": {
           "type": "array",
           "items": {
-            "type": "string"
-          }
+            "type": "string",
+            "maxLength": 100
+          },
+          "maxItems": 20
         },
         "keywords_exclude": {
           "type": "array",
           "items": {
-            "type": "string"
-          }
+            "type": "string",
+            "maxLength": 100
+          },
+          "maxItems": 20
         },
         "industries": {
           "type": "array",
           "items": {
-            "type": "string"
-          }
+            "type": "string",
+            "maxLength": 100
+          },
+          "maxItems": 20
         },
         "seniority": {
           "type": "array",
           "items": {
-            "type": "string"
-          }
+            "type": "string",
+            "enum": [
+              "entry",
+              "senior",
+              "manager",
+              "director",
+              "vp",
+              "cxo",
+              "owner"
+            ]
+          },
+          "maxItems": 7
         },
         "geos": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "maxItems": 50
         },
         "languages": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "maxItems": 20
         },
         "company_size": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "maxItems": 20
         }
       }
     },
@@ -264,7 +288,9 @@
           "type": [
             "integer",
             "null"
-          ]
+          ],
+          "minimum": 0,
+          "maximum": 10000000
         },
         "cap_risk": {
           "type": "boolean",

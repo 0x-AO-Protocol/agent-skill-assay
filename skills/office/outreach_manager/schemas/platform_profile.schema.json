@@ -166,8 +166,8 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 200,
-              "pattern": "^https://[A-Za-z0-9\\-._~:/%]+$",
-              "description": "Absolute https URL with no user info, port, query or fragment."
+              "pattern": "^https://(?:[A-Za-z0-9\\-._~:/]|%[0-9A-Fa-f]{2})+$",
+              "description": "Absolute https URL with no user info, port, query or fragment; a percent sign appears only as an escape followed by two hexadecimal digits."
             },
             "keywords_param": {
               "type": "string",

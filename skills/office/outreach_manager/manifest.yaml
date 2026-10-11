@@ -70,8 +70,6 @@ parameters:
         ingest_leads input: exported rows as objects. The profile's
         export_columns map the profile URL, title and source query (required)
         and company and location (optional); other columns are ignored.
-      items:
-        type: object
     existing_leads:
       type: array
       description: >
@@ -79,8 +77,6 @@ parameters:
         profile_key and lead_id. Rows already known are counted in
         stats.deduped and not registered; lead_id numbering continues after
         the highest existing L<digits> id.
-      items:
-        type: object
   required:
     - action
   additionalProperties: false

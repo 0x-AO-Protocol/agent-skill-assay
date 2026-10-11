@@ -122,14 +122,18 @@ profile filter appears in no query filter and serves scoring only.
 only when an estimate was given and the product stays below `needed` after
 all candidates are used. The skill cannot see result counts; the estimate is
 the figure the operator reads off the platform's own result counter. Query
-ids are `q01`, `q02`, ... in this order.
+ids are `q01`, `q02`, ... in this order. The number of queries is the product
+of the expanded value counts; it is compared with the cap of 200 before any
+query or URL is built.
 
 ## Query grammar and escaping
 
-Every term is sanitised first: characters whose Unicode category is control,
-format, line separator or paragraph separator are removed; the profile's
-`forbidden_characters` are removed; whitespace runs collapse to one space and
-the ends are trimmed. An empty result is a contract error.
+Every term is sanitised first: the characters U+0009 (tab), U+000A (line
+feed), U+000B, U+000C, U+000D (carriage return), U+0085, U+2028 and U+2029
+each become one space; the remaining characters whose Unicode category is
+control, format, line separator or paragraph separator are removed; the
+profile's `forbidden_characters` are removed; whitespace runs collapse to one
+space and the ends are trimmed. An empty result is a contract error.
 
 A sanitised term is written bare if it consists only of letters and digits
 and is not a reserved word (compared case-insensitively); otherwise it is
@@ -215,10 +219,11 @@ in `existing_leads` or was already seen in this call is counted in
 
 - `profile_key` is the identity of a lead.
 - `lead_id` is `L` plus a zero-padded number of at least four digits: the
-  highest number among `existing_leads` ids of the form `L` followed by up
-  to 18 digits (0 if none), plus the ordinal of the row among newly
-  registered leads. It is unique only relative to the `existing_leads`
-  passed.
+  highest number among `existing_leads` ids whose whole string is `L`
+  followed by one or more ASCII digits (0 if none), plus the ordinal of the
+  row among newly registered leads. The numbers are compared exactly at any
+  length, so no id of that form is skipped. It is unique only relative to
+  the `existing_leads` passed.
 - `existing_leads` must be the complete known set, since an incomplete set
   already breaks de-duplication.
 
@@ -233,14 +238,16 @@ is rejected because its id no longer matches.
 `review_table.columns` are `lead_id`, `score`, `off_target`, `title`,
 `company`, `location`, `reasons`, `source_query`; `review_table.csv` holds
 the same rows. Text cells (title, company, location) are processed in order:
-control, format and separator characters are removed; whitespace is
-collapsed and trimmed; the text is truncated to 200 characters; if the first
-character is `=`, `+`, `-`, `@` or one of their full-width forms, one
-apostrophe is prefixed. `reasons` is joined with `;`. Booleans are `true`
-and `false`. The table is written with the standard CSV writer, minimal
-quoting, records joined by a line feed, header first, no trailing line feed.
-A person's full name and profile URL appear in no output field; the profile
-URL survives only as the slug inside `profile_key`.
+the eight line-break and tab characters named under "Query grammar and
+escaping" each become one space; the remaining control, format and separator
+characters are removed; whitespace is collapsed and trimmed; the text is
+truncated to 200 characters; if the first character is `=`, `+`, `-`, `@` or
+one of their full-width forms, one apostrophe is prefixed. `reasons` is
+joined with `;`. Booleans are `true` and `false`. The table is written with
+the standard CSV writer, minimal quoting, records joined by a line feed,
+header first, no trailing line feed. A person's full name and profile URL
+appear in no output field; the profile URL survives only as the slug inside
+`profile_key`.
 
 ## Platform profiles and overrides
 
@@ -268,9 +275,10 @@ require, among other rules: `forbidden_characters` contains the quote and
 both group characters; `reserved_words` contains the three operator words;
 `keywords_param`, every `fixed_params` name and every `filter_id` are
 pairwise distinct; `search.url.base` is an absolute `https` URL with no user
-info, port, query or fragment whose host is equal to, or a subdomain of, an
-entry of `profile_key.host_suffixes`; `export_columns` names are pairwise
-distinct. A breach of any rule is `INVALID_PROFILE`.
+info, port, query or fragment, in which `%` appears only as an escape
+followed by two hexadecimal digits, and whose host is equal to, or a
+subdomain of, an entry of `profile_key.host_suffixes`; `export_columns`
+names are pairwise distinct. A breach of any rule is `INVALID_PROFILE`.
 
 ## Size caps
 
@@ -321,15 +329,25 @@ For each action the checks run in the numbered order and the first failing
 check's code is returned; `detail.reason` names the check. Where a check runs
 per element (per list item, per row), all checks of one element run before
 the next element, in input order, so the earliest failing element decides.
-Within `target_spec` the fields are checked in the order `titles`,
-`keywords_include`, `keywords_exclude`, `industries`, `seniority`, `geos`,
-`languages`, `company_size`, `network`, `estimated_matches`; for each list the
-list cap comes first, then every item in order with its cap and value rules.
+Within `target_spec`, after the shape check (check 9), the conditions of
+check 10 that are not per element run first: each list longer than its cap,
+fields in the order `titles`, `keywords_include`, `keywords_exclude`,
+`industries`, `seniority`, `geos`, `languages`, `company_size`, `network`;
+then `estimated_matches` above 10,000,000. Then the fields are walked again
+in that order and, within a field, the items in input order: for one item
+the check 10 rules (term length, then token count) run before the check 11
+value rules, and every rule of one item runs before the next item; the
+field-level rule of check 11 (`company_size` or `network` given when the
+profile has no such filter) runs at that field's turn, before its items.
+Last, `estimated_matches` below 0 fails check 11.
 
 Type rules (all checks): a JSON boolean is not an integer and an integer is
 not a boolean; a JSON number is never accepted where a string is required,
 and a string never where a number is; `null` counts as absent only where a
-check says "absent or null".
+check says "absent or null". A string that contains a lone surrogate code
+point (Unicode category `Cs`) is not a string and fails the check that tests
+its field's type. Every pattern is matched against the whole string, so a
+trailing line feed fails it.
 
 `detail` is always an object with at least `reason` and, where it applies,
 `path`, `limit`, `actual`, `row` or `column`. It never contains input text
@@ -345,7 +363,7 @@ other than validated ids.
 6. `INVALID_PROFILE` — an override is present and fails the profile checks, or its `platform` differs from the request's.
 7. `UNKNOWN_PLATFORM` — no override, and `platform` is not one of the bundled ids (a fixed tuple in code; the request value never builds a path).
 8. `INVALID_PROFILE` — the bundled profile file fails the profile checks.
-9. `INVALID_TARGET_SPEC` — `schema_version` is not the integer 1; an unknown key; `titles` absent; a list field that is not a list of strings; `estimated_matches` present and not an integer.
+9. `INVALID_TARGET_SPEC` — `schema_version` is not the integer 1; an unknown key; `titles` absent or empty; a list field that is not a list of strings; `estimated_matches` present and not an integer.
 10. `LIMIT_EXCEEDED` — a list longer than its cap; a term longer than 100 characters or with more than 10 tokens; `estimated_matches` above 10,000,000.
 11. `INVALID_TARGET_SPEC` — a term empty before or after sanitisation; a `seniority` value outside the closed set; a `geos` value failing `^[A-Z]{2}$`, or absent from the profile's `geo` value list when the profile gives one; a `languages` value failing `^[a-z]{2}$`; `company_size` given when the profile has no `company_size` filter, or a value absent from that filter's list; `network` given when the profile has no `network` filter, or a value absent from that filter's list.
 12. `LIMIT_EXCEEDED` — more than 200 generated queries, or a query string longer than the profile's `max_query_length`, or a `search_url` longer than the profile's `search.url.max_length`.
@@ -360,7 +378,7 @@ other than validated ids.
 6. `INVALID_PROFILE` — an override is present and fails the profile checks, or its `platform` differs from the request's.
 7. `UNKNOWN_PLATFORM` — no override, and `platform` is not a bundled id.
 8. `INVALID_PROFILE` — the bundled profile file fails the profile checks.
-9. `INVALID_PLAN` — the plan fails its shape check: the plan key set (`profile_origin` included), each query's key set and types (`search_url` included), `rubric` the seven integers, `criteria` and `partitioning` present.
+9. `INVALID_PLAN` — the plan fails its shape check: the plan key set (`profile_origin` included), each query's key set and types (`search_url` included; `partition` and `filters` map known dimensions to a string or a list of strings), `rubric` the seven integers, `criteria` lists of strings within the compile caps with `seniority` from the closed set, every integer field (`expected_cap`, the `pacing` values, `partitioning.estimated_matches`) a non-boolean integer from 0 to 10,000,000 or `null` where the plan allows it, `cap_risk` a boolean.
 10. `LIMIT_EXCEEDED` — more than 200 queries in the plan.
 11. `PLAN_MISMATCH` — `plan.platform` or `plan.profile_version` differs from the resolved profile, or `plan.profile_origin` differs from how the profile was resolved in this call, or `plan_id` is not the digest recomputed from the plan body. An edited plan is rejected.
 12. `LIMIT_EXCEEDED` — more than 50,000 `existing_leads`.

@@ -377,7 +377,7 @@ COMPILE_SEARCH_CHECKS = (
     (
         INVALID_TARGET_SPEC,
         "`schema_version` is not the integer 1; an unknown key; `titles` "
-        "absent; a list field that is not a list of strings; "
+        "absent or empty; a list field that is not a list of strings; "
         "`estimated_matches` present and not an integer.",
     ),
     (
@@ -433,8 +433,13 @@ INGEST_LEADS_CHECKS = (
     (
         INVALID_PLAN,
         "the plan fails its shape check: the plan key set (`profile_origin` "
-        "included), each query's key set and types (`search_url` included), "
-        "`rubric` the seven integers, `criteria` and `partitioning` present.",
+        "included), each query's key set and types (`search_url` included; "
+        "`partition` and `filters` map known dimensions to a string or a list "
+        "of strings), `rubric` the seven integers, `criteria` lists of strings "
+        "within the compile caps with `seniority` from the closed set, every "
+        "integer field (`expected_cap`, the `pacing` values, "
+        "`partitioning.estimated_matches`) a non-boolean integer from 0 to "
+        "10,000,000 or `null` where the plan allows it, `cap_risk` a boolean.",
     ),
     (LIMIT_EXCEEDED, "more than 200 queries in the plan."),
     (
@@ -471,20 +476,32 @@ INGEST_LEADS_CHECKS = (
     ),
 )
 
+# Every pattern below is matched against the whole string (re.fullmatch), so
+# a trailing line feed fails it.
 _PLATFORM_RE = re.compile(r"^[a-z][a-z0-9_]{0,31}$")
 _PARAM_NAME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]{0,31}$")
 _GEO_RE = re.compile(r"^[A-Z]{2}$")
 _LANGUAGE_RE = re.compile(r"^[a-z]{2}$")
 _DATE_RE = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 _SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9._%-]{0,199}$")
-_LEAD_ID_RE = re.compile(r"^L([0-9]{1,18})$")
+_LEAD_ID_RE = re.compile(r"^L([0-9]+)$")
 _HOST_LABEL_RE = re.compile(r"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$")
-_BASE_URL_CHARS_RE = re.compile(r"^[A-Za-z0-9\-._~:/%]+$")
+# In search.url.base a percent sign is allowed only as a %XX escape.
+_BASE_URL_CHARS_RE = re.compile(r"^(?:[A-Za-z0-9\-._~:/]|%[0-9A-Fa-f]{2})+$")
 _TOKEN_RE = re.compile(r"[^\W_]+")
+# A lone surrogate code point (Unicode category Cs) has no encoding, so a
+# string that contains one is not a string for any check.
+_SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
 
 # Unicode categories removed from terms and text cells: control, format,
 # line separator and paragraph separator.
 _INVISIBLE_CATEGORIES = ("Cc", "Cf", "Zl", "Zp")
+# Line breaks and tabs become one space each before the other invisible
+# characters are removed, so that the words they separated stay separate.
+_BREAKS_TO_SPACE = {
+    ord(ch): " "
+    for ch in ("\t", "\n", "\x0b", "\x0c", "\r", "\x85", "\u2028", "\u2029")
+}
 # Characters that make a spreadsheet treat a cell as a formula, with their
 # full-width forms.
 _FORMULA_LEADERS = "=+-@" + chr(0xFF1D) + chr(0xFF0B) + chr(0xFF0D) + chr(0xFF20)
@@ -509,12 +526,17 @@ def _is_int(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
 
 
+def _is_string(value: Any) -> bool:
+    """A str with no lone surrogate; every check that needs a string uses this."""
+    return isinstance(value, str) and _SURROGATE_RE.search(value) is None
+
+
 def _is_string_list(value: Any) -> bool:
-    return isinstance(value, list) and all(isinstance(item, str) for item in value)
+    return isinstance(value, list) and all(_is_string(item) for item in value)
 
 
 def _is_date(value: Any) -> bool:
-    if not isinstance(value, str) or not _DATE_RE.match(value):
+    if not _is_string(value) or not _DATE_RE.fullmatch(value):
         return False
     try:
         date.fromisoformat(value)
@@ -529,6 +551,8 @@ def _is_date(value: Any) -> bool:
 
 
 def _strip_invisible(text: str) -> str:
+    """Space line breaks and tabs, then drop the other invisible characters."""
+    text = text.translate(_BREAKS_TO_SPACE)
     return "".join(
         ch for ch in text if unicodedata.category(ch) not in _INVISIBLE_CATEGORIES
     )
@@ -539,10 +563,10 @@ def _collapse_whitespace(text: str) -> str:
 
 
 def _sanitise_term(term: str, forbidden: Set[str]) -> str:
-    """Remove invisible and forbidden characters, then collapse whitespace."""
+    """Space line breaks, remove invisible and forbidden characters, collapse."""
     kept = [
         ch
-        for ch in term
+        for ch in term.translate(_BREAKS_TO_SPACE)
         if unicodedata.category(ch) not in _INVISIBLE_CATEGORIES and ch not in forbidden
     ]
     return _collapse_whitespace("".join(kept))
@@ -593,7 +617,7 @@ def _host_in_suffixes(host: str, suffixes: List[str]) -> bool:
 def _is_hostname(host: str) -> bool:
     if not host or len(host) > 253:
         return False
-    return all(_HOST_LABEL_RE.match(label) for label in host.lower().split("."))
+    return all(_HOST_LABEL_RE.fullmatch(label) for label in host.lower().split("."))
 
 
 # --------------------------------------------------------------------------
@@ -647,7 +671,7 @@ def _expect_keys(
 
 
 def _expect_text(value: Any, path: str, max_chars: int = MAX_PROFILE_TEXT_CHARS) -> str:
-    if not isinstance(value, str):
+    if not _is_string(value):
         _profile_fail("not_a_string", path)
     if not value:
         _profile_fail("empty_string", path)
@@ -701,7 +725,7 @@ def _check_base_url(base: Any, suffixes: List[str]) -> None:
         _profile_fail("user_info_or_port", path)
     if parsed.query or parsed.fragment or "?" in base or "#" in base:
         _profile_fail("invalid_url", path)
-    if not _BASE_URL_CHARS_RE.match(base):
+    if not _BASE_URL_CHARS_RE.fullmatch(base):
         _profile_fail("invalid_url", path)
     host = parsed.hostname or ""
     if not _is_hostname(host):
@@ -744,7 +768,7 @@ def _check_url_block(url: Any, suffixes: List[str]) -> List[str]:
     _expect_keys(url, URL_KEYS, (), path)
     _check_base_url(url["base"], suffixes)
     names = [_expect_text(url["keywords_param"], f"{path}.keywords_param")]
-    if not _PARAM_NAME_RE.match(url["keywords_param"]):
+    if not _PARAM_NAME_RE.fullmatch(url["keywords_param"]):
         _profile_fail("invalid_parameter_name", f"{path}.keywords_param")
     fixed = url["fixed_params"]
     if not isinstance(fixed, list):
@@ -758,7 +782,7 @@ def _check_url_block(url: Any, suffixes: List[str]) -> List[str]:
         _expect_object(entry, entry_path)
         _expect_keys(entry, FIXED_PARAM_KEYS, (), entry_path)
         _expect_text(entry["name"], f"{entry_path}.name")
-        if not _PARAM_NAME_RE.match(entry["name"]):
+        if not _PARAM_NAME_RE.fullmatch(entry["name"]):
             _profile_fail("invalid_parameter_name", f"{entry_path}.name")
         value = _expect_text(
             entry["value"], f"{entry_path}.value", MAX_FIXED_PARAM_VALUE_CHARS
@@ -790,7 +814,7 @@ def _check_filters(filters: Any) -> List[str]:
         _expect_object(entry, entry_path)
         _expect_keys(entry, FILTER_KEYS, (), entry_path)
         _expect_text(entry["filter_id"], f"{entry_path}.filter_id")
-        if not _PARAM_NAME_RE.match(entry["filter_id"]):
+        if not _PARAM_NAME_RE.fullmatch(entry["filter_id"]):
             _profile_fail("invalid_parameter_name", f"{entry_path}.filter_id")
         values = entry["values"]
         if values is None:
@@ -824,7 +848,7 @@ def _validate_profile(profile: Any, platform: str) -> Dict[str, Any]:
     if not _is_int(profile["schema_version"]) or profile["schema_version"] != 1:
         _profile_fail("schema_version", "schema_version")
     _expect_text(profile["platform"], "platform")
-    if not _PLATFORM_RE.match(profile["platform"]):
+    if not _PLATFORM_RE.fullmatch(profile["platform"]):
         _profile_fail("invalid_platform", "platform")
     _expect_date(profile["profile_version"], "profile_version")
     _expect_date(profile["verified_on"], "verified_on")
@@ -940,7 +964,7 @@ def _check_request_keys(params: Dict[str, Any], allowed: Tuple[str, ...]) -> Non
 
 def _check_platform(params: Dict[str, Any]) -> str:
     platform = params.get("platform")
-    if not isinstance(platform, str) or not _PLATFORM_RE.match(platform):
+    if not _is_string(platform) or not _PLATFORM_RE.fullmatch(platform):
         _fail(INVALID_REQUEST, "invalid_platform", path="platform")
     return platform
 
@@ -992,19 +1016,32 @@ def _validate_target_spec(
     for field in SPEC_LIST_FIELDS:
         if field in spec and not _is_string_list(spec[field]):
             _spec_fail("not_a_string_list", f"target_spec.{field}")
+    if not spec["titles"]:
+        _spec_fail("empty_titles", "target_spec.titles")
     if "estimated_matches" in spec and not _is_int(spec["estimated_matches"]):
         _spec_fail("not_an_integer", "target_spec.estimated_matches")
 
-    # Checks 10 and 11, field by field in the documented order; within a list
-    # every rule of one item runs before the next item.
+    # Check 10, the conditions that are not per element: each list longer
+    # than its cap, fields in the documented order; then the estimate cap.
+    for field in SPEC_LIST_FIELDS:
+        values = spec.get(field, [])
+        if len(values) > LIST_CAPS[field]:
+            _cap_fail(f"target_spec.{field}", LIST_CAPS[field], len(values))
+    estimated = spec.get("estimated_matches")
+    if estimated is not None and estimated > MAX_ESTIMATED_MATCHES:
+        _cap_fail("target_spec.estimated_matches", MAX_ESTIMATED_MATCHES, estimated)
+
+    # Checks 10 and 11 per element: fields in the documented order, items in
+    # input order; for one item the caps (check 10) run before the value rules
+    # (check 11), and every rule of one item runs before the next item. The
+    # field-level rule of check 11 (a platform-defined dimension given when the
+    # profile has no such filter) runs at that field's turn, before its items.
     forbidden = set(profile["search"]["grammar"]["forbidden_characters"])
     filters = profile["filters"]
     normalised: Dict[str, Any] = {}
     for field in SPEC_LIST_FIELDS:
         values = spec.get(field, [])
         path = f"target_spec.{field}"
-        if len(values) > LIST_CAPS[field]:
-            _cap_fail(path, LIST_CAPS[field], len(values))
         dimension = DIMENSION_FOR_SPEC_LIST.get(field)
         allowed_values: Optional[List[str]] = None
         if dimension in PLATFORM_DEFINED_DIMENSIONS and values:
@@ -1034,21 +1071,18 @@ def _validate_target_spec(
                 if allowed_values is not None:
                     if value not in allowed_values:
                         _spec_fail("geo_not_in_profile", item_path)
-                elif not _GEO_RE.match(value):
+                elif not _GEO_RE.fullmatch(value):
                     _spec_fail("invalid_geo", item_path)
             elif field == "languages":
-                if not _LANGUAGE_RE.match(value):
+                if not _LANGUAGE_RE.fullmatch(value):
                     _spec_fail("invalid_language", item_path)
             elif allowed_values is not None and value not in allowed_values:
                 _spec_fail("value_not_in_profile", item_path)
             cleaned.append(value)
         normalised[field] = _dedupe(cleaned)
-    estimated = spec.get("estimated_matches")
-    if estimated is not None:
-        if estimated < 0:
-            _spec_fail("negative_estimated_matches", "target_spec.estimated_matches")
-        if estimated > MAX_ESTIMATED_MATCHES:
-            _cap_fail("target_spec.estimated_matches", MAX_ESTIMATED_MATCHES, estimated)
+    # Check 11 for the estimate, after every list item.
+    if estimated is not None and estimated < 0:
+        _spec_fail("negative_estimated_matches", "target_spec.estimated_matches")
     normalised["estimated_matches"] = estimated
     return normalised
 
@@ -1111,6 +1145,15 @@ def _partition(
                 product *= count
         cap_risk = product < needed
 
+    # Check 12, first condition: the query count is the product of the
+    # expanded value counts and is compared with the cap before any query or
+    # URL is built, so no input can make this step build more than the cap.
+    count = 1
+    for dimension in expanded:
+        count *= len(spec[SPEC_LIST_FOR_DIMENSION[dimension]])
+    if count > MAX_QUERIES:
+        _cap_fail("plan.queries", MAX_QUERIES, count)
+
     combos = _cartesian([spec[SPEC_LIST_FOR_DIMENSION[d]] for d in expanded])
     queries: List[Dict[str, Any]] = []
     for combo in combos:
@@ -1160,11 +1203,9 @@ def _build_plan(
 ) -> Dict[str, Any]:
     grammar = profile["search"]["grammar"]
     search = profile["search"]
-    keywords = _keywords_string(spec, grammar)
     partial, expanded, cap_risk = _partition(spec, profile)
-    # Check 12.
-    if len(partial) > MAX_QUERIES:
-        _cap_fail("plan.queries", MAX_QUERIES, len(partial))
+    keywords = _keywords_string(spec, grammar)
+    # Check 12, remaining conditions.
     if len(keywords) > search["max_query_length"]:
         _cap_fail("plan.queries[].keywords", search["max_query_length"], len(keywords))
     queries: List[Dict[str, Any]] = []
@@ -1242,11 +1283,37 @@ def _check_exact_keys(
             _plan_fail(reason_prefix + "unknown_key", path)
 
 
+def _plan_integer(value: Any, path: str, high: int) -> None:
+    """A plan integer is a non-boolean integer from 0 to ``high``."""
+    if not _is_int(value):
+        _plan_fail("not_an_integer", path)
+    if value < 0 or value > high:
+        _plan_fail("out_of_range", path)
+
+
+def _check_criteria_list(field: str, values: Any) -> None:
+    """A criteria list is a list of strings within the compile caps."""
+    path = f"plan.criteria.{field}"
+    if not _is_string_list(values):
+        _plan_fail("not_a_string_list", path)
+    if len(values) > LIST_CAPS[field]:
+        _plan_fail("too_many_entries", path)
+    for index, value in enumerate(values):
+        item_path = f"{path}[{index}]"
+        if field in TERM_LISTS:
+            if len(value) > MAX_TERM_CHARS:
+                _plan_fail("term_too_long", item_path)
+            if len(_tokens(value)) > MAX_TERM_TOKENS:
+                _plan_fail("too_many_tokens", item_path)
+        elif field == "seniority" and value not in SENIORITY_LEVELS:
+            _plan_fail("unknown_seniority", item_path)
+
+
 def _validate_plan_shape(plan: Dict[str, Any]) -> None:
-    """Check 9: the key sets and types of the plan compile_search returned."""
+    """Check 9: the key sets and every value of the plan that ingest reads."""
     _check_exact_keys(plan, PLAN_KEYS, "plan", "")
     for key in ("plan_id", "platform", "profile_version"):
-        if not isinstance(plan[key], str):
+        if not _is_string(plan[key]):
             _plan_fail("not_a_string", f"plan.{key}")
     if plan["profile_origin"] not in PROFILE_ORIGINS:
         _plan_fail("unknown_profile_origin", "plan.profile_origin")
@@ -1256,15 +1323,16 @@ def _validate_plan_shape(plan: Dict[str, Any]) -> None:
         path = f"plan.queries[{index}]"
         _check_exact_keys(query, QUERY_KEYS, path, "")
         for key in ("id", "keywords", "search_url"):
-            if not isinstance(query[key], str):
+            if not _is_string(query[key]):
                 _plan_fail("not_a_string", f"{path}.{key}")
-        if not _is_int(query["expected_cap"]):
-            _plan_fail("not_an_integer", f"{path}.expected_cap")
+        _plan_integer(
+            query["expected_cap"], f"{path}.expected_cap", MAX_PROFILE_INTEGER
+        )
         partition = query["partition"]
         if not isinstance(partition, dict):
             _plan_fail("not_an_object", f"{path}.partition")
         for key, value in partition.items():
-            if key not in FILTER_DIMENSIONS or not isinstance(value, str):
+            if key not in FILTER_DIMENSIONS or not _is_string(value):
                 _plan_fail("invalid_partition", f"{path}.partition")
         filters = query["filters"]
         if not isinstance(filters, dict):
@@ -1274,8 +1342,7 @@ def _validate_plan_shape(plan: Dict[str, Any]) -> None:
                 _plan_fail("invalid_filters", f"{path}.filters")
     _check_exact_keys(plan["pacing"], PACING_KEYS, "plan.pacing", "")
     for key in PROFILE_PACING_KEYS:
-        if not _is_int(plan["pacing"][key]):
-            _plan_fail("not_an_integer", f"plan.pacing.{key}")
+        _plan_integer(plan["pacing"][key], f"plan.pacing.{key}", MAX_PROFILE_INTEGER)
     if plan["pacing"]["source"] != PACING_SOURCE:
         _plan_fail("unknown_pacing_source", "plan.pacing.source")
     _check_exact_keys(plan["rubric"], RUBRIC_KEYS, "plan.rubric", "")
@@ -1284,15 +1351,16 @@ def _validate_plan_shape(plan: Dict[str, Any]) -> None:
             _plan_fail("rubric_mismatch", f"plan.rubric.{key}")
     _check_exact_keys(plan["criteria"], CRITERIA_FIELDS, "plan.criteria", "")
     for field in CRITERIA_FIELDS:
-        if not _is_string_list(plan["criteria"][field]):
-            _plan_fail("not_a_string_list", f"plan.criteria.{field}")
+        _check_criteria_list(field, plan["criteria"][field])
     partitioning = plan["partitioning"]
     _check_exact_keys(partitioning, PARTITIONING_KEYS, "plan.partitioning", "")
     if not _is_string_list(partitioning["dimensions"]):
         _plan_fail("not_a_string_list", "plan.partitioning.dimensions")
     estimated = partitioning["estimated_matches"]
-    if estimated is not None and not _is_int(estimated):
-        _plan_fail("not_an_integer", "plan.partitioning.estimated_matches")
+    if estimated is not None:
+        _plan_integer(
+            estimated, "plan.partitioning.estimated_matches", MAX_ESTIMATED_MATCHES
+        )
     if not isinstance(partitioning["cap_risk"], bool):
         _plan_fail("not_a_boolean", "plan.partitioning.cap_risk")
 
@@ -1312,15 +1380,42 @@ def _check_plan_matches(
         _fail(PLAN_MISMATCH, "plan_id_mismatch", path="plan.plan_id")
 
 
-def _validate_existing_leads(existing: List[Any]) -> int:
-    """Check 13; returns the highest numbered lead id of the form L<digits>."""
-    highest = 0
+def _lead_number(lead_id: str) -> Optional[str]:
+    """The digits of an id whose whole string is L<digits>, without leading zeros."""
+    match = _LEAD_ID_RE.fullmatch(lead_id)
+    if match is None:
+        return None
+    return match.group(1).lstrip("0") or "0"
+
+
+def _decimal_greater(left: str, right: str) -> bool:
+    """Exact comparison of two decimal strings without leading zeros, any length."""
+    return (len(left), left) > (len(right), right)
+
+
+def _decimal_plus(digits: str, addend: int) -> str:
+    """The decimal string ``digits`` plus a small integer, at any length."""
+    result: List[str] = []
+    carry = addend
+    for ch in reversed(digits):
+        total = int(ch) + carry
+        result.append(str(total % 10))
+        carry = total // 10
+    while carry:
+        result.append(str(carry % 10))
+        carry //= 10
+    return "".join(reversed(result))
+
+
+def _validate_existing_leads(existing: List[Any]) -> str:
+    """Check 13; returns the highest lead number of the form L<digits> as digits."""
+    highest = "0"
     for index, lead in enumerate(existing):
         path = f"existing_leads[{index}]"
         if not isinstance(lead, dict):
             _fail(INVALID_EXISTING_LEADS, "not_an_object", path=path)
         for key in EXISTING_LEAD_KEYS:
-            if not isinstance(lead.get(key), str):
+            if not _is_string(lead.get(key)):
                 _fail(
                     INVALID_EXISTING_LEADS,
                     "missing_or_not_a_string",
@@ -1329,9 +1424,9 @@ def _validate_existing_leads(existing: List[Any]) -> int:
         for key in lead:
             if key not in EXISTING_LEAD_KEYS:
                 _fail(INVALID_EXISTING_LEADS, "unknown_key", path=path)
-        match = _LEAD_ID_RE.match(lead["lead_id"])
-        if match:
-            highest = max(highest, int(match.group(1)))
+        number = _lead_number(lead["lead_id"])
+        if number is not None and _decimal_greater(number, highest):
+            highest = number
     return highest
 
 
@@ -1353,7 +1448,7 @@ def _profile_key(url: str, profile: Dict[str, Any]) -> Optional[str]:
     if not parsed.path.startswith(prefix):
         return None
     slug = parsed.path[len(prefix) :].split("/", 1)[0].lower()
-    if not _SLUG_RE.match(slug):
+    if not _SLUG_RE.fullmatch(slug):
         return None
     return profile["platform"] + ":" + slug
 
@@ -1388,7 +1483,7 @@ def _validate_rows(
             column = columns[role]
             if column not in row:
                 _fail(INVALID_ROWS, "missing_column", path=path, row=index, column=role)
-            if not isinstance(row[column], str):
+            if not _is_string(row[column]):
                 _fail(
                     INVALID_ROWS, "column_not_string", path=path, row=index, column=role
                 )
@@ -1398,7 +1493,7 @@ def _validate_rows(
             if column is None or column not in row:
                 cells[role] = ""
                 continue
-            if not isinstance(row[column], str):
+            if not _is_string(row[column]):
                 _fail(
                     INVALID_ROWS, "column_not_string", path=path, row=index, column=role
                 )
@@ -1510,7 +1605,7 @@ def _ingest_leads(params: Dict[str, Any]) -> Dict[str, Any]:
             continue
         known.add(key)
         score, reasons, off_target = _score_row(row, plan["criteria"], seniority_terms)
-        lead_id = "L" + str(highest + len(leads) + 1).zfill(4)
+        lead_id = "L" + _decimal_plus(highest, len(leads) + 1).zfill(4)
         query_id = row["query"]["id"]
         leads.append(
             {
@@ -1562,7 +1657,7 @@ def _dispatch(params: Any) -> Dict[str, Any]:
     if not isinstance(params, dict):
         _fail(INVALID_REQUEST, "parameters_not_object")
     action = params.get("action")
-    if not isinstance(action, str) or action not in ACTIONS:
+    if not _is_string(action) or action not in ACTIONS:
         _fail(INVALID_REQUEST, "unknown_action", path="action")
     if action == ACTION_COMPILE_SEARCH:
         return _compile_search(params)

@@ -41,8 +41,8 @@ Each action runs a numbered check list in execution order and returns the first 
 
 1. Request envelope: an object, a known `action`, no foreign key, a well-formed `platform`, the action's inputs of the right type.
 2. Profile: the override's checks (or an unknown bundled id), then the bundled file's checks.
-3. `compile_search`: the specification's shape, its size caps, its values against the closed sets, patterns and profile filter lists; then the generated plan's caps (query count, query length, `search_url` length).
-4. `ingest_leads`: the plan's shape and query cap; `PLAN_MISMATCH` when `platform`, `profile_version`, `profile_origin` or `plan_id` disagree with the resolved profile; `existing_leads`; then the rows, row by row, with every check of one row before the next.
+3. `compile_search`: the specification's shape, its size caps, its values against the closed sets, patterns and profile filter lists; then the generated plan's caps (the query count, compared with its cap before any query is built; then query length and `search_url` length).
+4. `ingest_leads`: the plan's shape, every value the ingest path reads included, and its query cap; `PLAN_MISMATCH` when `platform`, `profile_version`, `profile_origin` or `plan_id` disagree with the resolved profile; `existing_leads`; then the rows, row by row, with every check of one row before the next.
 
 `PLAN_MISMATCH` is a consistency check between a plan and its id: `plan_id` is a digest of the plan body that anyone can recompute, so an edited plan is rejected. A bad row fails the whole call; a silently dropped row would be a guess, and the count identity `rows_in = deduped + off_target + kept` leaves no bucket for one.
 
@@ -83,10 +83,10 @@ A profile holds `platform`, `profile_version`, `verified_on`, `sources`, `search
 * `target_spec` (object): `schema_version` 1, `titles` (required), and the optional lists `keywords_include`, `keywords_exclude`, `industries`, `seniority`, `geos`, `languages`, `company_size`, `network`, plus the optional integer `estimated_matches`.
 * `profile_override` (object, optional): a full platform profile passed as operator configuration.
 * `plan` (object): the plan `compile_search` returned, unmodified.
-* `rows` (array of objects): exported rows; the profile's `export_columns` name the columns read.
-* `existing_leads` (array of objects, optional): the complete known set of leads (`profile_key`, `lead_id`).
+* `rows` (array): exported rows, each an object; the profile's `export_columns` name the columns read.
+* `existing_leads` (array, optional): the complete known set of leads, each an object with `profile_key` and `lead_id`.
 
-Only `action` is required at the manifest level so that every contract code can be reached through `validate_params()` hosts; the per-action requirements are enforced in code.
+The parameter schema is flat: each property carries one `type` and a description, with no nested item schema, and only `action` is required at the manifest level, so that every contract code (`INVALID_ROWS` and `INVALID_EXISTING_LEADS` for a non-object element included) can be reached through `validate_params()` hosts; the per-action requirements and the element shapes are enforced in code.
 
 **Outputs Schema:**
 * `status` (string): `completed`, or `error` for a contract violation.
