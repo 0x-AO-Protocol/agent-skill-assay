@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "description": "Generic English title terms per seniority level, written for this bundle. A term matches a row title when its tokens occur contiguously in the title's tokens.",
+  "levels": {
+    "entry": [
+      "intern",
+      "trainee",
+      "junior",
+      "associate",
+      "assistant",
+      "graduate",
+      "apprentice",
+      "entry level"
+    ],
+    "senior": [
+      "senior",
+      "lead",
+      "principal",
+      "staff",
+      "specialist",
+      "expert"
+    ],
+    "manager": [
+      "manager",
+      "team lead",
+      "supervisor",
+      "head of team"
+    ],
+    "director": [
+      "director",
+      "head of",
+      "head"
+    ],
+    "vp": [
+      "vice president",
+      "vp",
+      "svp",
+      "evp",
+      "avp"
+    ],
+    "cxo": [
+      "chief",
+      "ceo",
+      "cfo",
+      "coo",
+      "cto",
+      "cmo",
+      "cio",
+      "ciso",
+      "cro",
+      "cpo",
+      "chro",
+      "president",
+      "managing director"
+    ],
+    "owner": [
+      "owner",
+      "founder",
+      "co founder",
+      "cofounder",
+      "partner",
+      "proprietor"
+    ]
+  }
+}

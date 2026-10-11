@@ -1,0 +1,22 @@
+{
+  "action": "compile_search",
+  "platform": "demo",
+  "target_spec": {
+    "schema_version": 1,
+    "titles": [
+      "Operations Manager"
+    ],
+    "keywords_exclude": [
+      "recruiter"
+    ],
+    "geos": [
+      "DE",
+      "NL"
+    ],
+    "company_size": [
+      "51-200",
+      "201-500"
+    ],
+    "estimated_matches": 9000
+  }
+}

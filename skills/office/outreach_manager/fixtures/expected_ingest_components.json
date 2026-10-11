@@ -1,0 +1,141 @@
+[
+  {
+    "status": "completed",
+    "leads": [
+      {
+        "lead_id": "L0001",
+        "profile_key": "override_demo:lead-0201",
+        "score": 60,
+        "reasons": [
+          "seniority",
+          "industry",
+          "geo",
+          "language"
+        ],
+        "off_target": false,
+        "stage": "NEW",
+        "source_query": "q01"
+      },
+      {
+        "lead_id": "L0002",
+        "profile_key": "override_demo:lead-0202",
+        "score": 100,
+        "reasons": [
+          "title_match",
+          "seniority",
+          "industry",
+          "geo",
+          "language"
+        ],
+        "off_target": false,
+        "stage": "NEW",
+        "source_query": "q01"
+      }
+    ],
+    "review_table": {
+      "columns": [
+        "lead_id",
+        "score",
+        "off_target",
+        "title",
+        "company",
+        "location",
+        "reasons",
+        "source_query"
+      ],
+      "csv": "lead_id,score,off_target,title,company,location,reasons,source_query\nL0001,60,false,Warehouse Coordinator,Demo Freight,\"Bremen, Germany\",seniority;industry;geo;language,q01\nL0002,100,false,Operations Manager,Demo Freight,\"Bremen, Germany\",title_match;seniority;industry;geo;language,q01"
+    },
+    "stats": {
+      "rows_in": 2,
+      "deduped": 0,
+      "off_target": 0,
+      "kept": 2
+    }
+  },
+  {
+    "status": "completed",
+    "leads": [
+      {
+        "lead_id": "L0001",
+        "profile_key": "demo:lead-0301",
+        "score": 90,
+        "reasons": [
+          "title_match",
+          "seniority",
+          "industry",
+          "geo"
+        ],
+        "off_target": false,
+        "stage": "NEW",
+        "source_query": "q01"
+      },
+      {
+        "lead_id": "L0002",
+        "profile_key": "demo:lead-0302",
+        "score": 30,
+        "reasons": [
+          "industry",
+          "geo"
+        ],
+        "off_target": true,
+        "stage": "NEW",
+        "source_query": "q01"
+      },
+      {
+        "lead_id": "L0003",
+        "profile_key": "demo:lead-0303",
+        "score": 70,
+        "reasons": [
+          "title_match",
+          "seniority",
+          "geo"
+        ],
+        "off_target": false,
+        "stage": "NEW",
+        "source_query": "q02"
+      },
+      {
+        "lead_id": "L0004",
+        "profile_key": "demo:lead-0304",
+        "score": 0,
+        "reasons": [
+          "exclusion_hit:student"
+        ],
+        "off_target": true,
+        "stage": "NEW",
+        "source_query": "q03"
+      },
+      {
+        "lead_id": "L0005",
+        "profile_key": "demo:lead-0305",
+        "score": 30,
+        "reasons": [
+          "seniority",
+          "geo"
+        ],
+        "off_target": true,
+        "stage": "NEW",
+        "source_query": "q03"
+      }
+    ],
+    "review_table": {
+      "columns": [
+        "lead_id",
+        "score",
+        "off_target",
+        "title",
+        "company",
+        "location",
+        "reasons",
+        "source_query"
+      ],
+      "csv": "lead_id,score,off_target,title,company,location,reasons,source_query\nL0001,90,false,Head of Operations,Demo Logistics GmbH,\"Hamburg, Germany\",title_match;seniority;industry;geo,q01\nL0002,30,true,Warehouse Lead,Demo Logistics GmbH,\"Hamburg, Germany\",industry;geo,q01\nL0003,70,false,Operations Director,Demo Foods BV,\"Rotterdam, Netherlands\",title_match;seniority;geo,q02\nL0004,0,true,Student Intern,Demo Warehousing NV,\"Ghent, Belgium\",exclusion_hit:student,q03\nL0005,30,true,VP Supply Chain,Demo Retail NV,\"Brussels, Belgium\",seniority;geo,q03"
+    },
+    "stats": {
+      "rows_in": 5,
+      "deduped": 0,
+      "off_target": 3,
+      "kept": 2
+    }
+  }
+]
