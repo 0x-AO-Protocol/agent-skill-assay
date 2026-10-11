@@ -75,7 +75,7 @@
       "reasons",
       "source_query"
     ],
-    "csv": "lead_id,score,off_target,title,company,location,reasons,source_query\nL0001,10,true,'=SUM(A1:A9),\"'+Demo, Inc.\",'@Hamburg,geo,q01\nL0002,70,false,'-Head of Operations,\"Demo \"\"Quoted\"\" GmbH\",Line oneLine twoTabbed,title_match;seniority;geo,q02\nL0003,70,false,'=Operations Director,DemoReversed BV,\"Berlin, Germany\",title_match;seniority;geo,q01\nL0004,50,false,'\uff1dDirector of Logistics,Demo Logistics,\"Munich, Germany\",seniority;industry;geo,q03\nL0005,30,true,Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Op,Demo Logistics GmbH,\"Hamburg, Germany\",industry;geo,q01"
+    "csv": "lead_id,score,off_target,title,company,location,reasons,source_query\nL0001,10,true,'=SUM(A1:A9),\"'+Demo, Inc.\",'@Hamburg,geo,q01\nL0002,70,false,'-Head of Operations,\"Demo \"\"Quoted\"\" GmbH\",Line one Line two Tabbed,title_match;seniority;geo,q02\nL0003,70,false,'=Operations Director,DemoReversed BV,\"Berlin, Germany\",title_match;seniority;geo,q01\nL0004,50,false,'\uff1dDirector of Logistics,Demo Logistics,\"Munich, Germany\",seniority;industry;geo,q03\nL0005,30,true,Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Op,Demo Logistics GmbH,\"Hamburg, Germany\",industry;geo,q01"
   },
   "stats": {
     "rows_in": 5,

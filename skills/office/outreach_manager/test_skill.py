@@ -10,6 +10,7 @@ network access is required or permitted.
 """
 
 import ast
+import contextlib
 import copy
 import csv
 import hashlib
@@ -17,14 +18,17 @@ import io
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
+import time
 from urllib.parse import parse_qsl, unquote, urlsplit
 
 import jsonschema
 import pytest
 import yaml
 
+from skill_assay import SkillContext
 from skill_assay.core.loader import SkillLoader
 
 from . import skill as skill_module
@@ -37,6 +41,7 @@ from .skill import (
     CRITERIA_FIELDS,
     ERROR_REGISTRY,
     FAULT_REGISTRY,
+    FILTER_DIMENSIONS,
     INGEST_LEADS_CHECKS,
     INTERNAL_ERROR,
     INVALID_EXISTING_LEADS,
@@ -74,6 +79,7 @@ from .skill import (
     RUBRIC,
     RUBRIC_KEYS,
     SCORING_TEXT_CHARS,
+    SENIORITY_LEVELS,
     STATS_KEYS,
     UNKNOWN_PLATFORM,
     UNKNOWN_SOURCE_QUERY,
@@ -409,6 +415,32 @@ def test_manifest_parameters_validate_fixtures(skill):
     for params_name, _ in REFERENCE_FIXTURES:
         for case in _cases(_load_json(FIXTURES_DIR, params_name)):
             assert skill.validate_params(case) is True
+
+
+def test_manifest_parameters_are_flat(manifest):
+    parameters = manifest["parameters"]
+    assert parameters["type"] == "object"
+    assert parameters["required"] == ["action"]
+    assert parameters["additionalProperties"] is False
+    for name, prop in parameters["properties"].items():
+        expected = {"type", "description"} | ({"enum"} if name == "action" else set())
+        assert set(prop) == expected, name
+        assert isinstance(prop["type"], str)
+    assert parameters["properties"]["action"]["enum"] == list(ACTIONS)
+
+
+def test_framework_path_reaches_row_checks(example_plan):
+    marker = "zq-row-marker-text"
+    context = SkillContext(skill=REGISTRY_ID)
+    result = context.execute(REGISTRY_ID, _ingest_params(example_plan, [marker]))
+    detail = _assert_error(result, INVALID_ROWS, "row_not_object")
+    assert detail["row"] == 0
+    assert marker not in json.dumps(result)
+    result = context.execute(
+        REGISTRY_ID, _ingest_params(example_plan, [_row()], existing=[marker])
+    )
+    _assert_error(result, INVALID_EXISTING_LEADS, "not_an_object")
+    assert marker not in json.dumps(result)
 
 
 def test_skill_loader_can_import():
@@ -922,6 +954,443 @@ def test_ingest_type_rules_are_strict(skill, ingest_params, mutate, code):
 
 
 # --------------------------------------------------------------------------
+# Check order within target_spec, the string rule, whole-string patterns and
+# crafted plans
+# --------------------------------------------------------------------------
+
+
+def test_empty_titles_is_rejected(skill):
+    detail = _assert_error(
+        skill.execute(_compile_params(titles=[])), INVALID_TARGET_SPEC, "empty_titles"
+    )
+    assert detail["path"] == "target_spec.titles"
+    # The shape check decides before any cap or value rule of a later field.
+    _assert_error(
+        skill.execute(
+            _compile_params(titles=[], geos=_geo_codes(LIST_CAPS["geos"] + 1))
+        ),
+        INVALID_TARGET_SPEC,
+        "empty_titles",
+    )
+    assert skill.execute(_compile_params(titles=["Zed"]))["status"] == "completed"
+
+
+@pytest.mark.parametrize(
+    "spec,code,reason,path",
+    [
+        (
+            {"titles": [""], "estimated_matches": 2 * MAX_ESTIMATED_MATCHES},
+            LIMIT_EXCEEDED,
+            "size_cap",
+            "target_spec.estimated_matches",
+        ),
+        (
+            {
+                "titles": [" "],
+                "keywords_include": [
+                    f"kw {i}" for i in range(LIST_CAPS["keywords_include"] + 1)
+                ],
+            },
+            LIMIT_EXCEEDED,
+            "size_cap",
+            "target_spec.keywords_include",
+        ),
+        (
+            {
+                "titles": ["x" * (MAX_TERM_CHARS + 1)],
+                "geos": _geo_codes(LIST_CAPS["geos"] + 1),
+            },
+            LIMIT_EXCEEDED,
+            "size_cap",
+            "target_spec.geos",
+        ),
+        (
+            {
+                "titles": ["Zed"],
+                "geos": ["bad"],
+                "estimated_matches": 2 * MAX_ESTIMATED_MATCHES,
+            },
+            LIMIT_EXCEEDED,
+            "size_cap",
+            "target_spec.estimated_matches",
+        ),
+        (
+            {"titles": ["", "x" * (MAX_TERM_CHARS + 1)]},
+            INVALID_TARGET_SPEC,
+            "empty_term",
+            "target_spec.titles[0]",
+        ),
+        (
+            {"titles": ["x" * (MAX_TERM_CHARS + 1), ""]},
+            LIMIT_EXCEEDED,
+            "size_cap",
+            "target_spec.titles[0]",
+        ),
+        (
+            {"titles": ["Zed", ""], "geos": ["bad"]},
+            INVALID_TARGET_SPEC,
+            "empty_term",
+            "target_spec.titles[1]",
+        ),
+        (
+            {"titles": [""], "estimated_matches": -1},
+            INVALID_TARGET_SPEC,
+            "empty_term",
+            "target_spec.titles[0]",
+        ),
+        (
+            {"titles": ["Zed"], "estimated_matches": -1},
+            INVALID_TARGET_SPEC,
+            "negative_estimated_matches",
+            "target_spec.estimated_matches",
+        ),
+    ],
+)
+def test_list_caps_precede_value_checks(skill, spec, code, reason, path):
+    detail = _assert_error(skill.execute(_compile_params(**spec)), code, reason)
+    assert detail["path"] == path
+
+
+def test_target_spec_check_order_is_documented():
+    section = _flat(
+        _section(_instructions(), "## Validation order (fail-closed, deterministic)")
+    )
+    for phrase in (
+        "each list longer than its cap",
+        "then `estimated_matches` above 10,000,000",
+        "every rule of one item runs before the next item",
+        "`estimated_matches` below 0",
+    ):
+        assert phrase in section, phrase
+
+
+LONE_SURROGATE = "\ud800"
+
+
+def _with_recomputed_plan_id(plan):
+    """``plan`` with ``plan_id`` recomputed from its body, whatever the body holds."""
+    body = {key: value for key, value in plan.items() if key != "plan_id"}
+    limit = sys.get_int_max_str_digits()
+    sys.set_int_max_str_digits(0)
+    try:
+        plan_id = skill_module._plan_id(body)
+    finally:
+        sys.set_int_max_str_digits(limit)
+    return {"plan_id": plan_id, **body}
+
+
+def _plan_with(plan, mutate):
+    edited = copy.deepcopy(plan)
+    mutate(edited)
+    return _with_recomputed_plan_id(edited)
+
+
+def _override_source_title(override, title):
+    return _override_with(
+        override, "sources", [{**override["sources"][0], "title": title}]
+    )
+
+
+SURROGATE_CASES = {
+    "platform": lambda f: (
+        _compile_params(platform="demo" + LONE_SURROGATE),
+        INVALID_REQUEST,
+    ),
+    "target_spec.titles[]": lambda f: (
+        _compile_params(titles=["Head" + LONE_SURROGATE]),
+        INVALID_TARGET_SPEC,
+    ),
+    "target_spec.geos[]": lambda f: (
+        _compile_params(geos=["D" + LONE_SURROGATE]),
+        INVALID_TARGET_SPEC,
+    ),
+    "override.search.url.fixed_params[].value": lambda f: (
+        _compile_params(
+            platform="override_demo",
+            override=_override_with(
+                f["override"],
+                "search.url.fixed_params",
+                [{"name": "mode", "value": "people" + LONE_SURROGATE}],
+            ),
+        ),
+        INVALID_PROFILE,
+    ),
+    "override.search.grammar.and": lambda f: (
+        _compile_params(
+            platform="override_demo",
+            override=_override_with(
+                _override_with(
+                    f["override"], "search.grammar.and", "AND" + LONE_SURROGATE
+                ),
+                "search.grammar.reserved_words",
+                ["AND" + LONE_SURROGATE, "OR", "NOT"],
+            ),
+        ),
+        INVALID_PROFILE,
+    ),
+    "override.sources[].title": lambda f: (
+        _compile_params(
+            platform="override_demo",
+            override=_override_source_title(
+                f["override"], "Synthetic" + LONE_SURROGATE
+            ),
+        ),
+        INVALID_PROFILE,
+    ),
+    "override.filters.company_size.values[]": lambda f: (
+        _compile_params(
+            platform="override_demo",
+            override=_override_with(
+                f["override"],
+                "filters.company_size.values",
+                ["1-50", "51-500" + LONE_SURROGATE],
+            ),
+        ),
+        INVALID_PROFILE,
+    ),
+    "plan.queries[].keywords": lambda f: (
+        _ingest_params(
+            _plan_with(
+                f["plan"],
+                lambda p: p["queries"][0].update(keywords="x" + LONE_SURROGATE),
+            ),
+            [_row()],
+        ),
+        INVALID_PLAN,
+    ),
+    "plan.queries[].partition.geo": lambda f: (
+        _ingest_params(
+            _plan_with(
+                f["plan"],
+                lambda p: p["queries"][0]["partition"].update(geo="D" + LONE_SURROGATE),
+            ),
+            [_row()],
+        ),
+        INVALID_PLAN,
+    ),
+    "plan.criteria.titles[]": lambda f: (
+        _ingest_params(
+            _plan_with(
+                f["plan"],
+                lambda p: p["criteria"].update(titles=["Head" + LONE_SURROGATE]),
+            ),
+            [_row()],
+        ),
+        INVALID_PLAN,
+    ),
+    "existing_leads[].lead_id": lambda f: (
+        _ingest_params(
+            f["plan"],
+            [_row()],
+            existing=[{"profile_key": "demo:a", "lead_id": "L1" + LONE_SURROGATE}],
+        ),
+        INVALID_EXISTING_LEADS,
+    ),
+    "existing_leads[].profile_key": lambda f: (
+        _ingest_params(
+            f["plan"],
+            [_row()],
+            existing=[{"profile_key": "demo:a" + LONE_SURROGATE, "lead_id": "L1"}],
+        ),
+        INVALID_EXISTING_LEADS,
+    ),
+    "rows[].title": lambda f: (
+        _ingest_params(f["plan"], [_row(title="Head" + LONE_SURROGATE)]),
+        INVALID_ROWS,
+    ),
+    "rows[].profileUrl": lambda f: (
+        _ingest_params(
+            f["plan"], [_row(url="https://demo.example/in/x" + LONE_SURROGATE)]
+        ),
+        INVALID_ROWS,
+    ),
+    "rows[].query": lambda f: (
+        _ingest_params(f["plan"], [_row(query="q01" + LONE_SURROGATE)]),
+        INVALID_ROWS,
+    ),
+    "rows[].company": lambda f: (
+        _ingest_params(f["plan"], [_row(company="Demo" + LONE_SURROGATE)]),
+        INVALID_ROWS,
+    ),
+    # An unmapped column is never read, so its content cannot fail a check.
+    "rows[] unmapped column": lambda f: (
+        _ingest_params(f["plan"], [_row(note="x" + LONE_SURROGATE)]),
+        None,
+    ),
+}
+
+
+@pytest.mark.parametrize("field", sorted(SURROGATE_CASES))
+def test_lone_surrogates_are_contract_errors(skill, error_inputs, field):
+    params, code = SURROGATE_CASES[field](error_inputs)
+    result = skill.execute(params)
+    if code is None:
+        assert result["status"] == "completed", result
+        return
+    _assert_error(result, code)
+    assert LONE_SURROGATE not in json.dumps(result, ensure_ascii=False)
+
+
+LINE_FEED_CASES = {
+    "platform": lambda f: (
+        _compile_params(platform="demo\n"),
+        INVALID_REQUEST,
+        "invalid_platform",
+    ),
+    "target_spec.geos[]": lambda f: (
+        _compile_params(geos=["US\n"]),
+        INVALID_TARGET_SPEC,
+        "invalid_geo",
+    ),
+    "target_spec.languages[]": lambda f: (
+        _compile_params(languages=["en\n"]),
+        INVALID_TARGET_SPEC,
+        "invalid_language",
+    ),
+    "override.platform": lambda f: (
+        _compile_params(
+            platform="override_demo",
+            override=_override_with(f["override"], "platform", "override_demo\n"),
+        ),
+        INVALID_PROFILE,
+        "invalid_platform",
+    ),
+    "override.search.url.base": lambda f: (
+        _compile_params(
+            platform="override_demo",
+            override=_override_with(
+                f["override"],
+                "search.url.base",
+                "https://people.override.example/search/\n",
+            ),
+        ),
+        INVALID_PROFILE,
+        "invalid_url",
+    ),
+    "override.search.url.keywords_param": lambda f: (
+        _compile_params(
+            platform="override_demo",
+            override=_override_with(f["override"], "search.url.keywords_param", "q\n"),
+        ),
+        INVALID_PROFILE,
+        "invalid_parameter_name",
+    ),
+    "override.filters.geo.filter_id": lambda f: (
+        _compile_params(
+            platform="override_demo",
+            override=_override_with(f["override"], "filters.geo.filter_id", "region\n"),
+        ),
+        INVALID_PROFILE,
+        "invalid_parameter_name",
+    ),
+    "override.search.url.fixed_params[].name": lambda f: (
+        _compile_params(
+            platform="override_demo",
+            override=_override_with(
+                f["override"],
+                "search.url.fixed_params",
+                [{"name": "mode\n", "value": "people"}],
+            ),
+        ),
+        INVALID_PROFILE,
+        "invalid_parameter_name",
+    ),
+    "override base ending in a percent sign": lambda f: (
+        _compile_params(
+            platform="override_demo",
+            override=_override_with(
+                f["override"],
+                "search.url.base",
+                "https://people.override.example/search/%",
+            ),
+        ),
+        INVALID_PROFILE,
+        "invalid_url",
+    ),
+    "override base with a non-hexadecimal escape": lambda f: (
+        _compile_params(
+            platform="override_demo",
+            override=_override_with(
+                f["override"],
+                "search.url.base",
+                "https://people.override.example/search/%zz/",
+            ),
+        ),
+        INVALID_PROFILE,
+        "invalid_url",
+    ),
+    # A percent sign followed by two hexadecimal digits is a valid escape.
+    "override base with a hexadecimal escape": lambda f: (
+        _compile_params(
+            platform="override_demo",
+            override=_override_with(
+                f["override"],
+                "search.url.base",
+                "https://people.override.example/search/%7Ex/",
+            ),
+        ),
+        None,
+        None,
+    ),
+}
+
+
+@pytest.mark.parametrize("field", sorted(LINE_FEED_CASES))
+def test_patterns_reject_a_trailing_line_feed(skill, error_inputs, field):
+    params, code, reason = LINE_FEED_CASES[field](error_inputs)
+    result = skill.execute(params)
+    if code is None:
+        assert result["status"] == "completed", result
+        return
+    _assert_error(result, code, reason)
+
+
+CRAFTED_PLAN_MUTATIONS = {
+    "unknown-seniority": lambda p: p["criteria"].update(seniority=["boss"]),
+    "non-list-criteria": lambda p: p["criteria"].update(titles="Head of Operations"),
+    "non-string-criteria-item": lambda p: p["criteria"].update(geos=["DE", 2]),
+    "criteria-list-over-cap": lambda p: p["criteria"].update(
+        titles=[f"T{i}" for i in range(LIST_CAPS["titles"] + 1)]
+    ),
+    "criteria-term-over-cap": lambda p: p["criteria"].update(
+        keywords_exclude=["x" * (MAX_TERM_CHARS + 1)]
+    ),
+    "criteria-term-too-many-tokens": lambda p: p["criteria"].update(
+        industries=[" ".join(f"w{i}" for i in range(MAX_TERM_TOKENS + 1))]
+    ),
+    "huge-expected-cap": lambda p: p["queries"][0].update(expected_cap=10**5000),
+    "huge-pacing": lambda p: p["pacing"].update(per_day_max_rows=10**5000),
+    "huge-estimate": lambda p: p["partitioning"].update(estimated_matches=10**5000),
+    "negative-expected-cap": lambda p: p["queries"][0].update(expected_cap=-1),
+    "negative-pacing": lambda p: p["pacing"].update(per_run_max_queries=-1),
+    "negative-estimate": lambda p: p["partitioning"].update(estimated_matches=-1),
+    "boolean-expected-cap": lambda p: p["queries"][0].update(expected_cap=True),
+    "boolean-pacing": lambda p: p["pacing"].update(per_run_max_queries=False),
+    "boolean-estimate": lambda p: p["partitioning"].update(estimated_matches=True),
+    "integer-cap-risk": lambda p: p["partitioning"].update(cap_risk=1),
+    "unknown-filter-dimension": lambda p: p["queries"][0]["filters"].update(
+        bogus=["x"]
+    ),
+    "non-string-filter-value": lambda p: p["queries"][0]["filters"].update(geo=[1]),
+    "non-list-filter-value": lambda p: p["queries"][0]["filters"].update(geo="DE"),
+    "unknown-partition-dimension": lambda p: p["queries"][0]["partition"].update(
+        bogus="x"
+    ),
+    "non-string-partition-value": lambda p: p["queries"][0]["partition"].update(geo=1),
+    "non-string-query-id": lambda p: p["queries"][0].update(id=1),
+}
+
+
+@pytest.mark.parametrize("mutation", sorted(CRAFTED_PLAN_MUTATIONS))
+def test_crafted_plans_never_reach_internal_error(skill, example_plan, mutation):
+    plan = _plan_with(example_plan, CRAFTED_PLAN_MUTATIONS[mutation])
+    result = skill.execute(_ingest_params(plan, [_row()]))
+    assert result["status"] == "error", result
+    assert result["error"]["code"] != INTERNAL_ERROR, result
+    _assert_error(result, INVALID_PLAN)
+
+
+# --------------------------------------------------------------------------
 # Size caps
 # --------------------------------------------------------------------------
 
@@ -1427,6 +1896,66 @@ def test_partition_rule_is_documented():
         assert phrase in section, phrase
 
 
+@contextlib.contextmanager
+def _deadline(seconds):
+    """Interrupt a runaway call so that a failing test cannot exhaust memory."""
+    if not hasattr(signal, "SIGALRM"):
+        yield
+        return
+
+    def interrupt(signum, frame):
+        raise TimeoutError(f"the call did not return within {seconds} seconds")
+
+    previous = signal.signal(signal.SIGALRM, interrupt)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+
+
+def test_query_count_is_capped_before_queries_are_built(skill, override):
+    profile = copy.deepcopy(override)
+    profile["search"]["per_query_result_cap"] = 1
+    profile["search"]["max_query_length"] = MAX_PROFILE_INTEGER
+    sizes = [f"s{i}" for i in range(LIST_CAPS["company_size"])]
+    networks = [f"n{i}" for i in range(LIST_CAPS["network"])]
+    profile["filters"]["company_size"]["values"] = sizes
+    profile["filters"]["network"] = {"filter_id": "net", "values": networks}
+    profile["partition_order"] = list(FILTER_DIMENSIONS)
+    spec = {
+        "titles": [f"Title {i}" for i in range(LIST_CAPS["titles"])],
+        "keywords_include": [f"kw {i}" for i in range(LIST_CAPS["keywords_include"])],
+        "keywords_exclude": [f"kx {i}" for i in range(LIST_CAPS["keywords_exclude"])],
+        "industries": [f"ind {i}" for i in range(LIST_CAPS["industries"])],
+        "seniority": list(SENIORITY_LEVELS),
+        "geos": _geo_codes(LIST_CAPS["geos"]),
+        "languages": [a + b for a in "abcde" for b in "abcd"],
+        "company_size": sizes,
+        "network": networks,
+        "estimated_matches": MAX_ESTIMATED_MATCHES,
+    }
+    for field, values in spec.items():
+        if field in LIST_CAPS:
+            assert len(values) == LIST_CAPS[field], field
+    expected = 1
+    for dimension in FILTER_DIMENSIONS:
+        expected *= len(spec[skill_module.SPEC_LIST_FOR_DIMENSION[dimension]])
+    assert expected > MAX_QUERIES
+    started = time.perf_counter()
+    with _deadline(3.0):
+        result = skill.execute(
+            _compile_params(platform="override_demo", override=profile, **spec)
+        )
+    elapsed = time.perf_counter() - started
+    detail = _assert_error(result, LIMIT_EXCEEDED, "size_cap")
+    assert detail["path"] == "plan.queries"
+    assert detail["limit"] == MAX_QUERIES
+    assert detail["actual"] == expected
+    assert elapsed < 2.0, elapsed
+
+
 def test_network_filter_validation(skill):
     _assert_error(
         skill.execute(_compile_params(network=["S"])),
@@ -1620,7 +2149,7 @@ def test_base_host_matches_on_label_boundary(skill):
         ("or", '"or"'),
         ("NOT", '"NOT"'),
         ("a" + chr(0) + "b", "ab"),
-        ("tab" + chr(9) + "bed", "tabbed"),
+        ("tab" + chr(9) + "bed", '"tab bed"'),
         (LEFT_QUOTE + "smart" + RIGHT_QUOTE, "smart"),
         (BIDI_OVERRIDE + "plain" + ZERO_WIDTH_SPACE, "plain"),
         ("  spaced   out  ", '"spaced out"'),
@@ -1819,6 +2348,41 @@ def test_lead_ids_continue_after_existing_leads(skill, example_plan):
     big = [{"profile_key": "demo:z", "lead_id": "L99999"}]
     result = skill.execute(_ingest_params(example_plan, [_row()], existing=big))
     assert result["leads"][0]["lead_id"] == "L100000"
+
+
+def test_lead_id_numbering_is_exact_for_any_length(skill, example_plan):
+    def next_ids(existing, count=1):
+        rows = [_row(url=f"https://demo.example/in/new-{i}") for i in range(count)]
+        result = skill.execute(_ingest_params(example_plan, rows, existing=existing))
+        assert result["status"] == "completed", result
+        return [lead["lead_id"] for lead in result["leads"]]
+
+    def lead(lead_id, key="demo:a"):
+        return {"profile_key": key, "lead_id": lead_id}
+
+    # Only the whole string `L` followed by ASCII digits counts.
+    assert next_ids([lead("L0041\n")]) == ["L0001"]
+    assert next_ids([lead("L0041 ")]) == ["L0001"]
+    assert next_ids([lead(" L0041")]) == ["L0001"]
+    assert next_ids([lead("L")]) == ["L0001"]
+    assert next_ids([lead("l0041")]) == ["L0001"]
+    assert next_ids([lead("L٤٢")]) == ["L0001"]
+    assert next_ids([lead("L0041")]) == ["L0042"]
+    # The comparison is exact at any length: 19, 25 and 5,000 digits.
+    nineteen = "1" + "0" * 18
+    assert next_ids([lead("L" + nineteen)]) == ["L" + nineteen[:-1] + "1"]
+    digits = "1234567890123456789012345"
+    assert next_ids([lead("L" + digits)]) == ["L" + str(int(digits) + 1)]
+    huge = "9" * 5000
+    assert next_ids([lead("L" + huge)], count=2) == [
+        "L1" + "0" * 5000,
+        "L1" + "0" * 4999 + "1",
+    ]
+    # The highest number wins whatever its digit count or leading zeros.
+    assert next_ids([lead("L" + "0" * 30 + "7"), lead("L8", "demo:b")]) == ["L0009"]
+    assert next_ids([lead("L" + "9" * 20), lead("L1" + "0" * 19, "demo:b")]) == [
+        "L1" + "0" * 20
+    ]
 
 
 def test_stage_is_new(skill):
@@ -2203,13 +2767,39 @@ def test_csv_quotes_and_strips_control_characters(skill):
     assert '"Demo ""Quoted"" GmbH"' in text
     assert '"Berlin, Germany"' in text
     assert "DemoReversed BV" in text
-    assert "Line oneLine twoTabbed" in text
+    assert "Line one Line two Tabbed" in text
     assert "Demo Logistics," in text
     assert "Munich, Germany" in text
     rows = list(csv.reader(io.StringIO(text)))
     long_title = rows[5][3]
     assert len(long_title) == SCORING_TEXT_CHARS
     assert long_title.startswith("Operations ")
+
+
+def test_line_breaks_become_spaces(skill, example_plan):
+    breaks = ("\t", "\n", "\x0b", "\x0c", "\r", "\x85", " ", " ")
+    for char in breaks:
+        cell = "Line one" + char + "Line two"
+        assert skill_module._csv_cell(cell) == "Line one Line two", repr(char)
+        assert skill_module._sanitise_term(cell, set()) == "Line one Line two"
+    # Other control and format characters are still removed, not spaced.
+    assert skill_module._csv_cell("Line" + chr(1) + "one") == "Lineone"
+    assert skill_module._sanitise_term("Line" + ZERO_WIDTH_SPACE + "one", set()) == (
+        "Lineone"
+    )
+    result = skill.execute(
+        _ingest_params(example_plan, [_row(location="Line one\nLine two")])
+    )
+    rows = list(csv.reader(io.StringIO(result["review_table"]["csv"])))
+    assert rows[1][REVIEW_COLUMNS.index("location")] == "Line one Line two"
+    plan = _compile_plan(
+        skill, titles=["Zed"], keywords_include=["warehouse\nautomation"]
+    )
+    assert plan["queries"][0]["keywords"] == 'Zed AND "warehouse automation"'
+    assert plan["criteria"]["keywords_include"] == ["warehouse automation"]
+    for title in ("Head of\nOperations", "Head of\tOperations"):
+        lead = _ingest_one(skill, example_plan, _row(title=title))
+        assert "title_match" in lead["reasons"], repr(title)
 
 
 def test_csv_round_trips_through_the_csv_reader(skill):
