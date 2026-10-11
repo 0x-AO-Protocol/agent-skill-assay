@@ -76,6 +76,8 @@ bedrock = [
 
 monitoring = []
 
+office = []
+
 security = []
 
 wellness = [
@@ -85,6 +87,8 @@ wellness = [
 monitoring_business_diagnostic = []
 
 monitoring_kpi_gate = []
+
+office_outreach_manager = []
 
 security_prompt_injection_firewall = []
 

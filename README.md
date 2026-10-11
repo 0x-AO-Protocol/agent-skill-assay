@@ -51,7 +51,7 @@ Browse capabilities by category in the [Skill library](docs/skills/README.md) or
 
 ### Trust and economic effect
 
-All four v0.1 bundled skills currently carry trust tier **L0**. No registry
+Every v0.1 bundled skill currently carries trust tier **L0**. No registry
 audit has run yet; tiers rise only through audit in a later release.
 
 Each bundled skill declares the same economic effect: it performs the task in

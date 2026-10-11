@@ -22,5 +22,11 @@ and tests.
 | :--- | :--- | :--- | :--- | :--- |
 | [Mental Coach](mental_coach.md) | `wellness/mental_coach` | `0.1.1` | AO | Provides grounded, non-clinical wellness support. |
 
-The planned `outreach_manager`, `period_close`, and `upgrade_gate` skills are
+## Office
+
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| [Outreach Manager](outreach_manager.md) | `office/outreach_manager` | `0.1.0` | AO | Plans partitioned platform searches and scores exported lead rows. |
+
+The planned `period_close` and `upgrade_gate` skills are
 tracked in the public roadmap and are not v0.1 registry entries.
