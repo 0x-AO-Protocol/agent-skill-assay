@@ -22,8 +22,8 @@ issuer:
 trust_tier: L0
 provenance:
   anchor: repository
-  content_sha256: "03e8e81c8d8f68b8a471aa662a135f6b21fbd3409f3ce6f9bb7852a22de9de0f"
-  authored_on: "2026-10-11"
+  content_sha256: "38e8e7bcb3d991c25c8279f694c61fa6df5d02d3648ba8d991bb9684a0ccf477"
+  authored_on: "2026-10-13"
 economic_effect:
   claim: "Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption."
   baseline_task: "The same task performed by an LLM agent without this skill (prompt-only)."
