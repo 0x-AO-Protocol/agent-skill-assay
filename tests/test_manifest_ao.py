@@ -124,11 +124,14 @@ def _schema_failures(error):
     """Yield ``(field, message)`` pairs that name the field behind a schema error."""
     path = list(error.absolute_path)
     if error.validator == "oneOf" and path == ["provenance"]:
-        chosen = (
-            REPOSITORY_FORM_INDEX
-            if isinstance(error.instance, dict) and "anchor" in error.instance
-            else ARCHIVE_FORM_INDEX
+        # Report against the archive form only for a block that carries an
+        # archive key and no anchor; every other block is read as an attempt
+        # at the repository-anchored form.
+        block = error.instance if isinstance(error.instance, dict) else {}
+        looks_like_archive = "anchor" not in block and (
+            "source" in block or "ported_on" in block
         )
+        chosen = ARCHIVE_FORM_INDEX if looks_like_archive else REPOSITORY_FORM_INDEX
         for cause in error.context:
             if cause.relative_schema_path[0] == chosen:
                 yield from _schema_failures(cause)
