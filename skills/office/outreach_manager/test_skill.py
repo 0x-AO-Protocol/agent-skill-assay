@@ -717,22 +717,40 @@ def _many_queries_plan(plan, count):
     many["queries"] = []
     for index in range(count):
         copy_query = copy.deepcopy(query)
-        copy_query["id"] = "q" + str(index + 1).zfill(3)
+        copy_query["id"] = "q" + str(index + 1).zfill(2)
         many["queries"].append(copy_query)
     return many
 
 
+# An exercised pair is (input builder, reason of check i) or, where check i
+# has a fixed path, (input builder, reason, path); a string records why no
+# single input can violate both checks of the pair.
 COMPILE_PAIRS = {
     (1, 2): _unreachable("check 2 needs an object, which check 1 rejects"),
-    (2, 3): lambda f: {**f["compile"], "action": "bogus", "bogus_key": 1},
-    (3, 4): lambda f: {**f["compile"], "platform": "Bad Platform", "bogus_key": 1},
-    (4, 5): lambda f: {"action": "compile_search", "platform": "Bad Platform"},
-    (5, 6): lambda f: {
-        "action": "compile_search",
-        "platform": "override_demo",
-        "target_spec": "not an object",
-        "profile_override": _bad_override(f["override"]),
-    },
+    (2, 3): (
+        lambda f: {**f["compile"], "action": "bogus", "bogus_key": 1},
+        "unknown_action",
+        "action",
+    ),
+    (3, 4): (
+        lambda f: {**f["compile"], "platform": "Bad Platform", "bogus_key": 1},
+        "unknown_key",
+    ),
+    (4, 5): (
+        lambda f: {"action": "compile_search", "platform": "Bad Platform"},
+        "invalid_platform",
+        "platform",
+    ),
+    (5, 6): (
+        lambda f: {
+            "action": "compile_search",
+            "platform": "override_demo",
+            "target_spec": "not an object",
+            "profile_override": _bad_override(f["override"]),
+        },
+        "invalid_type",
+        "target_spec",
+    ),
     (6, 7): _unreachable(
         "check 7 applies only without an override, which check 6 needs"
     ),
@@ -742,30 +760,57 @@ COMPILE_PAIRS = {
     (8, 9): _unreachable(
         "no request input can make a bundled profile file fail its checks"
     ),
-    (9, 10): lambda f: _compile_params(
-        bogus=1, titles=[f"Title {i}" for i in range(LIST_CAPS["titles"] + 1)]
+    (9, 10): (
+        lambda f: _compile_params(
+            bogus=1, titles=[f"Title {i}" for i in range(LIST_CAPS["titles"] + 1)]
+        ),
+        "unknown_key",
+        "target_spec",
     ),
-    (10, 11): lambda f: _compile_params(titles=["x" * (MAX_TERM_CHARS + 1), ""]),
-    (11, 12): lambda f: _compile_params(
-        titles=[""],
-        geos=_geo_codes(LIST_CAPS["geos"]),
-        company_size=_load_profile("demo")["filters"]["company_size"]["values"],
-        estimated_matches=MAX_ESTIMATED_MATCHES,
+    (10, 11): (
+        lambda f: _compile_params(titles=["x" * (MAX_TERM_CHARS + 1), ""]),
+        "size_cap",
+        "target_spec.titles[0]",
+    ),
+    (11, 12): (
+        lambda f: _compile_params(
+            titles=[""],
+            geos=_geo_codes(LIST_CAPS["geos"]),
+            company_size=_load_profile("demo")["filters"]["company_size"]["values"],
+            estimated_matches=MAX_ESTIMATED_MATCHES,
+        ),
+        "empty_term",
+        "target_spec.titles[0]",
     ),
 }
 
 INGEST_PAIRS = {
     (1, 2): _unreachable("check 2 needs an object, which check 1 rejects"),
-    (2, 3): lambda f: {**f["ingest"], "action": "bogus", "bogus_key": 1},
-    (3, 4): lambda f: {**f["ingest"], "platform": "Bad Platform", "bogus_key": 1},
-    (4, 5): lambda f: {"action": "ingest_leads", "platform": "Bad Platform"},
-    (5, 6): lambda f: {
-        "action": "ingest_leads",
-        "platform": "override_demo",
-        "plan": "not an object",
-        "rows": [],
-        "profile_override": _bad_override(f["override"]),
-    },
+    (2, 3): (
+        lambda f: {**f["ingest"], "action": "bogus", "bogus_key": 1},
+        "unknown_action",
+        "action",
+    ),
+    (3, 4): (
+        lambda f: {**f["ingest"], "platform": "Bad Platform", "bogus_key": 1},
+        "unknown_key",
+    ),
+    (4, 5): (
+        lambda f: {"action": "ingest_leads", "platform": "Bad Platform"},
+        "invalid_platform",
+        "platform",
+    ),
+    (5, 6): (
+        lambda f: {
+            "action": "ingest_leads",
+            "platform": "override_demo",
+            "plan": "not an object",
+            "rows": [],
+            "profile_override": _bad_override(f["override"]),
+        },
+        "invalid_type",
+        "plan",
+    ),
     (6, 7): _unreachable(
         "check 7 applies only without an override, which check 6 needs"
     ),
@@ -775,46 +820,82 @@ INGEST_PAIRS = {
     (8, 9): _unreachable(
         "no request input can make a bundled profile file fail its checks"
     ),
-    (9, 10): lambda f: _ingest_params(
-        {**_many_queries_plan(f["plan"], MAX_QUERIES + 1), "bogus": 1}, [_row()]
+    (9, 10): (
+        lambda f: _ingest_params(
+            {**_many_queries_plan(f["plan"], MAX_QUERIES + 1), "bogus": 1}, [_row()]
+        ),
+        "unknown_key",
+        "plan",
     ),
-    (10, 11): lambda f: _ingest_params(
-        _many_queries_plan(f["plan"], MAX_QUERIES + 1), [_row()]
+    (10, 11): (
+        lambda f: _ingest_params(
+            _many_queries_plan(f["plan"], MAX_QUERIES + 1), [_row()]
+        ),
+        "size_cap",
+        "plan.queries",
     ),
-    (11, 12): lambda f: _ingest_params(
-        {**f["plan"], "criteria": {**f["plan"]["criteria"], "titles": ["Edited"]}},
-        [_row()],
-        existing=[
-            {"profile_key": f"demo:k{i}", "lead_id": "L1"}
-            for i in range(MAX_EXISTING_LEADS + 1)
-        ],
+    (11, 12): (
+        lambda f: _ingest_params(
+            {**f["plan"], "criteria": {**f["plan"]["criteria"], "titles": ["Edited"]}},
+            [_row()],
+            existing=[
+                {"profile_key": f"demo:k{i}", "lead_id": "L1"}
+                for i in range(MAX_EXISTING_LEADS + 1)
+            ],
+        ),
+        "plan_id_mismatch",
+        "plan.plan_id",
     ),
-    (12, 13): lambda f: _ingest_params(
-        f["plan"],
-        [_row()],
-        existing=[{"profile_key": "demo:k", "lead_id": "L1"}] * MAX_EXISTING_LEADS
-        + ["not an object"],
+    (12, 13): (
+        lambda f: _ingest_params(
+            f["plan"],
+            [_row()],
+            existing=[{"profile_key": "demo:k", "lead_id": "L1"}] * MAX_EXISTING_LEADS
+            + ["not an object"],
+        ),
+        "size_cap",
+        "existing_leads",
     ),
-    (13, 14): lambda f: _ingest_params(
-        f["plan"], [_row()] * (MAX_ROWS + 1), existing=[{"bad": 1}]
+    (13, 14): (
+        lambda f: _ingest_params(
+            f["plan"], [_row()] * (MAX_ROWS + 1), existing=[{"bad": 1}]
+        ),
+        "missing_or_not_a_string",
+        "existing_leads[0].profile_key",
     ),
-    (14, 15): lambda f: _ingest_params(f["plan"], ["not an object"] * (MAX_ROWS + 1)),
-    (15, 16): lambda f: _ingest_params(
-        f["plan"],
-        ["not an object", _row(**{f"k{i}": "v" for i in range(MAX_ROW_KEYS)})],
+    (14, 15): (
+        lambda f: _ingest_params(f["plan"], ["not an object"] * (MAX_ROWS + 1)),
+        "size_cap",
+        "rows",
     ),
-    (16, 17): lambda f: _ingest_params(
-        f["plan"],
-        [
-            {
-                "profileUrl": "https://demo.example/in/lead-0500",
-                "query": "q01",
-                **{f"k{i}": "v" for i in range(MAX_ROW_KEYS)},
-            }
-        ],
+    (15, 16): (
+        lambda f: _ingest_params(
+            f["plan"],
+            ["not an object", _row(**{f"k{i}": "v" for i in range(MAX_ROW_KEYS)})],
+        ),
+        "row_not_object",
+        "rows[0]",
     ),
-    (17, 18): lambda f: _ingest_params(
-        f["plan"], [_row(url="https://elsewhere.example/in/x", query="q99")]
+    (16, 17): (
+        lambda f: _ingest_params(
+            f["plan"],
+            [
+                {
+                    "profileUrl": "https://demo.example/in/lead-0500",
+                    "query": "q01",
+                    **{f"k{i}": "v" for i in range(MAX_ROW_KEYS)},
+                }
+            ],
+        ),
+        "size_cap",
+        "rows[0]",
+    ),
+    (17, 18): (
+        lambda f: _ingest_params(
+            f["plan"], [_row(url="https://elsewhere.example/in/x", query="q99")]
+        ),
+        "invalid_profile_url",
+        "rows[0]",
     ),
 }
 
@@ -842,7 +923,14 @@ def test_pairwise_table_covers_every_adjacent_pair():
         expected = {(i, i + 1) for i in range(1, len(checks))}
         assert set(table) == expected
         for entry in table.values():
-            assert callable(entry) or (isinstance(entry, str) and entry)
+            if isinstance(entry, str):
+                assert entry
+                continue
+            builder, reason, *path = entry
+            assert callable(builder)
+            assert isinstance(reason, str) and reason
+            assert len(path) <= 1
+            assert all(isinstance(item, str) and item for item in path)
 
 
 @pytest.fixture
@@ -865,9 +953,12 @@ def test_first_violation_wins_in_documented_order(
     if isinstance(entry, str):
         assert entry  # recorded reason: no single input violates both checks
         return
-    result = skill.execute(entry(pair_inputs))
-    assert result["status"] == "error", result
-    assert result["error"]["code"] == checks[first - 1][0]
+    builder, reason, *path = entry
+    detail = _assert_error(
+        skill.execute(builder(pair_inputs)), checks[first - 1][0], reason
+    )
+    if path:
+        assert detail["path"] == path[0]
 
 
 def test_internal_fault_returns_an_error_envelope(skill, monkeypatch, compile_params):
@@ -1378,6 +1469,10 @@ CRAFTED_PLAN_MUTATIONS = {
     ),
     "non-string-partition-value": lambda p: p["queries"][0]["partition"].update(geo=1),
     "non-string-query-id": lambda p: p["queries"][0].update(id=1),
+    "nul-query-id": lambda p: p["queries"][0].update(id="q\x0001"),
+    "nul-criteria-term": lambda p: p["criteria"].update(
+        keywords_exclude=["recruiter\x00"]
+    ),
 }
 
 
@@ -1388,6 +1483,85 @@ def test_crafted_plans_never_reach_internal_error(skill, example_plan, mutation)
     assert result["status"] == "error", result
     assert result["error"]["code"] != INTERNAL_ERROR, result
     _assert_error(result, INVALID_PLAN)
+
+
+# Ids that are strings but not `q` plus the query's one-based position, two
+# digits minimum; each replaces the first query's id.
+QUERY_ID_CASES = {
+    "formula": "=1+1",
+    "carriage-return-formula": "\r=1+1",
+    "nul": "q\x0001",
+    "profile-url": "https://demo.example/in/lead-0500",
+    "one-digit": "q1",
+    "upper-case": "Q01",
+}
+
+
+@pytest.mark.parametrize("case", sorted(QUERY_ID_CASES) + ["duplicate", "swapped"])
+def test_query_ids_must_follow_the_documented_form(skill, example_plan, case):
+    def mutate(plan):
+        first, second = plan["queries"][0], plan["queries"][1]
+        if case == "duplicate":
+            second["id"] = first["id"]
+        elif case == "swapped":
+            first["id"], second["id"] = second["id"], first["id"]
+        else:
+            first["id"] = QUERY_ID_CASES[case]
+
+    plan = _plan_with(example_plan, mutate)
+    # The row names the crafted id, so a plan that passed would echo it.
+    row = _row(query=plan["queries"][0]["id"])
+    result = skill.execute(_ingest_params(plan, [row]))
+    detail = _assert_error(result, INVALID_PLAN, "invalid_query_id")
+    position = 1 if case == "duplicate" else 0
+    assert detail["path"] == f"plan.queries[{position}].id"
+    assert "review_table" not in result
+
+
+# (criteria field, term, a row title the term would match, expected reason);
+# a reason of None means the term passes the shape check.
+CRITERIA_TERM_CASES = {
+    "carriage-return": (
+        "keywords_exclude",
+        "x\r=1+1",
+        "x 1 1",
+        "term_not_sanitised",
+    ),
+    "nul": (
+        "keywords_exclude",
+        "recruiter\x00",
+        "Technical Recruiter",
+        "term_not_sanitised",
+    ),
+    "forbidden-characters": ("titles", 'x"(y)', "x y", "term_not_sanitised"),
+    "leading-space": (
+        "titles",
+        " Head of Operations",
+        "Head of Operations",
+        "term_not_sanitised",
+    ),
+    "double-space": (
+        "industries",
+        "ware  housing",
+        "Operations Manager",
+        "term_not_sanitised",
+    ),
+    "empty": ("keywords_include", "", "Operations Manager", "term_not_sanitised"),
+    "formula-segment": ("keywords_exclude", "x;=1+1", "x 1 1", None),
+}
+
+
+@pytest.mark.parametrize("case", sorted(CRITERIA_TERM_CASES))
+def test_criteria_terms_must_be_in_sanitised_form(skill, example_plan, case):
+    field, term, title, reason = CRITERIA_TERM_CASES[case]
+    plan = _plan_with(example_plan, lambda p: p["criteria"].update({field: [term]}))
+    result = skill.execute(_ingest_params(plan, [_row(title=title)]))
+    if reason is None:
+        assert result["status"] == "completed", result
+        return
+    detail = _assert_error(result, INVALID_PLAN, reason)
+    assert detail["path"] == f"plan.criteria.{field}[0]"
+    assert "review_table" not in result
 
 
 # --------------------------------------------------------------------------
@@ -2713,6 +2887,42 @@ def test_error_details_never_echo_row_text(skill, example_plan):
         assert marker not in json.dumps(result)
 
 
+def _in_both_orders(build, items):
+    """``build`` applied to ``items`` in the given order and in reverse."""
+    return build(list(items)), build(list(reversed(items)))
+
+
+def test_error_details_do_not_depend_on_key_order(skill, compile_params, example_plan):
+    def request(extra):
+        return skill.execute({**compile_params, **dict(extra)})
+
+    def ingest(cells):
+        return skill.execute(_ingest_params(example_plan, [{**_row(), **dict(cells)}]))
+
+    # A request holding a key of the other action and an unknown key.
+    first, second = _in_both_orders(
+        request, [("plan", example_plan), ("unexpected", 1)]
+    )
+    assert first == second
+    assert _assert_error(first, INVALID_REQUEST, "unknown_key")["path"] == "plan"
+    # Two keys of the other action: the alphabetically first one is named.
+    first, second = _in_both_orders(request, [("rows", []), ("plan", example_plan)])
+    assert first == second
+    assert first["error"]["detail"]["path"] == "plan"
+    # A row holding two over-cap cells of different lengths.
+    first, second = _in_both_orders(
+        ingest,
+        [("long", "x" * (MAX_CELL_CHARS + 1)), ("longer", "x" * (MAX_CELL_CHARS + 2))],
+    )
+    assert first == second
+    assert _assert_error(first, LIMIT_EXCEEDED, "size_cap") == {
+        "reason": "size_cap",
+        "path": "rows[0]",
+        "limit": MAX_CELL_CHARS,
+        "actual": MAX_CELL_CHARS + 2,
+    }
+
+
 # --------------------------------------------------------------------------
 # Review table and CSV
 # --------------------------------------------------------------------------
@@ -2751,6 +2961,19 @@ def test_csv_neutralises_formula_cells(skill):
         ("", ""),
     ):
         assert skill_module._csv_cell(text) == expected
+
+
+def test_csv_neutralises_formula_segments_in_reasons(skill):
+    plan = _compile_plan(skill, keywords_exclude=["x;=1+1"])
+    result = skill.execute(_ingest_params(plan, [_row(title="x 1 1")]))
+    assert result["status"] == "completed", result
+    assert result["leads"][0]["reasons"] == ["exclusion_hit:x;=1+1"]
+    text = result["review_table"]["csv"]
+    rows = list(csv.reader(io.StringIO(text)))
+    assert rows[1][REVIEW_COLUMNS.index("reasons")] == "exclusion_hit:x;'=1+1"
+    for fields in csv.reader(io.StringIO(text), delimiter=";"):
+        for field in fields:
+            assert not field or field[0] not in skill_module._FORMULA_LEADERS, field
 
 
 def test_csv_quotes_and_strips_control_characters(skill):
@@ -2802,6 +3025,18 @@ def test_line_breaks_become_spaces(skill, example_plan):
         assert "title_match" in lead["reasons"], repr(title)
 
 
+def _documented_reasons_cell(reasons):
+    """The reasons joined with ``;``, each formula-leading segment prefixed."""
+    return ";".join(
+        (
+            "'" + segment
+            if segment and segment[0] in skill_module._FORMULA_LEADERS
+            else segment
+        )
+        for segment in ";".join(reasons).split(";")
+    )
+
+
 def test_csv_round_trips_through_the_csv_reader(skill):
     for params_name, _ in REFERENCE_FIXTURES:
         for case in _cases(_load_json(FIXTURES_DIR, params_name)):
@@ -2816,7 +3051,7 @@ def test_csv_round_trips_through_the_csv_reader(skill):
                 assert row[0] == lead["lead_id"]
                 assert row[1] == str(lead["score"])
                 assert row[2] == ("true" if lead["off_target"] else "false")
-                assert row[6] == ";".join(lead["reasons"])
+                assert row[6] == _documented_reasons_cell(lead["reasons"])
                 assert row[7] == lead["source_query"]
 
 
