@@ -435,11 +435,13 @@ INGEST_LEADS_CHECKS = (
         "the plan fails its shape check: the plan key set (`profile_origin` "
         "included), each query's key set and types (`search_url` included; "
         "`partition` and `filters` map known dimensions to a string or a list "
-        "of strings), `rubric` the seven integers, `criteria` lists of strings "
-        "within the compile caps with `seniority` from the closed set, every "
-        "integer field (`expected_cap`, the `pacing` values, "
-        "`partitioning.estimated_matches`) a non-boolean integer from 0 to "
-        "10,000,000 or `null` where the plan allows it, `cap_risk` a boolean.",
+        "of strings), each query's `id` is `q` plus its one-based position, "
+        "two digits minimum, `rubric` the seven integers, `criteria` lists of "
+        "strings within the compile caps with each term equal to its sanitised "
+        "form and `seniority` from the closed set, every integer field "
+        "(`expected_cap`, the `pacing` values, `partitioning.estimated_matches`) "
+        "a non-boolean integer from 0 to 10,000,000 or `null` where the plan "
+        "allows it, `cap_risk` a boolean.",
     ),
     (LIMIT_EXCEEDED, "more than 200 queries in the plan."),
     (
@@ -582,6 +584,19 @@ def _csv_cell(text: str) -> str:
     if cleaned and cleaned[0] in _FORMULA_LEADERS:
         return "'" + cleaned
     return cleaned
+
+
+def _csv_reasons(reasons: List[str]) -> str:
+    """Join the reasons with ``;`` and neutralise every formula-leading segment.
+
+    An exclusion term can itself contain ``;``, so the joined cell is split
+    again and each segment whose first character is a formula leader gets one
+    apostrophe in front. The JSON ``reasons`` list is not changed.
+    """
+    return ";".join(
+        "'" + segment if segment and segment[0] in _FORMULA_LEADERS else segment
+        for segment in ";".join(reasons).split(";")
+    )
 
 
 def _tokens(text: str) -> List[str]:
@@ -954,12 +969,18 @@ def _resolve_profile(
 
 
 def _check_request_keys(params: Dict[str, Any], allowed: Tuple[str, ...]) -> None:
-    for key in params:
-        if key in allowed:
-            continue
-        if key in ALL_REQUEST_KEYS:
-            _fail(INVALID_REQUEST, "unknown_key", path=key)
-        _fail(INVALID_REQUEST, "unknown_key")
+    """Check 3; the detail does not depend on the key order of the request.
+
+    When a key of the other action is present, ``path`` names the
+    alphabetically first such key; otherwise the detail has no path.
+    """
+    unknown = [key for key in params if key not in allowed]
+    if not unknown:
+        return
+    foreign = sorted(key for key in unknown if key in ALL_REQUEST_KEYS)
+    if foreign:
+        _fail(INVALID_REQUEST, "unknown_key", path=foreign[0])
+    _fail(INVALID_REQUEST, "unknown_key")
 
 
 def _check_platform(params: Dict[str, Any]) -> str:
@@ -1191,6 +1212,11 @@ def _search_url(
     return url["base"] + "?" + "&".join(parts)
 
 
+def _query_id(position: int) -> str:
+    """``q`` plus the query's one-based position, zero-padded to two digits."""
+    return "q" + str(position).zfill(2)
+
+
 def _plan_id(body: Dict[str, Any]) -> str:
     serialised = json.dumps(
         body, sort_keys=True, separators=(",", ":"), ensure_ascii=True
@@ -1219,7 +1245,7 @@ def _build_plan(
             )
         queries.append(
             {
-                "id": "q" + str(index + 1).zfill(2),
+                "id": _query_id(index + 1),
                 "partition": entry["partition"],
                 "keywords": keywords,
                 "filters": entry["filters"],
@@ -1291,8 +1317,13 @@ def _plan_integer(value: Any, path: str, high: int) -> None:
         _plan_fail("out_of_range", path)
 
 
-def _check_criteria_list(field: str, values: Any) -> None:
-    """A criteria list is a list of strings within the compile caps."""
+def _check_criteria_list(field: str, values: Any, forbidden: Set[str]) -> None:
+    """A criteria list is a list of strings within the compile caps.
+
+    Each term must be non-empty and equal to its own sanitisation under the
+    resolved profile's forbidden characters: the form compile_search writes
+    into a plan, and the only form that reaches the ``reasons`` of a lead.
+    """
     path = f"plan.criteria.{field}"
     if not _is_string_list(values):
         _plan_fail("not_a_string_list", path)
@@ -1305,12 +1336,18 @@ def _check_criteria_list(field: str, values: Any) -> None:
                 _plan_fail("term_too_long", item_path)
             if len(_tokens(value)) > MAX_TERM_TOKENS:
                 _plan_fail("too_many_tokens", item_path)
+            if not value or _sanitise_term(value, forbidden) != value:
+                _plan_fail("term_not_sanitised", item_path)
         elif field == "seniority" and value not in SENIORITY_LEVELS:
             _plan_fail("unknown_seniority", item_path)
 
 
-def _validate_plan_shape(plan: Dict[str, Any]) -> None:
-    """Check 9: the key sets and every value of the plan that ingest reads."""
+def _validate_plan_shape(plan: Dict[str, Any], profile: Dict[str, Any]) -> None:
+    """Check 9: the key sets and every value of the plan that ingest reads.
+
+    ``profile`` is the profile checks 6 to 8 resolved; its forbidden
+    characters define the sanitised form every criteria term must have.
+    """
     _check_exact_keys(plan, PLAN_KEYS, "plan", "")
     for key in ("plan_id", "platform", "profile_version"):
         if not _is_string(plan[key]):
@@ -1325,6 +1362,8 @@ def _validate_plan_shape(plan: Dict[str, Any]) -> None:
         for key in ("id", "keywords", "search_url"):
             if not _is_string(query[key]):
                 _plan_fail("not_a_string", f"{path}.{key}")
+        if query["id"] != _query_id(index + 1):
+            _plan_fail("invalid_query_id", f"{path}.id")
         _plan_integer(
             query["expected_cap"], f"{path}.expected_cap", MAX_PROFILE_INTEGER
         )
@@ -1350,8 +1389,9 @@ def _validate_plan_shape(plan: Dict[str, Any]) -> None:
         if not _is_int(plan["rubric"][key]) or plan["rubric"][key] != RUBRIC[key]:
             _plan_fail("rubric_mismatch", f"plan.rubric.{key}")
     _check_exact_keys(plan["criteria"], CRITERIA_FIELDS, "plan.criteria", "")
+    forbidden = set(profile["search"]["grammar"]["forbidden_characters"])
     for field in CRITERIA_FIELDS:
-        _check_criteria_list(field, plan["criteria"][field])
+        _check_criteria_list(field, plan["criteria"][field], forbidden)
     partitioning = plan["partitioning"]
     _check_exact_keys(partitioning, PARTITIONING_KEYS, "plan.partitioning", "")
     if not _is_string_list(partitioning["dimensions"]):
@@ -1470,14 +1510,16 @@ def _validate_rows(
             _fail(INVALID_ROWS, "row_not_object", path=path, row=index)
         if len(row) > MAX_ROW_KEYS:
             _cap_fail(path, MAX_ROW_KEYS, len(row))
-        for value in row.values():
-            if not isinstance(value, str):
-                continue
-            if len(value) > MAX_CELL_CHARS:
-                _cap_fail(path, MAX_CELL_CHARS, len(value))
-            total_chars += len(value)
-            if total_chars > MAX_TOTAL_CELL_CHARS:
-                _cap_fail("rows", MAX_TOTAL_CELL_CHARS, total_chars)
+        # Check 16 in a form that does not depend on the key order of the row:
+        # the longest string cell against the cell cap, then the whole row's
+        # total against the aggregate cap, once per row.
+        lengths = [len(value) for value in row.values() if isinstance(value, str)]
+        longest = max(lengths, default=0)
+        if longest > MAX_CELL_CHARS:
+            _cap_fail(path, MAX_CELL_CHARS, longest)
+        total_chars += sum(lengths)
+        if total_chars > MAX_TOTAL_CELL_CHARS:
+            _cap_fail("rows", MAX_TOTAL_CELL_CHARS, total_chars)
         cells: Dict[str, str] = {}
         for role in EXPORT_COLUMNS_REQUIRED:
             column = columns[role]
@@ -1580,7 +1622,7 @@ def _ingest_leads(params: Dict[str, Any]) -> Dict[str, Any]:
     _check_override_type(params)
     profile, origin = _resolve_profile(params, platform)
     plan = params["plan"]
-    _validate_plan_shape(plan)
+    _validate_plan_shape(plan, profile)
     if len(plan["queries"]) > MAX_QUERIES:
         _cap_fail("plan.queries", MAX_QUERIES, len(plan["queries"]))
     _check_plan_matches(plan, profile, origin)
@@ -1626,7 +1668,7 @@ def _ingest_leads(params: Dict[str, Any]) -> Dict[str, Any]:
                 _csv_cell(row["title"]),
                 _csv_cell(row["company"]),
                 _csv_cell(row["location"]),
-                ";".join(reasons),
+                _csv_reasons(reasons),
                 query_id,
             ]
         )

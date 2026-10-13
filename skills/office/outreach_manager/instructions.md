@@ -48,6 +48,9 @@ internal fault returns the one-code fault registry entry `INTERNAL_ERROR`.
 - An override profile determines the host of every `search_url`, so the host
   passes an override only as operator configuration, never as data derived
   from row text or model output.
+- An override profile's `export_columns` decide which cells are read and
+  echoed into the leads and the review table; never map a role to a column
+  that holds a person's name.
 - The operator confirms the host of the generated URLs before the actuator
   runs a plan.
 - `search_url` is for the operator's actuator, and the host does not open it.
@@ -243,10 +246,12 @@ escaping" each become one space; the remaining control, format and separator
 characters are removed; whitespace is collapsed and trimmed; the text is
 truncated to 200 characters; if the first character is `=`, `+`, `-`, `@` or
 one of their full-width forms, one apostrophe is prefixed. `reasons` is
-joined with `;`. Booleans are `true` and `false`. The table is written with
-the standard CSV writer, minimal quoting, records joined by a line feed,
-header first, no trailing line feed. A person's full name and profile URL
-appear in no output field; the profile URL survives only as the slug inside
+joined with `;`, and then every `;`-separated segment of that cell whose
+first character is one of those formula characters is prefixed with one
+apostrophe. Booleans are `true` and `false`. The table is written with the
+standard CSV writer, minimal quoting, records joined by a line feed, header
+first, no trailing line feed. A person's full name and profile URL appear in
+no output field; the profile URL survives only as the slug inside
 `profile_key`.
 
 ## Platform profiles and overrides
@@ -353,6 +358,13 @@ trailing line feed fails it.
 `path`, `limit`, `actual`, `row` or `column`. It never contains input text
 other than validated ids.
 
+When more than one top-level key of a request is not allowed, `path` names
+the alphabetically first one that belongs to the other action, and is absent
+when none does. When more than one cell of a row is longer than the cell cap,
+`actual` is the length of the longest, and the aggregate total is compared
+once per row, after all of that row's cells, so no detail depends on the key
+order of an object.
+
 ### compile_search
 
 1. `INVALID_REQUEST` — parameters are not an object.
@@ -378,7 +390,7 @@ other than validated ids.
 6. `INVALID_PROFILE` — an override is present and fails the profile checks, or its `platform` differs from the request's.
 7. `UNKNOWN_PLATFORM` — no override, and `platform` is not a bundled id.
 8. `INVALID_PROFILE` — the bundled profile file fails the profile checks.
-9. `INVALID_PLAN` — the plan fails its shape check: the plan key set (`profile_origin` included), each query's key set and types (`search_url` included; `partition` and `filters` map known dimensions to a string or a list of strings), `rubric` the seven integers, `criteria` lists of strings within the compile caps with `seniority` from the closed set, every integer field (`expected_cap`, the `pacing` values, `partitioning.estimated_matches`) a non-boolean integer from 0 to 10,000,000 or `null` where the plan allows it, `cap_risk` a boolean.
+9. `INVALID_PLAN` — the plan fails its shape check: the plan key set (`profile_origin` included), each query's key set and types (`search_url` included; `partition` and `filters` map known dimensions to a string or a list of strings), each query's `id` is `q` plus its one-based position, two digits minimum, `rubric` the seven integers, `criteria` lists of strings within the compile caps with each term equal to its sanitised form and `seniority` from the closed set, every integer field (`expected_cap`, the `pacing` values, `partitioning.estimated_matches`) a non-boolean integer from 0 to 10,000,000 or `null` where the plan allows it, `cap_risk` a boolean.
 10. `LIMIT_EXCEEDED` — more than 200 queries in the plan.
 11. `PLAN_MISMATCH` — `plan.platform` or `plan.profile_version` differs from the resolved profile, or `plan.profile_origin` differs from how the profile was resolved in this call, or `plan_id` is not the digest recomputed from the plan body. An edited plan is rejected.
 12. `LIMIT_EXCEEDED` — more than 50,000 `existing_leads`.
