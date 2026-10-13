@@ -124,11 +124,14 @@ def _schema_failures(error):
     """Yield ``(field, message)`` pairs that name the field behind a schema error."""
     path = list(error.absolute_path)
     if error.validator == "oneOf" and path == ["provenance"]:
-        chosen = (
-            REPOSITORY_FORM_INDEX
-            if isinstance(error.instance, dict) and "anchor" in error.instance
-            else ARCHIVE_FORM_INDEX
+        # Report against the archive form only for a block that carries an
+        # archive key and no anchor; every other block is read as an attempt
+        # at the repository-anchored form.
+        block = error.instance if isinstance(error.instance, dict) else {}
+        looks_like_archive = "anchor" not in block and (
+            "source" in block or "ported_on" in block
         )
+        chosen = ARCHIVE_FORM_INDEX if looks_like_archive else REPOSITORY_FORM_INDEX
         for cause in error.context:
             if cause.relative_schema_path[0] == chosen:
                 yield from _schema_failures(cause)
@@ -343,6 +346,10 @@ def _set_provenance_to_string(manifest):
     manifest["provenance"] = "repository"
 
 
+def _drop_anchor(manifest):
+    del manifest["provenance"]["anchor"]
+
+
 @pytest.mark.parametrize(
     ("change", "field"),
     [
@@ -376,6 +383,7 @@ def _set_provenance_to_string(manifest):
         pytest.param(
             _set_provenance_to_string, "provenance", id="provenance-not-a-mapping"
         ),
+        pytest.param(_drop_anchor, "provenance.anchor", id="missing-anchor"),
     ],
 )
 def test_ao_contract_check_flags_each_wrong_field(tmp_path, change, field):
@@ -388,6 +396,19 @@ def test_ao_contract_check_flags_each_wrong_field(tmp_path, change, field):
     failures = ao_manifest_failures(skills_root)
     assert failures
     assert any(f": {field}: " in failure for failure in failures), failures
+
+
+def test_missing_anchor_is_not_reported_as_archive_keys(tmp_path):
+    skills_root = tmp_path / "skills"
+    manifest = _repository_anchored_manifest(skills_root)
+    del manifest["provenance"]["anchor"]
+    _rewrite_manifest(skills_root, manifest)
+    failures = ao_manifest_failures(skills_root)
+    assert any(": provenance.anchor: " in failure for failure in failures), failures
+    assert not any(": provenance.source: " in failure for failure in failures), failures
+    assert not any(
+        ": provenance.ported_on: " in failure for failure in failures
+    ), failures
 
 
 @pytest.mark.parametrize(
