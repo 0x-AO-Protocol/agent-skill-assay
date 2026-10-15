@@ -18,18 +18,29 @@ def test_public_text_is_clean():
     )
 
 
-def test_roadmap_contains_only_planned_four_point_four_b_entries():
-    text = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
-    manifest = yaml.safe_load(
-        (ROOT / "skills/monitoring/kpi_gate/manifest.yaml").read_text(encoding="utf-8")
-    )
+PLANNED_4_4B = {"period_close": "v0.1.2", "upgrade_gate": "v0.1.3"}
+SHIPPED_4_4B = {"office/outreach_manager": "v0.1.1"}
 
-    for skill in ("outreach_manager", "period_close", "upgrade_gate"):
+
+def _manifest(skill_id):
+    path = ROOT / "skills" / skill_id / "manifest.yaml"
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+def test_roadmap_planned_and_shipped_4_4b_entries():
+    text = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
+    declaration = _manifest("monitoring/kpi_gate")["economic_effect"]
+
+    for skill, release in PLANNED_4_4B.items():
         row = next(
-            line for line in text.splitlines() if line.startswith(f"| `{skill}` |")
+            line
+            for line in text.splitlines()
+            if line.startswith(f"| `{skill}` | {release} |")
         )
-        for value in manifest["economic_effect"].values():
+        for value in declaration.values():
             assert value in row
+    for skill_id in SHIPPED_4_4B:
+        assert _manifest(skill_id)["economic_effect"] == declaration
     assert "## Planned skills" in text
 
 

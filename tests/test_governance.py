@@ -82,11 +82,22 @@ def test_support_policy_is_machine_readable():
     )
 
 
-def test_roadmap_names_the_4_4b_skills():
+PLANNED_4_4B = {"period_close": "v0.1.2", "upgrade_gate": "v0.1.3"}
+SHIPPED_4_4B = {"office/outreach_manager": "v0.1.1"}
+
+
+def test_roadmap_tracks_the_4_4b_skills():
     roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
-    for skill in ("outreach_manager", "period_close", "upgrade_gate"):
+    lines = roadmap.splitlines()
+    for skill in PLANNED_4_4B:
         assert f"`{skill}`" in roadmap
-    assert "not v0.1 catalog entries" in roadmap
+    for skill_id, release in SHIPPED_4_4B.items():
+        name = skill_id.split("/")[-1]
+        shipped_row = f"| `{skill_id}` | {release} | Registered |"
+        assert any(line.startswith(shipped_row) for line in lines)
+        assert not any(line.startswith(f"| `{name}` |") for line in lines)
+    if PLANNED_4_4B:
+        assert "not v0.1 catalog entries" in roadmap
 
 
 def test_r19_evidence_is_public_and_redacted():
