@@ -6,6 +6,8 @@ The project uses Semantic Versioning. The public fork release line starts at v0.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-15
+
 ### Added
 
 - AO manifest schema: a second `provenance` form for bundles written in this repository, `anchor: repository` with `content_sha256` and `authored_on` (the UTC date of the commit that last refreshed the hash). The archive form used by the four imported bundles is unchanged.
