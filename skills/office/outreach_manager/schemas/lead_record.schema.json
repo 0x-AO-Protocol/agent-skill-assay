@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/0x-AO-Protocol/agent-skill-assay/skills/office/outreach_manager/schemas/lead_record.schema.json",
+  "title": "Lead record (v1)",
+  "description": "One element of the leads array returned by ingest_leads. The full name and the profile URL of a person appear in no field; the profile URL survives only as the slug inside profile_key.",
+  "type": "object",
+  "required": [
+    "lead_id",
+    "profile_key",
+    "score",
+    "reasons",
+    "off_target",
+    "stage",
+    "source_query"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "pattern": "^L[0-9]{4,}$",
+      "description": "Sequential, continuing after the highest L<digits> id among existing_leads; unique only relative to the existing_leads passed."
+    },
+    "profile_key": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,31}:[a-z0-9][a-z0-9._%-]{0,199}$",
+      "description": "The identity of a lead: platform id, a colon and the lower-cased profile slug."
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(title_match|seniority|industry|geo|language|exclusion_hit:.+)$"
+      },
+      "description": "Awarded components in rubric order, or exclusion_hit:<term> entries only."
+    },
+    "off_target": {
+      "type": "boolean"
+    },
+    "stage": {
+      "const": "NEW"
+    },
+    "source_query": {
+      "type": "string",
+      "pattern": "^q[0-9]{2,}$",
+      "description": "Always the query id, also when the row named the query by its search_url."
+    }
+  }
+}

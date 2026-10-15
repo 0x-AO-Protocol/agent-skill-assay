@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/0x-AO-Protocol/agent-skill-assay/skills/office/outreach_manager/schemas/target_spec.schema.json",
+  "title": "Outreach target specification (v1)",
+  "description": "Input of compile_search. Documentation of the contract; the skill enforces the same rules with explicit standard-library checks. Lists are de-duplicated case-insensitively (first occurrence kept); order is otherwise preserved.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "titles"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "titles": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100,
+        "description": "A search term: 1 to 100 characters and at most 10 tokens before sanitisation."
+      },
+      "description": "Job titles; joined with the profile's OR operator and grouped when there are two or more."
+    },
+    "keywords_include": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100,
+        "description": "A search term: 1 to 100 characters and at most 10 tokens before sanitisation."
+      },
+      "description": "Terms each added with the profile's AND operator."
+    },
+    "keywords_exclude": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100,
+        "description": "A search term: 1 to 100 characters and at most 10 tokens before sanitisation."
+      },
+      "description": "Terms each added with the profile's NOT operator; also the exclusion rubric component at ingest."
+    },
+    "industries": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100,
+        "description": "A search term: 1 to 100 characters and at most 10 tokens before sanitisation."
+      },
+      "description": "Industry terms; a query filter when the profile has an industry filter, otherwise a scoring criterion read from the row's company."
+    },
+    "seniority": {
+      "type": "array",
+      "maxItems": 7,
+      "items": {
+        "type": "string",
+        "enum": [
+          "entry",
+          "senior",
+          "manager",
+          "director",
+          "vp",
+          "cxo",
+          "owner"
+        ]
+      },
+      "description": "Closed set. A query filter when the profile has a seniority filter, otherwise a scoring criterion matched through kb/seniority_terms.json."
+    },
+    "geos": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Two-letter upper-case codes (^[A-Z]{2}$), or values from the profile's geo filter list when the profile gives one."
+    },
+    "languages": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z]{2}$"
+      },
+      "description": "Two-letter lower-case language codes."
+    },
+    "company_size": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Values from the profile's company_size filter list; the profile must have that filter."
+    },
+    "network": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Values from the profile's network filter list (connection degree); the profile must have that filter. Carries no rubric weight."
+    },
+    "estimated_matches": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000000,
+      "description": "Optional estimate of matching profiles, as read off the platform's own result counter; drives multi-dimension partitioning."
+    }
+  }
+}

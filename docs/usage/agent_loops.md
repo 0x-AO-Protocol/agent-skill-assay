@@ -172,3 +172,4 @@ skills in one harness.
 | `monitoring/kpi_gate` | `kpi_gate_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/business_diagnostic` | `business_diagnostic_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/business_diagnostic` | `business_diagnostic_demo.py` | `gemini_business_diagnostic.py` | `claude_business_diagnostic.py` | (catalog page) | (catalog page) | (catalog page) |
+| `office/outreach_manager` | `outreach_manager_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |

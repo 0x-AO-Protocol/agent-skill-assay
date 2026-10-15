@@ -1,0 +1,45 @@
+{
+    "name": "Outreach Manager",
+    "description": "Deterministic search plans and lead ingestion: partitioned queries with ready search URLs, scored lead rows with reasons.",
+    "issuer": {
+        "name": "Masa",
+        "email": "masa88keith@gmail.com",
+        "github": "mrmasa88",
+        "org": "AO"
+    },
+    "icon": "search",
+    "color": "#0e7490",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {
+                "key": "status",
+                "label": "Status"
+            },
+            {
+                "key": "plan.plan_id",
+                "label": "Plan"
+            },
+            {
+                "key": "plan.platform",
+                "label": "Platform"
+            },
+            {
+                "key": "stats.rows_in",
+                "label": "Rows in"
+            },
+            {
+                "key": "stats.deduped",
+                "label": "Deduped"
+            },
+            {
+                "key": "stats.off_target",
+                "label": "Off-target"
+            },
+            {
+                "key": "stats.kept",
+                "label": "Kept"
+            }
+        ]
+    }
+}

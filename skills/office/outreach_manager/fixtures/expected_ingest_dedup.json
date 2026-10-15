@@ -1,0 +1,52 @@
+{
+  "status": "completed",
+  "leads": [
+    {
+      "lead_id": "L0008",
+      "profile_key": "demo:lead-0001",
+      "score": 90,
+      "reasons": [
+        "title_match",
+        "seniority",
+        "industry",
+        "geo"
+      ],
+      "off_target": false,
+      "stage": "NEW",
+      "source_query": "q01"
+    },
+    {
+      "lead_id": "L0009",
+      "profile_key": "demo:lead-0003",
+      "score": 90,
+      "reasons": [
+        "title_match",
+        "seniority",
+        "industry",
+        "geo"
+      ],
+      "off_target": false,
+      "stage": "NEW",
+      "source_query": "q03"
+    }
+  ],
+  "review_table": {
+    "columns": [
+      "lead_id",
+      "score",
+      "off_target",
+      "title",
+      "company",
+      "location",
+      "reasons",
+      "source_query"
+    ],
+    "csv": "lead_id,score,off_target,title,company,location,reasons,source_query\nL0008,90,false,Head of Operations,Demo Logistics GmbH,\"Hamburg, Germany\",title_match;seniority;industry;geo,q01\nL0009,90,false,Operations Director,Demo Warehousing NV,\"Antwerp, Belgium\",title_match;seniority;industry;geo,q03"
+  },
+  "stats": {
+    "rows_in": 4,
+    "deduped": 2,
+    "off_target": 0,
+    "kept": 2
+  }
+}

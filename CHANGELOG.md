@@ -6,10 +6,13 @@ The project uses Semantic Versioning. The public fork release line starts at v0.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-15
+
 ### Added
 
 - AO manifest schema: a second `provenance` form for bundles written in this repository, `anchor: repository` with `content_sha256` and `authored_on` (the UTC date of the commit that last refreshed the hash). The archive form used by the four imported bundles is unchanged.
 - `python scripts/provenance.py --hash <bundle_dir>` prints the content hash of one bundle.
+- `office/outreach_manager`: `compile_search` turns a target specification and a platform profile into a partitioned search plan, with a ready search URL per query and an explicit fit rubric; `ingest_leads` de-duplicates, scores and tabulates exported rows against that plan and returns lead records and a review table. Offline and deterministic; bundled profiles `linkedin` and `demo`.
 
 ### Removed
 

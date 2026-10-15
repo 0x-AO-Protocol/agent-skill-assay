@@ -1,0 +1,120 @@
+{
+  "status": "completed",
+  "plan": {
+    "plan_id": "plan_e2cf7c28c575",
+    "platform": "demo",
+    "profile_version": "2026-09-29",
+    "profile_origin": "bundled",
+    "queries": [
+      {
+        "id": "q01",
+        "partition": {
+          "geo": "DE"
+        },
+        "keywords": "(\"Head of Operations\" OR \"Operations Director\") AND \"warehouse automation\" NOT recruiter NOT student",
+        "filters": {
+          "geo": [
+            "DE"
+          ],
+          "company_size": [
+            "51-200",
+            "201-500"
+          ]
+        },
+        "expected_cap": 1000,
+        "search_url": "https://demo.example/search/people/?keywords=%28%22Head%20of%20Operations%22%20OR%20%22Operations%20Director%22%29%20AND%20%22warehouse%20automation%22%20NOT%20recruiter%20NOT%20student&geo=%5B%22DE%22%5D&company_size=%5B%2251-200%22%2C%22201-500%22%5D"
+      },
+      {
+        "id": "q02",
+        "partition": {
+          "geo": "NL"
+        },
+        "keywords": "(\"Head of Operations\" OR \"Operations Director\") AND \"warehouse automation\" NOT recruiter NOT student",
+        "filters": {
+          "geo": [
+            "NL"
+          ],
+          "company_size": [
+            "51-200",
+            "201-500"
+          ]
+        },
+        "expected_cap": 1000,
+        "search_url": "https://demo.example/search/people/?keywords=%28%22Head%20of%20Operations%22%20OR%20%22Operations%20Director%22%29%20AND%20%22warehouse%20automation%22%20NOT%20recruiter%20NOT%20student&geo=%5B%22NL%22%5D&company_size=%5B%2251-200%22%2C%22201-500%22%5D"
+      },
+      {
+        "id": "q03",
+        "partition": {
+          "geo": "BE"
+        },
+        "keywords": "(\"Head of Operations\" OR \"Operations Director\") AND \"warehouse automation\" NOT recruiter NOT student",
+        "filters": {
+          "geo": [
+            "BE"
+          ],
+          "company_size": [
+            "51-200",
+            "201-500"
+          ]
+        },
+        "expected_cap": 1000,
+        "search_url": "https://demo.example/search/people/?keywords=%28%22Head%20of%20Operations%22%20OR%20%22Operations%20Director%22%29%20AND%20%22warehouse%20automation%22%20NOT%20recruiter%20NOT%20student&geo=%5B%22BE%22%5D&company_size=%5B%2251-200%22%2C%22201-500%22%5D"
+      }
+    ],
+    "pacing": {
+      "per_run_max_queries": 7,
+      "per_day_max_rows": 1000,
+      "source": "platform_profile"
+    },
+    "rubric": {
+      "title_match": 40,
+      "seniority": 20,
+      "industry": 20,
+      "geo": 10,
+      "language": 10,
+      "exclusion_hit": -100,
+      "off_target_below": 50
+    },
+    "criteria": {
+      "titles": [
+        "Head of Operations",
+        "Operations Director"
+      ],
+      "keywords_include": [
+        "warehouse automation"
+      ],
+      "keywords_exclude": [
+        "recruiter",
+        "student"
+      ],
+      "industries": [
+        "logistics",
+        "warehousing"
+      ],
+      "seniority": [
+        "director",
+        "vp",
+        "cxo"
+      ],
+      "geos": [
+        "DE",
+        "NL",
+        "BE"
+      ],
+      "languages": [
+        "en"
+      ],
+      "company_size": [
+        "51-200",
+        "201-500"
+      ]
+    },
+    "partitioning": {
+      "dimensions": [
+        "geo"
+      ],
+      "estimated_matches": null,
+      "cap_risk": false
+    }
+  }
+}

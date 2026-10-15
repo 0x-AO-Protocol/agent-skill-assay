@@ -1,0 +1,17 @@
+{
+  "action": "compile_search",
+  "platform": "linkedin",
+  "target_spec": {
+    "schema_version": 1,
+    "titles": [
+      "Account Executive",
+      "Sales Manager"
+    ],
+    "geos": [
+      "106693272"
+    ],
+    "network": [
+      "S"
+    ]
+  }
+}

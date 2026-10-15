@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "platform": "linkedin",
+  "profile_version": "2026-10-11",
+  "verified_on": "2026-10-11",
+  "sources": [
+    {
+      "title": "LinkedIn Help: Use Boolean search on LinkedIn",
+      "reference": "https://www.linkedin.com/help/linkedin/answer/75814",
+      "retrieved_on": "2026-10-11"
+    },
+    {
+      "title": "Operator observation: LinkedIn people search, result cap and search URLs",
+      "reference": "Observed by the maintainer in LinkedIn people search",
+      "retrieved_on": "2026-10-10"
+    },
+    {
+      "title": "Operator observation: LinkedIn people search, connection filter values",
+      "reference": "Observed by the maintainer in LinkedIn people search",
+      "retrieved_on": "2026-10-11"
+    },
+    {
+      "title": "Operator observation: a PhantomBuster LinkedIn search export",
+      "reference": "Observed by the maintainer in an export file; column names and URL forms only",
+      "retrieved_on": "2026-10-10"
+    },
+    {
+      "title": "Operator policy for this profile",
+      "reference": "Set by the operator; not a platform limit: max_query_length, pacing, search.url.max_length, rejection of typographic quotes in terms, partition_order",
+      "retrieved_on": "2026-10-11"
+    }
+  ],
+  "search": {
+    "per_query_result_cap": 1000,
+    "max_query_length": 300,
+    "grammar": {
+      "and": "AND",
+      "or": "OR",
+      "not": "NOT",
+      "quote": "\"",
+      "group_open": "(",
+      "group_close": ")",
+      "forbidden_characters": [
+        "\"",
+        "(",
+        ")",
+        "\u201c",
+        "\u201d"
+      ],
+      "reserved_words": [
+        "AND",
+        "OR",
+        "NOT"
+      ]
+    },
+    "url": {
+      "base": "https://www.linkedin.com/search/results/people/",
+      "keywords_param": "keywords",
+      "fixed_params": [
+        {
+          "name": "origin",
+          "value": "FACETED_SEARCH"
+        }
+      ],
+      "filter_value_encoding": "json_string_array",
+      "max_length": 2000
+    }
+  },
+  "filters": {
+    "geo": {
+      "filter_id": "geoUrn",
+      "values": [
+        "106693272"
+      ]
+    },
+    "network": {
+      "filter_id": "network",
+      "values": [
+        "F",
+        "S",
+        "O"
+      ]
+    }
+  },
+  "partition_order": [
+    "geo"
+  ],
+  "pacing": {
+    "per_run_max_queries": 1,
+    "per_day_max_rows": 1000
+  },
+  "export_columns": {
+    "profile_url": "profileUrl",
+    "title": "jobTitle",
+    "source_query": "query",
+    "company": "company",
+    "location": "location"
+  },
+  "profile_key": {
+    "host_suffixes": [
+      "linkedin.com"
+    ],
+    "path_prefix": "/in/"
+  }
+}

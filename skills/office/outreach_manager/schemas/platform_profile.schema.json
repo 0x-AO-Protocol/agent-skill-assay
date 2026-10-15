@@ -1,0 +1,483 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/0x-AO-Protocol/agent-skill-assay/skills/office/outreach_manager/schemas/platform_profile.schema.json",
+  "title": "Platform profile (v1)",
+  "description": "Versioned, sourced platform data: search grammar, URL form, filter ids, caps and export column mapping. Bundled files under kb/platforms/ and request overrides (profile_override) share this schema. Cross-rules enforced in code: forbidden_characters contains the quote and both group characters; reserved_words contains the three operator words; keywords_param, every fixed_params name and every filter_id are pairwise distinct; search.url.base's host is equal to, or a subdomain of, an entry of profile_key.host_suffixes; export column names are pairwise distinct.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "platform",
+    "profile_version",
+    "verified_on",
+    "sources",
+    "search",
+    "filters",
+    "partition_order",
+    "pacing",
+    "export_columns",
+    "profile_key"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "platform": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,31}$"
+    },
+    "profile_version": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "format": "date"
+    },
+    "verified_on": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "format": "date"
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": [
+          "title",
+          "reference",
+          "retrieved_on"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "retrieved_on": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+            "format": "date"
+          }
+        }
+      }
+    },
+    "search": {
+      "type": "object",
+      "required": [
+        "per_query_result_cap",
+        "max_query_length",
+        "grammar",
+        "url"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "per_query_result_cap": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000
+        },
+        "max_query_length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000
+        },
+        "grammar": {
+          "type": "object",
+          "required": [
+            "and",
+            "or",
+            "not",
+            "quote",
+            "group_open",
+            "group_close",
+            "forbidden_characters",
+            "reserved_words"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "and": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "or": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "not": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "quote": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1
+            },
+            "group_open": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1
+            },
+            "group_close": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1
+            },
+            "forbidden_characters": {
+              "type": "array",
+              "maxItems": 500,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1
+              }
+            },
+            "reserved_words": {
+              "type": "array",
+              "maxItems": 500,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            }
+          }
+        },
+        "url": {
+          "type": "object",
+          "required": [
+            "base",
+            "keywords_param",
+            "fixed_params",
+            "filter_value_encoding",
+            "max_length"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "base": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "pattern": "^https://(?:[A-Za-z0-9\\-._~:/]|%[0-9A-Fa-f]{2})+$",
+              "description": "Absolute https URL with no user info, port, query or fragment; a percent sign appears only as an escape followed by two hexadecimal digits."
+            },
+            "keywords_param": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]{0,31}$"
+            },
+            "fixed_params": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "value"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z][A-Za-z0-9_]{0,31}$"
+                  },
+                  "value": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                }
+              }
+            },
+            "filter_value_encoding": {
+              "const": "json_string_array"
+            },
+            "max_length": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2000
+            }
+          }
+        }
+      }
+    },
+    "filters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "geo": {
+          "type": "object",
+          "required": [
+            "filter_id",
+            "values"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "filter_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]{0,31}$"
+            },
+            "values": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "array",
+                  "maxItems": 500,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "company_size": {
+          "type": "object",
+          "required": [
+            "filter_id",
+            "values"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "filter_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]{0,31}$"
+            },
+            "values": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 500,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            }
+          }
+        },
+        "seniority": {
+          "type": "object",
+          "required": [
+            "filter_id",
+            "values"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "filter_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]{0,31}$"
+            },
+            "values": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "array",
+                  "maxItems": 500,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "industry": {
+          "type": "object",
+          "required": [
+            "filter_id",
+            "values"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "filter_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]{0,31}$"
+            },
+            "values": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "array",
+                  "maxItems": 500,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "language": {
+          "type": "object",
+          "required": [
+            "filter_id",
+            "values"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "filter_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]{0,31}$"
+            },
+            "values": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "array",
+                  "maxItems": 500,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "network": {
+          "type": "object",
+          "required": [
+            "filter_id",
+            "values"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "filter_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]{0,31}$"
+            },
+            "values": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 500,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            }
+          }
+        }
+      }
+    },
+    "partition_order": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "geo",
+          "company_size",
+          "seniority",
+          "industry",
+          "language",
+          "network"
+        ]
+      },
+      "description": "A subset of the filter dimensions, in expansion order."
+    },
+    "pacing": {
+      "type": "object",
+      "required": [
+        "per_run_max_queries",
+        "per_day_max_rows"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "per_run_max_queries": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000
+        },
+        "per_day_max_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000
+        }
+      }
+    },
+    "export_columns": {
+      "type": "object",
+      "required": [
+        "profile_url",
+        "title",
+        "source_query"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "profile_url": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "source_query": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "company": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "location": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      }
+    },
+    "profile_key": {
+      "type": "object",
+      "required": [
+        "host_suffixes",
+        "path_prefix"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "host_suffixes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 500,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 253
+          }
+        },
+        "path_prefix": {
+          "type": "string",
+          "pattern": "^/.*/$|^/$",
+          "maxLength": 500
+        }
+      }
+    }
+  }
+}

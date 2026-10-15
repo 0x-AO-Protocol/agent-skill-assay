@@ -1,0 +1,60 @@
+{
+  "status": "completed",
+  "plan": {
+    "plan_id": "plan_8ce682c66271",
+    "platform": "linkedin",
+    "profile_version": "2026-10-11",
+    "profile_origin": "bundled",
+    "queries": [
+      {
+        "id": "q01",
+        "partition": {},
+        "keywords": "(\"Account Executive\" OR \"Sales Manager\")",
+        "filters": {
+          "geo": [
+            "106693272"
+          ],
+          "network": [
+            "S"
+          ]
+        },
+        "expected_cap": 1000,
+        "search_url": "https://www.linkedin.com/search/results/people/?keywords=%28%22Account%20Executive%22%20OR%20%22Sales%20Manager%22%29&origin=FACETED_SEARCH&geoUrn=%5B%22106693272%22%5D&network=%5B%22S%22%5D"
+      }
+    ],
+    "pacing": {
+      "per_run_max_queries": 1,
+      "per_day_max_rows": 1000,
+      "source": "platform_profile"
+    },
+    "rubric": {
+      "title_match": 40,
+      "seniority": 20,
+      "industry": 20,
+      "geo": 10,
+      "language": 10,
+      "exclusion_hit": -100,
+      "off_target_below": 50
+    },
+    "criteria": {
+      "titles": [
+        "Account Executive",
+        "Sales Manager"
+      ],
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "industries": [],
+      "seniority": [],
+      "geos": [
+        "106693272"
+      ],
+      "languages": [],
+      "company_size": []
+    },
+    "partitioning": {
+      "dimensions": [],
+      "estimated_matches": null,
+      "cap_risk": false
+    }
+  }
+}

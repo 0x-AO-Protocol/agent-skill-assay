@@ -1,0 +1,361 @@
+[
+  {
+    "action": "ingest_leads",
+    "platform": "override_demo",
+    "profile_override": {
+      "schema_version": 1,
+      "platform": "override_demo",
+      "profile_version": "2026-10-01",
+      "verified_on": "2026-10-01",
+      "sources": [
+        {
+          "title": "Synthetic override profile",
+          "reference": "Written for the fixtures of this bundle; it describes no real platform",
+          "retrieved_on": "2026-10-01"
+        }
+      ],
+      "search": {
+        "per_query_result_cap": 500,
+        "max_query_length": 250,
+        "grammar": {
+          "and": "AND",
+          "or": "OR",
+          "not": "NOT",
+          "quote": "\"",
+          "group_open": "(",
+          "group_close": ")",
+          "forbidden_characters": [
+            "\"",
+            "(",
+            ")",
+            "\u201c",
+            "\u201d"
+          ],
+          "reserved_words": [
+            "AND",
+            "OR",
+            "NOT"
+          ]
+        },
+        "url": {
+          "base": "https://people.override.example/search/",
+          "keywords_param": "q",
+          "fixed_params": [
+            {
+              "name": "mode",
+              "value": "people"
+            }
+          ],
+          "filter_value_encoding": "json_string_array",
+          "max_length": 1500
+        }
+      },
+      "filters": {
+        "geo": {
+          "filter_id": "region",
+          "values": null
+        },
+        "company_size": {
+          "filter_id": "size",
+          "values": [
+            "1-50",
+            "51-500",
+            "501+"
+          ]
+        },
+        "seniority": {
+          "filter_id": "level",
+          "values": [
+            "entry",
+            "senior",
+            "manager",
+            "director",
+            "vp",
+            "cxo",
+            "owner"
+          ]
+        },
+        "industry": {
+          "filter_id": "industry",
+          "values": null
+        },
+        "language": {
+          "filter_id": "lang",
+          "values": null
+        }
+      },
+      "partition_order": [
+        "geo",
+        "seniority",
+        "company_size"
+      ],
+      "pacing": {
+        "per_run_max_queries": 3,
+        "per_day_max_rows": 400
+      },
+      "export_columns": {
+        "profile_url": "url",
+        "title": "headline",
+        "source_query": "source",
+        "company": "org",
+        "location": "place"
+      },
+      "profile_key": {
+        "host_suffixes": [
+          "override.example"
+        ],
+        "path_prefix": "/people/"
+      }
+    },
+    "plan": {
+      "plan_id": "plan_022412e71fcb",
+      "platform": "override_demo",
+      "profile_version": "2026-10-01",
+      "profile_origin": "override",
+      "queries": [
+        {
+          "id": "q01",
+          "partition": {},
+          "keywords": "\"Operations Manager\"",
+          "filters": {
+            "geo": [
+              "DE"
+            ],
+            "seniority": [
+              "manager"
+            ],
+            "industry": [
+              "logistics"
+            ],
+            "language": [
+              "en"
+            ]
+          },
+          "expected_cap": 500,
+          "search_url": "https://people.override.example/search/?q=%22Operations%20Manager%22&mode=people&region=%5B%22DE%22%5D&level=%5B%22manager%22%5D&industry=%5B%22logistics%22%5D&lang=%5B%22en%22%5D"
+        }
+      ],
+      "pacing": {
+        "per_run_max_queries": 3,
+        "per_day_max_rows": 400,
+        "source": "platform_profile"
+      },
+      "rubric": {
+        "title_match": 40,
+        "seniority": 20,
+        "industry": 20,
+        "geo": 10,
+        "language": 10,
+        "exclusion_hit": -100,
+        "off_target_below": 50
+      },
+      "criteria": {
+        "titles": [
+          "Operations Manager"
+        ],
+        "keywords_include": [],
+        "keywords_exclude": [],
+        "industries": [
+          "logistics"
+        ],
+        "seniority": [
+          "manager"
+        ],
+        "geos": [
+          "DE"
+        ],
+        "languages": [
+          "en"
+        ],
+        "company_size": []
+      },
+      "partitioning": {
+        "dimensions": [],
+        "estimated_matches": null,
+        "cap_risk": false
+      }
+    },
+    "rows": [
+      {
+        "url": "https://people.override.example/people/lead-0201",
+        "name": "Lead 0201",
+        "headline": "Warehouse Coordinator",
+        "org": "Demo Freight",
+        "place": "Bremen, Germany",
+        "source": "q01"
+      },
+      {
+        "url": "https://people.override.example/people/lead-0202",
+        "name": "Lead 0202",
+        "headline": "Operations Manager",
+        "org": "Demo Freight",
+        "place": "Bremen, Germany",
+        "source": "q01"
+      }
+    ]
+  },
+  {
+    "action": "ingest_leads",
+    "platform": "demo",
+    "plan": {
+      "plan_id": "plan_e2cf7c28c575",
+      "platform": "demo",
+      "profile_version": "2026-09-29",
+      "profile_origin": "bundled",
+      "queries": [
+        {
+          "id": "q01",
+          "partition": {
+            "geo": "DE"
+          },
+          "keywords": "(\"Head of Operations\" OR \"Operations Director\") AND \"warehouse automation\" NOT recruiter NOT student",
+          "filters": {
+            "geo": [
+              "DE"
+            ],
+            "company_size": [
+              "51-200",
+              "201-500"
+            ]
+          },
+          "expected_cap": 1000,
+          "search_url": "https://demo.example/search/people/?keywords=%28%22Head%20of%20Operations%22%20OR%20%22Operations%20Director%22%29%20AND%20%22warehouse%20automation%22%20NOT%20recruiter%20NOT%20student&geo=%5B%22DE%22%5D&company_size=%5B%2251-200%22%2C%22201-500%22%5D"
+        },
+        {
+          "id": "q02",
+          "partition": {
+            "geo": "NL"
+          },
+          "keywords": "(\"Head of Operations\" OR \"Operations Director\") AND \"warehouse automation\" NOT recruiter NOT student",
+          "filters": {
+            "geo": [
+              "NL"
+            ],
+            "company_size": [
+              "51-200",
+              "201-500"
+            ]
+          },
+          "expected_cap": 1000,
+          "search_url": "https://demo.example/search/people/?keywords=%28%22Head%20of%20Operations%22%20OR%20%22Operations%20Director%22%29%20AND%20%22warehouse%20automation%22%20NOT%20recruiter%20NOT%20student&geo=%5B%22NL%22%5D&company_size=%5B%2251-200%22%2C%22201-500%22%5D"
+        },
+        {
+          "id": "q03",
+          "partition": {
+            "geo": "BE"
+          },
+          "keywords": "(\"Head of Operations\" OR \"Operations Director\") AND \"warehouse automation\" NOT recruiter NOT student",
+          "filters": {
+            "geo": [
+              "BE"
+            ],
+            "company_size": [
+              "51-200",
+              "201-500"
+            ]
+          },
+          "expected_cap": 1000,
+          "search_url": "https://demo.example/search/people/?keywords=%28%22Head%20of%20Operations%22%20OR%20%22Operations%20Director%22%29%20AND%20%22warehouse%20automation%22%20NOT%20recruiter%20NOT%20student&geo=%5B%22BE%22%5D&company_size=%5B%2251-200%22%2C%22201-500%22%5D"
+        }
+      ],
+      "pacing": {
+        "per_run_max_queries": 7,
+        "per_day_max_rows": 1000,
+        "source": "platform_profile"
+      },
+      "rubric": {
+        "title_match": 40,
+        "seniority": 20,
+        "industry": 20,
+        "geo": 10,
+        "language": 10,
+        "exclusion_hit": -100,
+        "off_target_below": 50
+      },
+      "criteria": {
+        "titles": [
+          "Head of Operations",
+          "Operations Director"
+        ],
+        "keywords_include": [
+          "warehouse automation"
+        ],
+        "keywords_exclude": [
+          "recruiter",
+          "student"
+        ],
+        "industries": [
+          "logistics",
+          "warehousing"
+        ],
+        "seniority": [
+          "director",
+          "vp",
+          "cxo"
+        ],
+        "geos": [
+          "DE",
+          "NL",
+          "BE"
+        ],
+        "languages": [
+          "en"
+        ],
+        "company_size": [
+          "51-200",
+          "201-500"
+        ]
+      },
+      "partitioning": {
+        "dimensions": [
+          "geo"
+        ],
+        "estimated_matches": null,
+        "cap_risk": false
+      }
+    },
+    "rows": [
+      {
+        "profileUrl": "https://demo.example/in/lead-0301",
+        "fullName": "Lead 0301",
+        "title": "Head of Operations",
+        "company": "Demo Logistics GmbH",
+        "location": "Hamburg, Germany",
+        "query": "q01"
+      },
+      {
+        "profileUrl": "https://demo.example/in/lead-0302",
+        "fullName": "Lead 0302",
+        "title": "Warehouse Lead",
+        "company": "Demo Logistics GmbH",
+        "location": "Hamburg, Germany",
+        "query": "q01"
+      },
+      {
+        "profileUrl": "https://demo.example/in/lead-0303",
+        "fullName": "Lead 0303",
+        "title": "Operations Director",
+        "company": "Demo Foods BV",
+        "location": "Rotterdam, Netherlands",
+        "query": "q02"
+      },
+      {
+        "profileUrl": "https://demo.example/in/lead-0304",
+        "fullName": "Lead 0304",
+        "title": "Student Intern",
+        "company": "Demo Warehousing NV",
+        "location": "Ghent, Belgium",
+        "query": "q03"
+      },
+      {
+        "profileUrl": "https://demo.example/in/lead-0305",
+        "fullName": "Lead 0305",
+        "title": "VP Supply Chain",
+        "company": "Demo Retail NV",
+        "location": "Brussels, Belgium",
+        "query": "q03"
+      }
+    ],
+    "existing_leads": []
+  }
+]

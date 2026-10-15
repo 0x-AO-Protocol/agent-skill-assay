@@ -1,13 +1,13 @@
 # Install Extras
 
-Agent Skill Assay ships as one wheel. The four v0.1 skill bundles are included
+Agent Skill Assay ships as one wheel. The v0.1 skill bundles are included
 with the base install; extras add optional runtime dependencies.
 
 ## Quick Reference
 
 | Goal | Install command |
 | :--- | :--- |
-| Framework and all four skills | `pip install agent-skill-assay` |
+| Framework and every bundled skill | `pip install agent-skill-assay` |
 | One bundled skill | `pip install "agent-skill-assay[<category>_<skill>]"` |
 | Every bundled skill dependency | `pip install "agent-skill-assay[all]"` |
 | Development and tests | `pip install -e ".[dev,all]"` |
@@ -22,6 +22,7 @@ dependency.
 | Extra | Skills | Packages |
 | :--- | :--- | :--- |
 | `monitoring` | `monitoring/business_diagnostic`, `monitoring/kpi_gate` | *(none today)* |
+| `office` | `office/outreach_manager` | *(none today)* |
 | `security` | `security/prompt_injection_firewall` | *(none today)* |
 | `wellness` | `wellness/mental_coach` | `google-genai` |
 
@@ -31,6 +32,7 @@ dependency.
 | :--- | :--- | :--- |
 | `monitoring_business_diagnostic` | `monitoring/business_diagnostic` | *(none today)* |
 | `monitoring_kpi_gate` | `monitoring/kpi_gate` | *(none today)* |
+| `office_outreach_manager` | `office/outreach_manager` | *(none today)* |
 | `security_prompt_injection_firewall` | `security/prompt_injection_firewall` | *(none today)* |
 | `wellness_mental_coach` | `wellness/mental_coach` | `google-genai` |
 

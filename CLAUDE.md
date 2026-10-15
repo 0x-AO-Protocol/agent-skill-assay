@@ -3,7 +3,7 @@
 ## Repository role
 
 Agent Skill Assay is AO's open Hard-Skill registry and runtime. It contains
-the registry framework, public governance, and the four v0.1 AO skill bundles.
+the registry framework, public governance, and the v0.1 AO skill bundles.
 
 ## Test discipline
 

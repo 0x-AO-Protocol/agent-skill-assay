@@ -1,0 +1,125 @@
+{
+  "status": "completed",
+  "plan": {
+    "plan_id": "plan_cf1b1102e56e",
+    "platform": "demo",
+    "profile_version": "2026-09-29",
+    "profile_origin": "bundled",
+    "queries": [
+      {
+        "id": "q01",
+        "partition": {
+          "geo": "DE",
+          "company_size": "51-200"
+        },
+        "keywords": "\"Operations Manager\" NOT recruiter",
+        "filters": {
+          "geo": [
+            "DE"
+          ],
+          "company_size": [
+            "51-200"
+          ]
+        },
+        "expected_cap": 1000,
+        "search_url": "https://demo.example/search/people/?keywords=%22Operations%20Manager%22%20NOT%20recruiter&geo=%5B%22DE%22%5D&company_size=%5B%2251-200%22%5D"
+      },
+      {
+        "id": "q02",
+        "partition": {
+          "geo": "DE",
+          "company_size": "201-500"
+        },
+        "keywords": "\"Operations Manager\" NOT recruiter",
+        "filters": {
+          "geo": [
+            "DE"
+          ],
+          "company_size": [
+            "201-500"
+          ]
+        },
+        "expected_cap": 1000,
+        "search_url": "https://demo.example/search/people/?keywords=%22Operations%20Manager%22%20NOT%20recruiter&geo=%5B%22DE%22%5D&company_size=%5B%22201-500%22%5D"
+      },
+      {
+        "id": "q03",
+        "partition": {
+          "geo": "NL",
+          "company_size": "51-200"
+        },
+        "keywords": "\"Operations Manager\" NOT recruiter",
+        "filters": {
+          "geo": [
+            "NL"
+          ],
+          "company_size": [
+            "51-200"
+          ]
+        },
+        "expected_cap": 1000,
+        "search_url": "https://demo.example/search/people/?keywords=%22Operations%20Manager%22%20NOT%20recruiter&geo=%5B%22NL%22%5D&company_size=%5B%2251-200%22%5D"
+      },
+      {
+        "id": "q04",
+        "partition": {
+          "geo": "NL",
+          "company_size": "201-500"
+        },
+        "keywords": "\"Operations Manager\" NOT recruiter",
+        "filters": {
+          "geo": [
+            "NL"
+          ],
+          "company_size": [
+            "201-500"
+          ]
+        },
+        "expected_cap": 1000,
+        "search_url": "https://demo.example/search/people/?keywords=%22Operations%20Manager%22%20NOT%20recruiter&geo=%5B%22NL%22%5D&company_size=%5B%22201-500%22%5D"
+      }
+    ],
+    "pacing": {
+      "per_run_max_queries": 7,
+      "per_day_max_rows": 1000,
+      "source": "platform_profile"
+    },
+    "rubric": {
+      "title_match": 40,
+      "seniority": 20,
+      "industry": 20,
+      "geo": 10,
+      "language": 10,
+      "exclusion_hit": -100,
+      "off_target_below": 50
+    },
+    "criteria": {
+      "titles": [
+        "Operations Manager"
+      ],
+      "keywords_include": [],
+      "keywords_exclude": [
+        "recruiter"
+      ],
+      "industries": [],
+      "seniority": [],
+      "geos": [
+        "DE",
+        "NL"
+      ],
+      "languages": [],
+      "company_size": [
+        "51-200",
+        "201-500"
+      ]
+    },
+    "partitioning": {
+      "dimensions": [
+        "geo",
+        "company_size"
+      ],
+      "estimated_matches": 3500,
+      "cap_risk": false
+    }
+  }
+}

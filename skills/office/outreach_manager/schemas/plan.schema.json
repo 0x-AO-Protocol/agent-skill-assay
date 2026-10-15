@@ -1,0 +1,303 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/0x-AO-Protocol/agent-skill-assay/skills/office/outreach_manager/schemas/plan.schema.json",
+  "title": "Search plan (v1)",
+  "description": "Output of compile_search and, unmodified, input of ingest_leads. plan_id is plan_ plus the first 12 hexadecimal characters of the SHA-256 of the plan body without plan_id, serialised as JSON with sorted keys, compact separators and ASCII escaping; ingest_leads recomputes it.",
+  "type": "object",
+  "required": [
+    "plan_id",
+    "platform",
+    "profile_version",
+    "profile_origin",
+    "queries",
+    "pacing",
+    "rubric",
+    "criteria",
+    "partitioning"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "plan_id": {
+      "type": "string",
+      "pattern": "^plan_[0-9a-f]{12}$"
+    },
+    "platform": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,31}$"
+    },
+    "profile_version": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "profile_origin": {
+      "type": "string",
+      "enum": [
+        "bundled",
+        "override"
+      ],
+      "description": "How the profile was resolved; checked again at ingest."
+    },
+    "queries": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "partition",
+          "keywords",
+          "filters",
+          "expected_cap",
+          "search_url"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^q[0-9]{2,}$",
+            "description": "q plus the query's one-based position in queries, zero-padded to at least two digits; ingest_leads requires this exact form."
+          },
+          "partition": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string",
+              "enum": [
+                "geo",
+                "company_size",
+                "seniority",
+                "industry",
+                "language",
+                "network"
+              ]
+            },
+            "description": "One value per expanded dimension."
+          },
+          "keywords": {
+            "type": "string",
+            "description": "The query string built from the profile's grammar."
+          },
+          "filters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "propertyNames": {
+              "type": "string",
+              "enum": [
+                "geo",
+                "company_size",
+                "seniority",
+                "industry",
+                "language",
+                "network"
+              ]
+            },
+            "description": "Filter values per dimension that has a profile filter: the partition value for expanded dimensions, every specification value otherwise."
+          },
+          "expected_cap": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000000,
+            "description": "The profile's per-query result cap."
+          },
+          "search_url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2000,
+            "description": "The profile's search.url.base plus the keywords parameter, the fixed parameters and the filters, percent-encoded."
+          }
+        }
+      }
+    },
+    "pacing": {
+      "type": "object",
+      "required": [
+        "per_run_max_queries",
+        "per_day_max_rows",
+        "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "per_run_max_queries": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000
+        },
+        "per_day_max_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000
+        },
+        "source": {
+          "const": "platform_profile"
+        }
+      }
+    },
+    "rubric": {
+      "type": "object",
+      "required": [
+        "title_match",
+        "seniority",
+        "industry",
+        "geo",
+        "language",
+        "exclusion_hit",
+        "off_target_below"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "title_match": {
+          "const": 40
+        },
+        "seniority": {
+          "const": 20
+        },
+        "industry": {
+          "const": 20
+        },
+        "geo": {
+          "const": 10
+        },
+        "language": {
+          "const": 10
+        },
+        "exclusion_hit": {
+          "const": -100
+        },
+        "off_target_below": {
+          "const": 50
+        }
+      }
+    },
+    "criteria": {
+      "type": "object",
+      "description": "The normalised specification lists that scoring needs (network excluded), each within its compile cap and each term in its sanitised form; ingest_leads re-checks them.",
+      "required": [
+        "titles",
+        "keywords_include",
+        "keywords_exclude",
+        "industries",
+        "seniority",
+        "geos",
+        "languages",
+        "company_size"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "titles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "maxItems": 20
+        },
+        "keywords_include": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "maxItems": 20
+        },
+        "keywords_exclude": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "maxItems": 20
+        },
+        "industries": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "maxItems": 20
+        },
+        "seniority": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "entry",
+              "senior",
+              "manager",
+              "director",
+              "vp",
+              "cxo",
+              "owner"
+            ]
+          },
+          "maxItems": 7
+        },
+        "geos": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 50
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20
+        },
+        "company_size": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20
+        }
+      }
+    },
+    "partitioning": {
+      "type": "object",
+      "required": [
+        "dimensions",
+        "estimated_matches",
+        "cap_risk"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "geo",
+              "company_size",
+              "seniority",
+              "industry",
+              "language",
+              "network"
+            ]
+          },
+          "description": "The expanded dimensions, in partition order."
+        },
+        "estimated_matches": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 10000000
+        },
+        "cap_risk": {
+          "type": "boolean",
+          "description": "True only when an estimate was given and the query count stays below what the estimate needs after every candidate dimension was used."
+        }
+      }
+    }
+  }
+}

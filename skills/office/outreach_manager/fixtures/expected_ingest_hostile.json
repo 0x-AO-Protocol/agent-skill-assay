@@ -1,0 +1,86 @@
+{
+  "status": "completed",
+  "leads": [
+    {
+      "lead_id": "L0001",
+      "profile_key": "demo:lead-0101",
+      "score": 10,
+      "reasons": [
+        "geo"
+      ],
+      "off_target": true,
+      "stage": "NEW",
+      "source_query": "q01"
+    },
+    {
+      "lead_id": "L0002",
+      "profile_key": "demo:lead-0102",
+      "score": 70,
+      "reasons": [
+        "title_match",
+        "seniority",
+        "geo"
+      ],
+      "off_target": false,
+      "stage": "NEW",
+      "source_query": "q02"
+    },
+    {
+      "lead_id": "L0003",
+      "profile_key": "demo:lead-0103",
+      "score": 70,
+      "reasons": [
+        "title_match",
+        "seniority",
+        "geo"
+      ],
+      "off_target": false,
+      "stage": "NEW",
+      "source_query": "q01"
+    },
+    {
+      "lead_id": "L0004",
+      "profile_key": "demo:lead-0104",
+      "score": 50,
+      "reasons": [
+        "seniority",
+        "industry",
+        "geo"
+      ],
+      "off_target": false,
+      "stage": "NEW",
+      "source_query": "q03"
+    },
+    {
+      "lead_id": "L0005",
+      "profile_key": "demo:lead-0105",
+      "score": 30,
+      "reasons": [
+        "industry",
+        "geo"
+      ],
+      "off_target": true,
+      "stage": "NEW",
+      "source_query": "q01"
+    }
+  ],
+  "review_table": {
+    "columns": [
+      "lead_id",
+      "score",
+      "off_target",
+      "title",
+      "company",
+      "location",
+      "reasons",
+      "source_query"
+    ],
+    "csv": "lead_id,score,off_target,title,company,location,reasons,source_query\nL0001,10,true,'=SUM(A1:A9),\"'+Demo, Inc.\",'@Hamburg,geo,q01\nL0002,70,false,'-Head of Operations,\"Demo \"\"Quoted\"\" GmbH\",Line one Line two Tabbed,title_match;seniority;geo,q02\nL0003,70,false,'=Operations Director,DemoReversed BV,\"Berlin, Germany\",title_match;seniority;geo,q01\nL0004,50,false,'\uff1dDirector of Logistics,Demo Logistics,\"Munich, Germany\",seniority;industry;geo,q03\nL0005,30,true,Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Operations Op,Demo Logistics GmbH,\"Hamburg, Germany\",industry;geo,q01"
+  },
+  "stats": {
+    "rows_in": 5,
+    "deduped": 0,
+    "off_target": 2,
+    "kept": 3
+  }
+}

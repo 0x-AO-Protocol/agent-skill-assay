@@ -1,0 +1,118 @@
+name: office/outreach_manager
+version: 0.1.0
+description: >
+  Deterministic search planning and lead ingestion for platforms that have
+  both account search and direct messaging. compile_search turns a structured
+  target specification and a versioned platform profile into a search plan:
+  queries partitioned so that the profile's per-query result cap is
+  respected, each with a ready search URL, plus pacing taken from the profile
+  and an explicit fit rubric. ingest_leads normalises exported rows through
+  the profile's column mapping, de-duplicates them on profile_key, scores
+  every row with its reasons, flags off-target rows and returns lead records
+  (stage NEW) with a review table. Closed error registry and fail-closed
+  contract errors; no network, no clock, no file write; identical input
+  always returns identical output. The skill never touches the platform and
+  sends nothing.
+short_description: "Deterministic search plans and lead ingestion: partitioned queries, scored rows."
+issuer:
+  name: Masa
+  email: masa88keith@gmail.com
+  github: mrmasa88
+  org: AO
+trust_tier: L0
+provenance:
+  anchor: repository
+  content_sha256: "38e8e7bcb3d991c25c8279f694c61fa6df5d02d3648ba8d991bb9684a0ccf477"
+  authored_on: "2026-10-13"
+economic_effect:
+  claim: "Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption."
+  baseline_task: "The same task performed by an LLM agent without this skill (prompt-only)."
+  metric: "LLM tokens (input + output) per task run."
+  method: "Run the skill's reference fixtures through (a) the baseline agent and (b) the same agent calling the skill; publish the median tokens per run for both and the reduction."
+norm_version: norms-1.0.0
+category: office
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      enum: [compile_search, ingest_leads]
+      description: >
+        compile_search builds a search plan from target_spec and a platform
+        profile; ingest_leads scores exported rows against that plan.
+    platform:
+      type: string
+      description: >
+        Platform id matching ^[a-z][a-z0-9_]{0,31}$. Selects a bundled
+        profile (demo, linkedin) unless profile_override is given.
+    target_spec:
+      type: object
+      description: >
+        compile_search input (target_spec schema v1): schema_version 1,
+        titles (required) and the optional lists keywords_include,
+        keywords_exclude, industries, seniority, geos, languages,
+        company_size, network, plus the optional integer estimated_matches.
+    profile_override:
+      type: object
+      description: >
+        Optional full platform profile (platform_profile schema v1) passed as
+        operator configuration in place of a bundled file. It is validated
+        like a bundled profile and its platform must equal the request's.
+    plan:
+      type: object
+      description: >
+        ingest_leads input: the plan object compile_search returned,
+        unmodified. plan_id, platform, profile_version and profile_origin are
+        checked against the resolved profile.
+    rows:
+      type: array
+      description: >
+        ingest_leads input: exported rows as objects. The profile's
+        export_columns map the profile URL, title and source query (required)
+        and company and location (optional); other columns are ignored.
+    existing_leads:
+      type: array
+      description: >
+        Optional for ingest_leads: the complete known set of leads, each with
+        profile_key and lead_id. Rows already known are counted in
+        stats.deduped and not registered; lead_id numbering continues after
+        the highest existing L<digits> id.
+  required:
+    - action
+  additionalProperties: false
+outputs:
+  status:
+    type: string
+    description: completed for a successful run; error for a contract violation.
+  plan:
+    type: object
+    description: >
+      compile_search result: plan_id, platform, profile_version,
+      profile_origin, queries (id, partition, keywords, filters, expected_cap,
+      search_url), pacing, rubric, criteria and partitioning.
+  leads:
+    type: array
+    description: >
+      ingest_leads result: one lead record per newly registered row with
+      lead_id, profile_key, score, reasons, off_target, stage and
+      source_query.
+  review_table:
+    type: object
+    description: >
+      ingest_leads result: the eight column names and the CSV text of the
+      review table, neutralised for spreadsheets.
+  stats:
+    type: object
+    description: >
+      ingest_leads result: rows_in, deduped, off_target and kept; rows_in
+      equals deduped plus off_target plus kept.
+requirements: []
+constitution: |
+  1. Plan and score only - no platform access, no sending, no actuation; the operator's actuator runs the plan and the operator approves the review table.
+  2. Deterministic, offline core - no network, no clock and no file write in execute(); identical input returns identical output.
+  3. Data minimisation - a person's full name and profile URL appear in no output; the review table holds only its eight columns.
+  4. Refuse rather than guess - an unknown platform, an edited plan, an unmapped row or an unknown source query is a contract error from the closed registry, never a silently dropped row.
+  5. Operator approval first - nothing proceeds to messaging before the operator approves; the platform's terms are reviewed before any automation, and row text is untrusted data.
+presentation:
+  icon: search
+  color: "#0e7490"

@@ -1,0 +1,39 @@
+{
+  "action": "compile_search",
+  "platform": "demo",
+  "target_spec": {
+    "schema_version": 1,
+    "titles": [
+      "Head of Operations",
+      "Operations Director"
+    ],
+    "seniority": [
+      "director",
+      "vp",
+      "cxo"
+    ],
+    "industries": [
+      "logistics",
+      "warehousing"
+    ],
+    "geos": [
+      "DE",
+      "NL",
+      "BE"
+    ],
+    "company_size": [
+      "51-200",
+      "201-500"
+    ],
+    "keywords_include": [
+      "warehouse automation"
+    ],
+    "keywords_exclude": [
+      "recruiter",
+      "student"
+    ],
+    "languages": [
+      "en"
+    ]
+  }
+}
