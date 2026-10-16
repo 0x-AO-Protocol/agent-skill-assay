@@ -10,6 +10,7 @@ import jsonschema
 import pytest
 import yaml
 
+from scripts import provenance
 from scripts.provenance import content_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -488,3 +489,67 @@ def test_provenance_hash_mode_hashes_the_current_bundle_content(tmp_path):
     )
     assert result.stdout == content_sha256(bundle) + "\n"
     assert result.stdout != manifest["provenance"]["content_sha256"] + "\n"
+
+
+def _run_provenance_check(monkeypatch, skills_root: Path) -> int:
+    """Run `scripts/provenance.py --check` logic against a temporary skills root."""
+    monkeypatch.setattr(provenance, "ROOT", skills_root.parent)
+    monkeypatch.setattr(provenance, "SKILLS_ROOT", skills_root)
+    return provenance.check()
+
+
+def test_provenance_check_passes_a_valid_bundle(tmp_path, monkeypatch, capsys):
+    skills_root = tmp_path / "skills"
+    _repository_anchored_manifest(skills_root)
+    assert _run_provenance_check(monkeypatch, skills_root) == 0
+    assert capsys.readouterr().out == "Provenance check passed for 1 bundles.\n"
+
+
+@pytest.mark.parametrize(
+    ("text", "failure"),
+    [
+        pytest.param("- a\n- b\n", "recorded=None, actual=", id="manifest-list"),
+        pytest.param(
+            "provenance: repository\n",
+            "recorded=None, actual=",
+            id="provenance-string",
+        ),
+        pytest.param(
+            "provenance:\n- anchor\n", "recorded=None, actual=", id="provenance-list"
+        ),
+        pytest.param("name: [unclosed\n", "invalid YAML: ", id="malformed-yaml"),
+    ],
+)
+def test_provenance_check_reports_a_manifest_it_cannot_read(
+    tmp_path, monkeypatch, capsys, text, failure
+):
+    skills_root = tmp_path / "skills"
+    _repository_anchored_manifest(skills_root)
+    (skills_root / "category" / "skill_name" / "manifest.yaml").write_text(
+        text, encoding="utf-8"
+    )
+    assert _run_provenance_check(monkeypatch, skills_root) == 1
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[0] == "Provenance check failed:"
+    assert lines[1].startswith(f"  - skills/category/skill_name: {failure}"), lines
+    assert len(lines) == 2
+
+
+def test_provenance_check_reports_every_bundle_it_cannot_read(
+    tmp_path, monkeypatch, capsys
+):
+    skills_root = tmp_path / "skills"
+    _repository_anchored_manifest(skills_root)
+    (skills_root / "category" / "skill_name" / "manifest.yaml").write_text(
+        "name: [unclosed\n", encoding="utf-8"
+    )
+    other = skills_root / "category" / "other_skill"
+    other.mkdir()
+    (other / "skill.py").write_text("VALUE = 1\n", encoding="utf-8")
+    (other / "manifest.yaml").write_text("provenance: repository\n", encoding="utf-8")
+    assert _run_provenance_check(monkeypatch, skills_root) == 1
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[0] == "Provenance check failed:"
+    assert lines[1].startswith("  - skills/category/other_skill: recorded=None, ")
+    assert lines[2].startswith("  - skills/category/skill_name: invalid YAML: ")
+    assert len(lines) == 3
