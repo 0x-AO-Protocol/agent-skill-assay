@@ -6,6 +6,10 @@ The project uses Semantic Versioning. The public fork release line starts at v0.
 
 ## [Unreleased]
 
+### Fixed
+
+- `python scripts/provenance.py --check` reports a bundle whose `manifest.yaml` is not valid YAML, or whose manifest or `provenance` block is not a mapping, as a failure of that bundle and goes on to the next bundle. It no longer stops with a traceback before printing its report.
+
 ## [0.1.1] - 2026-10-15
 
 ### Added
