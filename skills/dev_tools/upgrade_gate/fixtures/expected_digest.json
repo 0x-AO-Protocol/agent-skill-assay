@@ -1,0 +1,10 @@
+{
+  "status": "completed",
+  "window": {"since": "2026-09-05", "as_of": "2026-09-12"},
+  "per_repo": [{"repo": "demo/kit", "counts": {"release": 2, "tag": 0, "commit": 1},
+    "version_jumps": [{"from": "1.4.0", "to": "1.5.0", "kind": "minor"}, {"from": "1.5.0", "to": "1.5.1", "kind": "patch"}],
+    "breaking_hits": [], "path_hits": [{"event_id": "c7", "pattern": "src/config*"}], "notable": ["r1", "c7"],
+    "dropped_before_since": 1, "unparsed_versions": 0}],
+  "fired_any": true,
+  "insufficient": false
+}

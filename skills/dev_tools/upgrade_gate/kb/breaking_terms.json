@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "description": "Breaking-change terms for release notes and event titles, written for this bundle. A term matches a whole upper-cased token of ASCII letters and digits.",
+  "terms": [
+    "BREAKING",
+    "INCOMPATIBLE",
+    "REMOVED",
+    "RENAMED",
+    "DROPPED",
+    "MIGRATION"
+  ]
+}

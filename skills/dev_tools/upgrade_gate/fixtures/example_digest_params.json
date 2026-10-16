@@ -1,0 +1,11 @@
+{
+  "action": "digest",
+  "as_of": "2026-09-12",
+  "since": "2026-09-05",
+  "watched": [{"repo": "demo/kit", "events": [
+    {"type": "release", "id": "r1", "at": "2026-09-07T10:00:00Z", "title": "v1.5.0"},
+    {"type": "release", "id": "r2", "at": "2026-09-10T10:00:00Z", "title": "v1.5.1"},
+    {"type": "commit", "id": "c7", "at": "2026-09-09T08:00:00Z", "title": "rename config keys", "paths": ["src/config.py"]},
+    {"type": "release", "id": "r0", "at": "2026-08-30T10:00:00Z", "title": "v1.4.0"}]}],
+  "policy": {"paths_of_interest": ["src/config*"]}
+}

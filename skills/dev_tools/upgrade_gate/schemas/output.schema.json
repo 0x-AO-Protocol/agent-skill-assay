@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/0x-AO-Protocol/agent-skill-assay/skills/dev_tools/upgrade_gate/schemas/output.schema.json",
+  "title": "upgrade_gate output (v1)",
+  "description": "Documentation of the three envelopes execute() returns: the assess result, the digest result and the error envelope. Outputs carry ids, versions, counts, operator patterns and matched fixed terms only; release notes, event titles and paths appear in no field.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/assess_result"
+    },
+    {
+      "$ref": "#/$defs/digest_result"
+    },
+    {
+      "$ref": "#/$defs/error_envelope"
+    }
+  ],
+  "$defs": {
+    "version": {
+      "type": "string",
+      "description": "A validated input version, echoed as given."
+    },
+    "assess_result": {
+      "type": "object",
+      "required": ["status", "results", "summary", "fired_any", "insufficient", "stale_snapshot"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "completed"
+        },
+        "results": {
+          "type": "array",
+          "description": "One element per dependency, in dependency order.",
+          "items": {
+            "type": "object",
+            "required": ["name", "ecosystem", "current", "latest", "latest_compatible", "drift", "verdict", "target", "reasons", "signals"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "ecosystem": {
+                "type": "string",
+                "enum": ["pypi", "npm"]
+              },
+              "current": {
+                "$ref": "#/$defs/version"
+              },
+              "latest": {
+                "oneOf": [{"$ref": "#/$defs/version"}, {"type": "null"}],
+                "description": "The highest eligible version; null when the verdict is unknown for want of a snapshot."
+              },
+              "latest_compatible": {
+                "oneOf": [{"$ref": "#/$defs/version"}, {"type": "null"}],
+                "description": "The highest eligible in-range version with current's major; null when there is none or the verdict is unknown."
+              },
+              "drift": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "required": ["major", "minor", "patch"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "major": {"type": "integer", "minimum": 0},
+                      "minor": {"type": "integer", "minimum": 0},
+                      "patch": {"type": "integer", "minimum": 0}
+                    }
+                  },
+                  {"type": "null"}
+                ]
+              },
+              "verdict": {
+                "type": "string",
+                "enum": ["hold", "upgrade", "test", "unknown"]
+              },
+              "target": {
+                "oneOf": [{"$ref": "#/$defs/version"}, {"type": "null"}],
+                "description": "Set only when the verdict is upgrade or test."
+              },
+              "reasons": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["ADVISORY", "NO_FIX_IN_RANGE", "UP_TO_DATE", "PATCH_AVAILABLE", "MINOR_AVAILABLE", "MAJOR_AVAILABLE", "MAJOR_ALLOWED", "MIN_AGE_MET", "MIN_AGE_NOT_MET", "BREAKING_TERM", "YANKED_SKIPPED", "PRERELEASE_SKIPPED", "NO_RELEASE_SNAPSHOT", "CURRENT_OUT_OF_RANGE"]
+                }
+              },
+              "signals": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "required": ["breaking_terms", "yanked_skipped", "advisory", "major_available"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "breaking_terms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": ["BREAKING", "INCOMPATIBLE", "REMOVED", "RENAMED", "DROPPED", "MIGRATION"]
+                        }
+                      },
+                      "yanked_skipped": {"type": "integer", "minimum": 0},
+                      "advisory": {"type": "boolean"},
+                      "major_available": {"type": "boolean"}
+                    }
+                  },
+                  {"type": "null"}
+                ]
+              }
+            }
+          }
+        },
+        "summary": {
+          "type": "object",
+          "required": ["hold", "upgrade", "test", "unknown"],
+          "additionalProperties": false,
+          "properties": {
+            "hold": {"type": "integer", "minimum": 0},
+            "upgrade": {"type": "integer", "minimum": 0},
+            "test": {"type": "integer", "minimum": 0},
+            "unknown": {"type": "integer", "minimum": 0}
+          }
+        },
+        "fired_any": {
+          "type": "boolean",
+          "description": "True when any verdict is upgrade or test."
+        },
+        "insufficient": {
+          "type": "boolean",
+          "description": "True when any verdict is unknown."
+        },
+        "stale_snapshot": {
+          "type": "boolean",
+          "description": "True when as_of minus the date of snapshot_at exceeds max_snapshot_age_days; a flag only."
+        }
+      }
+    },
+    "digest_result": {
+      "type": "object",
+      "required": ["status", "window", "per_repo", "fired_any", "insufficient"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "completed"
+        },
+        "window": {
+          "type": "object",
+          "required": ["since", "as_of"],
+          "additionalProperties": false,
+          "properties": {
+            "since": {"type": "string"},
+            "as_of": {"type": "string"}
+          }
+        },
+        "per_repo": {
+          "type": "array",
+          "description": "One element per watched repository, in watched order.",
+          "items": {
+            "type": "object",
+            "required": ["repo", "counts", "version_jumps", "breaking_hits", "path_hits", "notable", "dropped_before_since", "unparsed_versions"],
+            "additionalProperties": false,
+            "properties": {
+              "repo": {"type": "string"},
+              "counts": {
+                "type": "object",
+                "required": ["release", "tag", "commit"],
+                "additionalProperties": false,
+                "properties": {
+                  "release": {"type": "integer", "minimum": 0},
+                  "tag": {"type": "integer", "minimum": 0},
+                  "commit": {"type": "integer", "minimum": 0}
+                }
+              },
+              "version_jumps": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["from", "to", "kind"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "from": {"$ref": "#/$defs/version"},
+                    "to": {"$ref": "#/$defs/version"},
+                    "kind": {
+                      "type": "string",
+                      "enum": ["major", "minor", "patch", "prerelease", "downgrade"]
+                    }
+                  }
+                }
+              },
+              "breaking_hits": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["event_id", "term"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "event_id": {"type": "string"},
+                    "term": {
+                      "type": "string",
+                      "enum": ["BREAKING", "INCOMPATIBLE", "REMOVED", "RENAMED", "DROPPED", "MIGRATION"]
+                    }
+                  }
+                }
+              },
+              "path_hits": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["event_id", "pattern"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "event_id": {"type": "string"},
+                    "pattern": {
+                      "type": "string",
+                      "description": "The operator's matched pattern from paths_of_interest, never the path."
+                    }
+                  }
+                }
+              },
+              "notable": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "In-window event ids with a major, minor or downgrade jump, a breaking hit or a path hit, in (at, id) order."
+              },
+              "dropped_before_since": {"type": "integer", "minimum": 0},
+              "unparsed_versions": {"type": "integer", "minimum": 0}
+            }
+          }
+        },
+        "fired_any": {
+          "type": "boolean",
+          "description": "True when any repository has a notable event."
+        },
+        "insufficient": {
+          "type": "boolean",
+          "description": "True when any repository has unparsed_versions above zero."
+        }
+      }
+    },
+    "error_envelope": {
+      "type": "object",
+      "required": ["status", "error"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "error"
+        },
+        "error": {
+          "type": "object",
+          "required": ["code", "detail"],
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "type": "string",
+              "enum": ["INVALID_REQUEST", "MISSING_AS_OF", "INVALID_WINDOW", "FUTURE_EVENT", "EMPTY_DEPENDENCIES", "DUPLICATE_DEPENDENCY", "UNKNOWN_ECOSYSTEM", "INVALID_VERSION", "INVALID_RANGE", "FUTURE_RELEASE", "INVALID_POLICY", "INTERNAL_ERROR"]
+            },
+            "detail": {
+              "type": "object",
+              "description": "For FUTURE_EVENT exactly {event_id, at}; for every other code an object with at least reason and, where it applies, path, limit and actual. Never input text other than validated ids and timestamps."
+            }
+          }
+        }
+      }
+    }
+  }
+}

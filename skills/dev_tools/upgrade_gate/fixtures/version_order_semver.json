@@ -1,0 +1,29 @@
+{
+  "description": "Ascending groups of npm (semver 2.0.0) versions; versions inside one group compare equal (build metadata is ignored). Every adjacent pair of groups is asserted.",
+  "ascending": [
+    ["0.0.0"],
+    ["0.0.1"],
+    ["0.1.0"],
+    ["0.9.9"],
+    ["1.0.0-0"],
+    ["1.0.0-alpha"],
+    ["1.0.0-alpha.1"],
+    ["1.0.0-alpha.beta"],
+    ["1.0.0-beta"],
+    ["1.0.0-beta.2"],
+    ["1.0.0-beta.11"],
+    ["1.0.0-rc.1"],
+    ["1.0.0-rc.1.1"],
+    ["1.0.0", "1.0.0+build.1", "1.0.0+20260912"],
+    ["1.0.1"],
+    ["1.0.10"],
+    ["1.1.0-alpha", "1.1.0-alpha+exp.sha.5114f85"],
+    ["1.1.0"],
+    ["1.2.0"],
+    ["1.10.0"],
+    ["2.0.0-alpha"],
+    ["2.0.0"],
+    ["10.0.0"],
+    ["10.2.3"]
+  ]
+}
