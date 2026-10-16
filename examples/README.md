@@ -10,3 +10,4 @@ live provider credentials:
 | `mental_coach_demo.py` | `wellness/mental_coach` |
 | `business_diagnostic_demo.py` | `monitoring/business_diagnostic` |
 | `outreach_manager_demo.py` | `office/outreach_manager` |
+| `upgrade_gate_demo.py` | `dev_tools/upgrade_gate` |
