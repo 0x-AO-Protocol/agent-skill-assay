@@ -39,17 +39,26 @@ def manifest_paths() -> list[Path]:
     return sorted(SKILLS_ROOT.glob("*/*/manifest.yaml"))
 
 
+def _as_mapping(value: object) -> dict:
+    """Return the value if it is a mapping, and an empty mapping otherwise."""
+    return value if isinstance(value, dict) else {}
+
+
 def check() -> int:
     failures: list[str] = []
     for manifest_path in manifest_paths():
-        manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+        bundle = manifest_path.parent.relative_to(ROOT)
+        try:
+            loaded = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
+        except yaml.YAMLError as exc:
+            reason = getattr(exc, "problem", None) or type(exc).__name__
+            failures.append(f"{bundle}: invalid YAML: {reason}")
+            continue
+        manifest = _as_mapping(loaded)
         actual = content_sha256(manifest_path.parent)
-        recorded = (manifest.get("provenance") or {}).get("content_sha256")
+        recorded = _as_mapping(manifest.get("provenance")).get("content_sha256")
         if recorded != actual:
-            failures.append(
-                f"{manifest_path.parent.relative_to(ROOT)}: "
-                f"recorded={recorded!r}, actual={actual}"
-            )
+            failures.append(f"{bundle}: recorded={recorded!r}, actual={actual}")
     if failures:
         print("Provenance check failed:")
         print("\n".join(f"  - {failure}" for failure in failures))
