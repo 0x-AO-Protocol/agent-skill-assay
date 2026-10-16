@@ -28,5 +28,11 @@ and tests.
 | :--- | :--- | :--- | :--- | :--- |
 | [Outreach Manager](outreach_manager.md) | `office/outreach_manager` | `0.1.0` | AO | Plans partitioned platform searches and scores exported lead rows. |
 
-The planned `period_close` and `upgrade_gate` skills are
-tracked in the public roadmap and are not v0.1 registry entries.
+## Dev Tools
+
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| [Upgrade Gate](upgrade_gate.md) | `dev_tools/upgrade_gate` | `0.1.0` | AO | Assesses pinned dependencies against release snapshots: hold, upgrade or test. |
+
+The planned `period_close` skill is tracked in the public roadmap
+and is not a v0.1 registry entry.
