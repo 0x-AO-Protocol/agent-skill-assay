@@ -6,6 +6,10 @@ The project uses Semantic Versioning. The public fork release line starts at v0.
 
 ## [Unreleased]
 
+### Added
+
+- `finance/period_close`: `validate` returns the findings of a period's journal against its chart of accounts; `close` adds a trial balance, income statement, balance sheet, direct-method cash flow and ratios, fails closed on a blocking finding unless `soft_close` is set, and names recurring items that are missing or out of line against prior periods without filling them in. Single currency and single entity; offline and deterministic.
+
 ### Fixed
 
 - `python scripts/provenance.py --check` reports a bundle whose `manifest.yaml` is not valid YAML, or whose manifest or `provenance` block is not a mapping, as a failure of that bundle and goes on to the next bundle. It no longer stops with a traceback before printing its report.
