@@ -22,7 +22,7 @@ issuer:
 trust_tier: L0
 provenance:
   anchor: repository
-  content_sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+  content_sha256: "23bca9e2b4167a809b88b8172e10acea945579fca13df06162ee7d4b9347b942"
   authored_on: "2026-10-16"
 economic_effect:
   claim: "Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption."
