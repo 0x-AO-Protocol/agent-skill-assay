@@ -1,0 +1,53 @@
+{
+    "name": "Period Close",
+    "description": "Close a period from a journal: trial balance, statements, checks and gap notes. Use for the monthly or quarterly close.",
+    "issuer": {
+        "name": "Masa",
+        "email": "masa88keith@gmail.com",
+        "github": "mrmasa88",
+        "org": "AO"
+    },
+    "icon": "calculator",
+    "color": "#1d4ed8",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {
+                "key": "status",
+                "label": "Status"
+            },
+            {
+                "key": "closed",
+                "label": "Closed"
+            },
+            {
+                "key": "provisional",
+                "label": "Provisional"
+            },
+            {
+                "key": "balance_sheet.balanced",
+                "label": "Balanced"
+            },
+            {
+                "key": "income_statement.net_income",
+                "label": "Net income"
+            },
+            {
+                "key": "cash_flow.cash_closing",
+                "label": "Cash closing"
+            },
+            {
+                "key": "blocking",
+                "label": "Blocking"
+            },
+            {
+                "key": "fired_any",
+                "label": "Fired any"
+            },
+            {
+                "key": "insufficient",
+                "label": "Insufficient"
+            }
+        ]
+    }
+}
