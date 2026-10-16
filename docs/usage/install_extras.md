@@ -21,6 +21,7 @@ dependency.
 
 | Extra | Skills | Packages |
 | :--- | :--- | :--- |
+| `finance` | `finance/period_close` | *(none today)* |
 | `monitoring` | `monitoring/business_diagnostic`, `monitoring/kpi_gate` | *(none today)* |
 | `office` | `office/outreach_manager` | *(none today)* |
 | `security` | `security/prompt_injection_firewall` | *(none today)* |
@@ -30,6 +31,7 @@ dependency.
 
 | Extra | Registry ID | Packages |
 | :--- | :--- | :--- |
+| `finance_period_close` | `finance/period_close` | *(none today)* |
 | `monitoring_business_diagnostic` | `monitoring/business_diagnostic` | *(none today)* |
 | `monitoring_kpi_gate` | `monitoring/kpi_gate` | *(none today)* |
 | `office_outreach_manager` | `office/outreach_manager` | *(none today)* |

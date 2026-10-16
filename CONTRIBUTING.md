@@ -398,7 +398,7 @@ Place each skill under one top-level directory under `skills/`. Use an existing 
 | `data_engineering` | Datasets, generation, ETL-style tooling | `business_diagnostic`, `business_diagnostic` |
 | `defi` | On-chain trading and agent wallet execution | `kpi_gate` |
 | `dev_tools` | Developer workflows, issue resolution, repo tooling | `business_diagnostic` |
-| `finance` | Blockchain, risk, financial analysis | `kpi_gate`, `business_diagnostic` |
+| `finance` | Blockchain, risk, financial analysis | `kpi_gate`, `business_diagnostic`, `period_close` |
 | `office` | Documents, productivity, email | `business_diagnostic`, `mental_coach`, `outreach_manager` |
 | `optimization` | Middleware, compression, efficiency | `mental_coach` |
 | `monitoring` | Agent loop observability, budget gates, task control | `kpi_gate` |
