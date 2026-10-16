@@ -1,0 +1,55 @@
+{
+  "status": "completed",
+  "findings": [
+    {
+      "code": "SUSPECTED_DUPLICATE",
+      "severity": "warning",
+      "count": 2,
+      "refs": [
+        "j1",
+        "j2"
+      ]
+    },
+    {
+      "code": "ZERO_LINE",
+      "severity": "warning",
+      "count": 1,
+      "refs": [
+        "j3"
+      ]
+    },
+    {
+      "code": "NEGATIVE_CASH",
+      "severity": "warning",
+      "count": 1,
+      "refs": [
+        "petty_cash"
+      ]
+    },
+    {
+      "code": "EXPECTED_MISSING",
+      "severity": "warning",
+      "count": 1,
+      "refs": [
+        "supplies/demo_supplier"
+      ]
+    },
+    {
+      "code": "AMOUNT_DEVIATION",
+      "severity": "warning",
+      "count": 1,
+      "refs": [
+        "rent/demo_landlord"
+      ]
+    },
+    {
+      "code": "UNUSED_ACCOUNT",
+      "severity": "info",
+      "count": 1,
+      "refs": [
+        "unused_reserve"
+      ]
+    }
+  ],
+  "blocking": false
+}
