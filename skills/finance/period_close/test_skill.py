@@ -20,7 +20,9 @@ import signal
 import subprocess
 import sys
 import time
+from datetime import date
 from decimal import Decimal
+from fractions import Fraction
 
 import jsonschema
 import pytest
@@ -1504,6 +1506,40 @@ def test_cap_table_matches_instructions():
     assert _parse_cap_table(_instructions()) == list(CAP_TABLE)
 
 
+def _journal_lines_as_string(params):
+    params["journal"][0]["lines"] = "not a list"
+
+
+def _prior_journal_as_string(params):
+    params["prior_journals"][0]["journal"] = "not a list"
+
+
+def _prior_entry_lines_as_integer(params):
+    params["prior_journals"][0]["journal"][0]["lines"] = 7
+
+
+@pytest.mark.parametrize(
+    "path,mutate",
+    [
+        ("journal[0].lines", _journal_lines_as_string),
+        ("prior_journals[0].journal", _prior_journal_as_string),
+        ("prior_journals[0].journal[0].lines", _prior_entry_lines_as_integer),
+    ],
+    ids=["journal-lines", "prior-journal", "prior-entry-lines"],
+)
+def test_non_list_met_while_counting_is_invalid_type(skill, close_params, path, mutate):
+    """A non-list met while counting fails the cap check as invalid_type with the
+    field's path, not as size_cap; it is found before any chart row is checked.
+    """
+    params = copy.deepcopy(close_params)
+    # A chart fault of the next check: the account fails its pattern.
+    params["chart_of_accounts"][0]["account"] = "Not-An-Account"
+    mutate(params)
+    detail = _assert_error(skill.execute(params), INVALID_REQUEST, "invalid_type")
+    assert detail["path"] == path
+    assert "limit" not in detail and "actual" not in detail
+
+
 def _deadline(seconds):
     """Interrupt a runaway call so that a failing test cannot exhaust time."""
 
@@ -2301,6 +2337,46 @@ def test_null_cases_of_the_issue_example(skill, close_params):
     assert result["observations"][0]["value"] is None
 
 
+def test_null_figures_count_as_zero_inside_other_figures(skill):
+    """With a cogs account and no revenue account, revenue is null while
+    gross_profit is minus cogs and net_income is minus all expense; the ratios
+    keep their own operands and null conditions.
+    """
+    params = {
+        "action": "close",
+        "as_of": "2026-06-30",
+        "period": {"start": "2026-04-01", "end": "2026-06-30"},
+        "currency": "USD",
+        "chart_of_accounts": [
+            {"account": "cash", "class": "asset", "subclass": "cash"},
+            {"account": "eq", "class": "equity"},
+            {"account": "goods", "class": "expense", "subclass": "cogs"},
+        ],
+        "opening_balances": [
+            _line("cash", "1000.00", "0"),
+            _line("eq", "0", "1000.00"),
+        ],
+        "journal": [
+            _entry(
+                "j1",
+                "2026-04-10",
+                [_line("goods", "300.00", "0"), _line("cash", "0", "300.00")],
+            )
+        ],
+    }
+    result = _assert_completed(_run(skill, params))
+    assert result["income_statement"] == {
+        "revenue": None,
+        "cogs": "300.00",
+        "gross_profit": "-300.00",
+        "expenses": None,
+        "net_income": "-300.00",
+    }
+    assert result["balance_sheet"]["balanced"] is True
+    assert result["ratios"]["gross_margin"] is None
+    assert result["ratios"]["expense_concentration_top1"] == "1.0000"
+
+
 def _quantize(value):
     return str(value.quantize(Decimal("0.0001"), rounding=decimal.ROUND_HALF_UP))
 
@@ -2336,18 +2412,84 @@ def test_ratio_operands_follow_the_per_ratio_definitions(skill):
         current_assets / closing["payable"]
     )
     cash = full["cash_flow"]
-    burn = (
-        (_decimal(cash["outflows"]) - _decimal(cash["inflows"]))
-        * Decimal("30.4375")
-        / Decimal(91)
-    )
-    assert full["ratios"]["runway_months"] == _quantize(
-        _decimal(cash["cash_closing"]) / burn
+    net_burn = Fraction(cash["outflows"]) - Fraction(cash["inflows"])
+    assert full["ratios"]["runway_months"] == _half_up_ratio(
+        Fraction(cash["cash_closing"]) * 91 / (net_burn * Fraction("30.4375"))
     )
     expense_total = closing["cogs"] + closing["rent"] + closing["interest_expense"]
     assert full["ratios"]["expense_concentration_top1"] == _quantize(
         closing["rent"] / expense_total
     )
+
+
+def _half_up_ratio(value):
+    """An exact Fraction rounded half-up to four decimals, rendered as a ratio.
+
+    Integer arithmetic only: no Decimal division takes part in the expected value.
+    """
+    scaled = abs(value) * 10_000
+    units = (2 * scaled.numerator + scaled.denominator) // (2 * scaled.denominator)
+    digits = str(units).rjust(5, "0")
+    sign = "-" if value < 0 and units else ""
+    return sign + digits[:-4] + "." + digits[-4:]
+
+
+# Inputs whose exact runway_months lies on a half-quantum: a second rounding
+# step pushes it below the half and the last digit comes out one too low.
+RUNWAY_CASES = [
+    (91, "2026-06-30", "13130.34", "6400.00", "3.1441"),
+    (91, "2026-06-30", "35655.31", "8320.00", "9.8228"),
+    (90, "2026-06-29", "85414.98", "38400.00", "3.6203"),
+    (92, "2026-07-01", "224286.27", "33280.00", "17.3478"),
+    (92, "2026-07-01", "181696.51", "43520.00", "9.5968"),
+    (30, "2026-04-30", "297702.33", "32000.00", "8.1839"),
+]
+
+
+def _runway_params(end, opening_cash, rent):
+    return {
+        "action": "close",
+        "as_of": end,
+        "period": {"start": "2026-04-01", "end": end},
+        "currency": "USD",
+        "chart_of_accounts": [
+            {"account": "cash", "class": "asset", "subclass": "cash"},
+            {"account": "eq", "class": "equity"},
+            {"account": "rent", "class": "expense"},
+        ],
+        "opening_balances": [
+            _line("cash", opening_cash, "0"),
+            _line("eq", "0", opening_cash),
+        ],
+        "journal": [
+            _entry(
+                "j1",
+                "2026-04-01",
+                [_line("rent", rent, "0"), _line("cash", "0", rent)],
+            )
+        ],
+    }
+
+
+@pytest.mark.parametrize(
+    "days,end,opening_cash,rent,expected",
+    RUNWAY_CASES,
+    ids=[f"{days}d-{expected}" for days, _, _, _, expected in RUNWAY_CASES],
+)
+def test_runway_months_is_rounded_once(skill, days, end, opening_cash, rent, expected):
+    """runway_months is one division of exact operands, cash_closing times the
+    length in days over net burn times 30.4375, rounded once by the quantisation.
+    """
+    assert (date.fromisoformat(end) - date(2026, 4, 1)).days + 1 == days
+    cash_closing = Fraction(opening_cash) - Fraction(rent)
+    exact = cash_closing * days / (Fraction(rent) * Fraction("30.4375"))
+    assert (exact * 10_000 * 2).denominator == 1  # the exact value is a half-quantum
+    assert _half_up_ratio(exact) == expected
+    result = _assert_completed(_run(skill, _runway_params(end, opening_cash, rent)))
+    assert result["cash_flow"]["cash_closing"] == str(
+        Decimal(opening_cash) - Decimal(rent)
+    )
+    assert result["ratios"]["runway_months"] == expected
 
 
 def _context_snapshot():
@@ -2581,6 +2723,19 @@ def test_prior_period_rules(skill, close_params, period, reason):
         assert detail["limit"] == 3 and detail["actual"] == 5
 
 
+def test_prior_period_object_rejects_an_unknown_key(skill, error_inputs):
+    """A prior period's period holds exactly start and end; another key is
+    INVALID_REQUEST at the prior-period shape check, as a missing one is, and
+    the key's text is never echoed.
+    """
+    prior = _prior(error_inputs)
+    prior["period"] = {**prior["period"], "zq_marker_key": 1}
+    result = skill.execute(_params(error_inputs, prior_journals=[prior]))
+    detail = _assert_error(result, INVALID_REQUEST, "unknown_key")
+    assert detail["path"] == "prior_journals[0].period"
+    assert "zq_marker_key" not in json.dumps(result)
+
+
 def test_opening_balance_rules(skill, close_params):
     params = copy.deepcopy(close_params)
     params["opening_balances"].append(_line("sales", "0", "1.00"))
@@ -2692,3 +2847,21 @@ def test_instructions_have_the_required_sections():
     assert "`" + str(MAX_RECURRENCE_MIN_PERIODS) + "`" in text or "24" in text
     assert re.search(r"[0-9]+\s*%", text) is None
     assert chr(0xA7) not in text  # no section sign left from a cross-reference
+
+
+def _example_json_blocks():
+    """The fenced json blocks of the Example section, parsed."""
+    section = _section(_instructions(), "## Example")
+    blocks = re.findall(r"```json\n(.*?)\n```", section, re.DOTALL)
+    return [json.loads(block) for block in blocks]
+
+
+def test_instructions_example_matches_the_fixtures(skill):
+    """The Example section shows the complete reference input and the blocked
+    envelope exactly, and the input runs to the reference output.
+    """
+    blocks = _example_json_blocks()
+    assert len(blocks) == 2
+    assert blocks[0] == _load_json(FIXTURES_DIR, "example_close_params.json")
+    assert blocks[1] == _load_json(FIXTURES_DIR, "expected_blocked.json")
+    assert _run(skill, blocks[0]) == _load_json(FIXTURES_DIR, "expected_close.json")
