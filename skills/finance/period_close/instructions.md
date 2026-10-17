@@ -86,11 +86,13 @@ Both actions take the same request.
   `account`, `debit`, `credit`. A line may carry both a debit and a credit;
   only a line whose two amounts are both zero is a `ZERO_LINE`.
 - `prior_journals[]` (optional): earlier periods, oldest first, each with
-  `period`, `journal[]` and optional `currency`. A prior period must end
-  before `period.start`, must not overlap an earlier-listed prior period, and
-  must be comparable in length to the current period within three days;
-  every prior entry is dated within its period and every line's account is
-  in the chart.
+  `period`, `journal[]` and optional `currency`. A prior period's `period`
+  holds exactly `start` and `end`; another key is `INVALID_REQUEST` at
+  check 23, as a missing one is. A prior period must end before
+  `period.start`, must not overlap an earlier-listed prior period, and must
+  be comparable in length to the current period within three days; every
+  prior entry is dated within its period and every line's account is in the
+  chart.
 - `options` (optional): `soft_close` (boolean, default false),
   `recurrence_min_periods` (integer, not a boolean, from 1 to 24, default 2)
   and `deviation_threshold` (a decimal string greater than zero with at most
@@ -241,6 +243,10 @@ after quantisation: a value that quantises to zero renders unsigned, `0` for
 amounts and `0.0000` for ratios and deviations, never `-0` or `-0.0000`. Any
 other amount renders as a plain string with exactly two decimals and a
 leading `-` if negative; ratios and deviations with exactly four decimals.
+Each ratio and each deviation is one division of exact operands, rounded
+once by the quantisation; no intermediate quotient is rounded. For
+`runway_months` that division is `cash_closing` times the period's length in
+days, divided by (`outflows` less `inflows`) times 30.4375.
 
 ## Null rule and ratios
 
@@ -249,8 +255,13 @@ leading `-` if negative; ratios and deviations with exactly four decimals.
 has no expense account other than `cogs`; `cogs` and `gross_profit` when it
 has no `cogs` account; all four cash-flow figures when it has no cash
 account. Totals that take part in an identity (`assets`, `liabilities`, the
-equity figures, `net_income`) are always numbers. Each ratio has its own
-operands and its own `null` condition. A "line sum" is the total over the
+equity figures, `net_income`) are always numbers. In computing the statement
+figures `gross_profit` and `net_income`, a `null` `revenue`, `cogs` or
+`expenses` counts as zero: with no revenue account, `net_income` is minus all
+expense, and with a `cogs` account but no revenue account, `gross_profit` is
+minus `cogs`. That rule is for the statements only. Each ratio has its own
+operands and its own `null` condition in the table below, where a statement
+figure is used with `null` included. A "line sum" is the total over the
 named accounts' lines in the period, in the account's natural sign, and is
 zero where the chart declares no such account; a "statement figure" is the
 value shown in the income statement or balance sheet, `null` included.
@@ -277,8 +288,13 @@ today.
 
 Every cap is a module constant of the skill and has one test. The caps are
 compared before any line is parsed, so an over-cap input is rejected from a
-count alone; while counting, a non-list where a list is expected is the same
-failure. Both `journal[].lines` and `prior_journals[].journal[].lines` carry
+count alone. A cap that is exceeded fails check 12 as `INVALID_REQUEST` with
+`detail.reason` `size_cap`, the field's `path`, `limit` and `actual`; the one
+figure for all lines carries no `path`. A non-list met while counting
+(`journal[i].lines`, `prior_journals[i].journal` or
+`prior_journals[i].journal[j].lines`) also fails check 12 as
+`INVALID_REQUEST`, with `detail.reason` `invalid_type` and the field's
+`path`. Both `journal[].lines` and `prior_journals[].journal[].lines` carry
 the lines-per-entry cap, and one figure bounds all lines across `journal`
 and every prior journal together.
 
@@ -397,7 +413,26 @@ three prior quarters in which `demo_landlord` was paid rent every month:
      "lines": [{"account": "cash", "debit": "9800.00", "credit": "0"},
                {"account": "sales", "debit": "0", "credit": "9800.00"}]}
   ],
-  "prior_journals": [{"period": {"start": "2026-01-01", "end": "2026-03-31"}, "journal": ["..."]}],
+  "prior_journals": [
+    {"period": {"start": "2025-07-01", "end": "2025-09-30"},
+     "journal": [
+       {"id": "rent-2025-07", "date": "2025-07-31", "counterparty": "demo_landlord", "lines": [{"account": "rent", "debit": "500.00", "credit": "0"}, {"account": "cash", "debit": "0", "credit": "500.00"}]},
+       {"id": "rent-2025-08", "date": "2025-08-31", "counterparty": "demo_landlord", "lines": [{"account": "rent", "debit": "500.00", "credit": "0"}, {"account": "cash", "debit": "0", "credit": "500.00"}]},
+       {"id": "rent-2025-09", "date": "2025-09-30", "counterparty": "demo_landlord", "lines": [{"account": "rent", "debit": "500.00", "credit": "0"}, {"account": "cash", "debit": "0", "credit": "500.00"}]}
+     ]},
+    {"period": {"start": "2025-10-01", "end": "2025-12-31"},
+     "journal": [
+       {"id": "rent-2025-10", "date": "2025-10-31", "counterparty": "demo_landlord", "lines": [{"account": "rent", "debit": "500.00", "credit": "0"}, {"account": "cash", "debit": "0", "credit": "500.00"}]},
+       {"id": "rent-2025-11", "date": "2025-11-30", "counterparty": "demo_landlord", "lines": [{"account": "rent", "debit": "500.00", "credit": "0"}, {"account": "cash", "debit": "0", "credit": "500.00"}]},
+       {"id": "rent-2025-12", "date": "2025-12-31", "counterparty": "demo_landlord", "lines": [{"account": "rent", "debit": "500.00", "credit": "0"}, {"account": "cash", "debit": "0", "credit": "500.00"}]}
+     ]},
+    {"period": {"start": "2026-01-01", "end": "2026-03-31"},
+     "journal": [
+       {"id": "rent-2026-01", "date": "2026-01-31", "counterparty": "demo_landlord", "lines": [{"account": "rent", "debit": "500.00", "credit": "0"}, {"account": "cash", "debit": "0", "credit": "500.00"}]},
+       {"id": "rent-2026-02", "date": "2026-02-28", "counterparty": "demo_landlord", "lines": [{"account": "rent", "debit": "500.00", "credit": "0"}, {"account": "cash", "debit": "0", "credit": "500.00"}]},
+       {"id": "rent-2026-03", "date": "2026-03-31", "counterparty": "demo_landlord", "lines": [{"account": "rent", "debit": "500.00", "credit": "0"}, {"account": "cash", "debit": "0", "credit": "500.00"}]}
+     ]}
+  ],
   "options": {"soft_close": false, "recurrence_min_periods": 2, "deviation_threshold": "0.20"}
 }
 ```

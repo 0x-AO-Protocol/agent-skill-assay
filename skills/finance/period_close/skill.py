@@ -1511,12 +1511,14 @@ def _close(request: _Request, books: _Books, findings: _Findings) -> Dict[str, A
     )
     runway_months = None
     if cash_accounts:
-        burn = _divide(
-            _multiply(_subtract(outflows, inflows), DAYS_PER_MONTH),
-            Decimal(request.length),
-        )
-        if burn > _ZERO:
-            runway_months = _divide(cash_closing, burn)
+        # One division of exact operands, rounded once by the quantisation:
+        # cash_closing times the length in days over net burn times 30.4375.
+        net_burn = _subtract(outflows, inflows)
+        if net_burn > _ZERO:
+            runway_months = _divide(
+                _multiply(cash_closing, Decimal(request.length)),
+                _multiply(net_burn, DAYS_PER_MONTH),
+            )
     concentration = None
     if expense_accounts:
         closings = [books.closing[account.name] for account in expense_accounts]
