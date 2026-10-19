@@ -58,7 +58,7 @@
                 "title": {
                   "type": "string",
                   "maxLength": 500,
-                  "description": "Untrusted text: read as a version for release and tag events, scanned for breaking terms, never echoed."
+                  "description": "Untrusted text: scanned for breaking terms and, for release and tag events, read as a version after one leading v when at most 64 characters remain and they are valid semver. Only that version reaches an output, in version_jumps; no other part of the title is echoed, and a host treats the version as untrusted data too."
                 },
                 "paths": {
                   "type": "array",

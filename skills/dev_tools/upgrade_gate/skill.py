@@ -18,8 +18,11 @@ Identical input returns identical output. The verdicts are advice to the
 operator and the agent; they block nothing. A contract violation returns an
 error envelope with a code from the closed registry below; an unexpected
 internal fault returns the one-code fault registry entry INTERNAL_ERROR.
-Release notes, event titles and paths are untrusted text and never reach an
-output or an error detail.
+Release notes, event titles and paths are untrusted text. Notes and paths
+never reach an output or an error detail; of a title, only a version read
+from it (without its leading v, at most 64 characters, valid semver) reaches
+an output, in version_jumps, and a host treats those version strings as
+untrusted data too.
 """
 
 import json
@@ -666,9 +669,14 @@ def _name_matches(ecosystem: str, name: str) -> bool:
     return len(name) <= MAX_NPM_NAME_CHARS and _NPM_NAME_RE.fullmatch(name) is not None
 
 
+def _tokens(text: str) -> Set[str]:
+    """The tokenising step: the upper-cased alphanumeric tokens of a text."""
+    return {token.upper() for token in _TOKEN_RE.findall(text)}
+
+
 def _breaking_terms_in(text: str, terms: List[str]) -> List[str]:
     """The terms whose upper-cased token occurs in text, in list order, each once."""
-    tokens = {token.upper() for token in _TOKEN_RE.findall(text)}
+    tokens = _tokens(text)
     return [term for term in terms if term in tokens]
 
 
@@ -688,7 +696,9 @@ class _Version:
         "minor",
         "patch",
         "prerelease",
+        "pre",
         "post",
+        "dev",
     )
 
     def __init__(
@@ -699,13 +709,19 @@ class _Version:
         padded: Tuple[int, int, int],
         prerelease: bool,
         post: Optional[int],
+        pre: Optional[Tuple[str, int]] = None,
+        dev: Optional[int] = None,
     ):
         self.text = text
         self.key = key
         self.release = release
         self.major, self.minor, self.patch = padded
         self.prerelease = prerelease
+        # The pypi pre, post and dev segments; the exclusive comparisons read
+        # them. An npm version has none.
+        self.pre = pre
         self.post = post
+        self.dev = dev
 
 
 def _is_number(text: str) -> bool:
@@ -775,6 +791,8 @@ def _parse_pypi(text: str) -> Optional[_Version]:
         (padded[0], padded[1], padded[2]),
         pre is not None or dev is not None,
         post,
+        pre,
+        dev,
     )
 
 
@@ -942,6 +960,31 @@ def _release_has_prefix(release: Tuple[int, ...], prefix: Tuple[int, ...]) -> bo
     return padded[: len(prefix)] == prefix
 
 
+def _in_excluded_family(candidate: _Version, operator: str, version: _Version) -> bool:
+    """Whether an exclusive comparison leaves the candidate out as a member of
+    V's own family, as PEP 440 reads `<V` and `>V`.
+
+    `<V`, when V is not a prerelease, leaves out a version of the same release
+    that has a pre segment, when V has no post segment, or that has no pre
+    segment, a dev segment and the same post segment as V. `>V`, when V has no
+    post and no dev segment, leaves out a version of the same release with the
+    same pre segment as V that has a post segment. The same release means
+    equal release segments with trailing zeros ignored. The caller has
+    already placed the candidate on the right side of V.
+    """
+    if _pypi_release_key(candidate.release) != _pypi_release_key(version.release):
+        return False
+    if operator == "<":
+        if version.prerelease:
+            return False
+        if candidate.pre is not None:
+            return version.post is None
+        return candidate.dev is not None and candidate.post == version.post
+    if version.post is not None or version.dev is not None:
+        return False
+    return candidate.post is not None and candidate.pre == version.pre
+
+
 def _pypi_clause_holds(candidate: _Version, operator: str, operand: Any) -> bool:
     if operator == "==.*":
         return _release_has_prefix(candidate.release, operand)
@@ -956,19 +999,14 @@ def _pypi_clause_holds(candidate: _Version, operator: str, operand: Any) -> bool
         return candidate.key >= version.key
     if operator == "<=":
         return candidate.key <= version.key
-    same_release = _pypi_release_key(candidate.release) == _pypi_release_key(
-        version.release
-    )
     if operator == ">":
-        # A post-release of V is not admitted unless V is itself a post-release.
-        if candidate.post is not None and version.post is None and same_release:
-            return False
-        return candidate.key > version.key
+        return candidate.key > version.key and not _in_excluded_family(
+            candidate, operator, version
+        )
     if operator == "<":
-        # A prerelease of V is not admitted unless V is itself a prerelease.
-        if candidate.prerelease and not version.prerelease and same_release:
-            return False
-        return candidate.key < version.key
+        return candidate.key < version.key and not _in_excluded_family(
+            candidate, operator, version
+        )
     # "~=V": at least V, equal on every release segment of V except the last.
     return candidate.key >= version.key and _release_has_prefix(
         candidate.release, version.release[:-1]
@@ -1268,13 +1306,16 @@ def _check_assess_policy(params: Dict[str, Any]) -> Dict[str, Any]:
     for key in policy:
         if key not in ASSESS_POLICY_KEYS:
             _fail(INVALID_POLICY, "unknown_key", path="policy")
-    for key in ASSESS_POLICY_REQUIRED_KEYS:
+    # Field by field in the documented order: absence, then type, then value.
+    for key in ASSESS_POLICY_KEYS:
         if key not in policy:
-            _fail(INVALID_POLICY, "missing_key", path=f"policy.{key}")
-    for key in POLICY_BOOLEAN_KEYS:
-        if key in policy and not isinstance(policy[key], bool):
-            _fail(INVALID_POLICY, "not_a_boolean", path=f"policy.{key}")
-    for key in POLICY_INTEGER_KEYS:
+            if key in ASSESS_POLICY_REQUIRED_KEYS:
+                _fail(INVALID_POLICY, "missing_key", path=f"policy.{key}")
+            continue
+        if key in POLICY_BOOLEAN_KEYS:
+            if not isinstance(policy[key], bool):
+                _fail(INVALID_POLICY, "not_a_boolean", path=f"policy.{key}")
+            continue
         if not _is_int(policy[key]):
             _fail(INVALID_POLICY, "not_an_integer", path=f"policy.{key}")
         if policy[key] < 0 or policy[key] > MAX_POLICY_DAYS:
@@ -1400,24 +1441,30 @@ def _check_assess_caps(
             _cap_fail(path, MAX_ADVISORIES_PER_DEPENDENCY, per_dependency[key])
 
 
-def _check_object_keys(
-    item: Any,
-    path: str,
-    required: Tuple[str, ...],
-    optional: Tuple[str, ...],
-    code: str,
-) -> Dict[str, Any]:
-    """Shape of one element: an object with the given key set, fields in order."""
+def _check_object(item: Any, path: str, allowed: Tuple[str, ...], code: str) -> None:
+    """The first two faults of an object check: not an object, an unknown key.
+
+    The caller then takes the fields in their documented order, each with
+    its absence, type and value faults, so that the field order decides
+    when several fields are at fault, never the key order of the input.
+    """
     if not isinstance(item, dict):
         _fail(code, "not_an_object", path=path)
-    for key in required:
-        if key not in item:
-            _fail(code, "missing_key", path=f"{path}.{key}")
-    allowed = set(required) | set(optional)
     for key in item:
         if key not in allowed:
             _fail(code, "unknown_key", path=path)
-    return item
+
+
+def _check_present(item: Dict[str, Any], path: str, key: str, code: str) -> None:
+    if key not in item:
+        _fail(code, "missing_key", path=f"{path}.{key}")
+
+
+def _check_string_field(item: Dict[str, Any], path: str, key: str, code: str) -> None:
+    """A required field: absent, then not a string."""
+    _check_present(item, path, key, code)
+    if not _is_string(item[key]):
+        _fail(code, "not_a_string", path=f"{path}.{key}")
 
 
 def _check_ecosystem(value: str, path: str) -> str:
@@ -1432,10 +1479,9 @@ def _check_dependencies(dependencies: List[Any]) -> List[Dict[str, Any]]:
     parsed: List[Dict[str, Any]] = []
     for index, dependency in enumerate(dependencies):
         path = f"dependencies[{index}]"
-        _check_object_keys(dependency, path, DEPENDENCY_KEYS, (), INVALID_REQUEST)
+        _check_object(dependency, path, DEPENDENCY_KEYS, INVALID_REQUEST)
         for key in DEPENDENCY_KEYS:
-            if not _is_string(dependency[key]):
-                _fail(INVALID_REQUEST, "not_a_string", path=f"{path}.{key}")
+            _check_string_field(dependency, path, key, INVALID_REQUEST)
         ecosystem = _check_ecosystem(dependency["ecosystem"], f"{path}.ecosystem")
         name = dependency["name"]
         if not _name_matches(ecosystem, name):
@@ -1474,10 +1520,10 @@ def _check_releases(
     entries: Dict[Tuple[str, str], List[Dict[str, Any]]] = {}
     for index, entry in enumerate(releases):
         path = f"releases[{index}]"
-        _check_object_keys(entry, path, RELEASE_ENTRY_KEYS, (), INVALID_REQUEST)
+        _check_object(entry, path, RELEASE_ENTRY_KEYS, INVALID_REQUEST)
         for key in ("name", "ecosystem"):
-            if not _is_string(entry[key]):
-                _fail(INVALID_REQUEST, "not_a_string", path=f"{path}.{key}")
+            _check_string_field(entry, path, key, INVALID_REQUEST)
+        _check_present(entry, path, "versions", INVALID_REQUEST)
         if not isinstance(entry["versions"], list):
             _fail(INVALID_REQUEST, "not_a_list", path=f"{path}.versions")
         ecosystem = _check_ecosystem(entry["ecosystem"], f"{path}.ecosystem")
@@ -1490,22 +1536,9 @@ def _check_releases(
         seen_keys: Set[Tuple[Any, ...]] = set()
         for position, item in enumerate(entry["versions"]):
             version_path = f"{path}.versions[{position}]"
-            _check_object_keys(
-                item,
-                version_path,
-                VERSION_REQUIRED_KEYS,
-                VERSION_OPTIONAL_KEYS,
-                INVALID_REQUEST,
-            )
-            for field in VERSION_REQUIRED_KEYS:
-                if not _is_string(item[field]):
-                    _fail(
-                        INVALID_REQUEST, "not_a_string", path=f"{version_path}.{field}"
-                    )
-            if "yanked" in item and not isinstance(item["yanked"], bool):
-                _fail(INVALID_REQUEST, "not_a_boolean", path=f"{version_path}.yanked")
-            if "notes" in item and not _is_string(item["notes"]):
-                _fail(INVALID_REQUEST, "not_a_string", path=f"{version_path}.notes")
+            _check_object(item, version_path, VERSION_KEYS, INVALID_REQUEST)
+            _check_string_field(item, version_path, "version", INVALID_REQUEST)
+            _check_string_field(item, version_path, "published_at", INVALID_REQUEST)
             published_at = _parse_timestamp(item["published_at"])
             if published_at is None:
                 _fail(
@@ -1513,6 +1546,10 @@ def _check_releases(
                     "invalid_timestamp",
                     path=f"{version_path}.published_at",
                 )
+            if "yanked" in item and not isinstance(item["yanked"], bool):
+                _fail(INVALID_REQUEST, "not_a_boolean", path=f"{version_path}.yanked")
+            if "notes" in item and not _is_string(item["notes"]):
+                _fail(INVALID_REQUEST, "not_a_string", path=f"{version_path}.notes")
             version = _parse_version(ecosystem, item["version"])
             if version is None:
                 _fail(
@@ -1545,15 +1582,15 @@ def _check_advisories(advisories: List[Any]) -> Dict[Tuple[str, str], List[_Rang
     by_dependency: Dict[Tuple[str, str], List[_Range]] = {}
     for index, advisory in enumerate(advisories):
         path = f"advisories[{index}]"
-        _check_object_keys(advisory, path, ADVISORY_KEYS, (), INVALID_REQUEST)
-        for key in ADVISORY_KEYS:
-            if not _is_string(advisory[key]):
-                _fail(INVALID_REQUEST, "not_a_string", path=f"{path}.{key}")
+        _check_object(advisory, path, ADVISORY_KEYS, INVALID_REQUEST)
+        _check_string_field(advisory, path, "id", INVALID_REQUEST)
         if not _ID_RE.fullmatch(advisory["id"]):
             _fail(INVALID_REQUEST, "invalid_id", path=f"{path}.id")
         if advisory["id"] in seen_ids:
             _fail(INVALID_REQUEST, "duplicate_id", path=f"{path}.id")
         seen_ids.add(advisory["id"])
+        for key in ("name", "ecosystem", "affected"):
+            _check_string_field(advisory, path, key, INVALID_REQUEST)
         ecosystem = _check_ecosystem(advisory["ecosystem"], f"{path}.ecosystem")
         if not _name_matches(ecosystem, advisory["name"]):
             _fail(INVALID_REQUEST, "invalid_name", path=f"{path}.name")
@@ -1635,6 +1672,14 @@ def _assess_dependency(
             dependency, latest.text, [CURRENT_OUT_OF_RANGE] + advisory_reason
         )
 
+    # The notes of the eligible versions above current and up to latest are
+    # scanned once; rule 6 and signals.breaking_terms both read this list.
+    scanned = [
+        (item, _breaking_terms_in(item["notes"], terms))
+        for item in eligible
+        if current.key < item["version"].key <= latest.key
+    ]
+
     # Rule 7 facts: eligibility is applied above; the counts are reported.
     above_current = [item for item in entry if item["version"].key > current.key]
     yanked_skipped = sum(1 for item in above_current if item["yanked"])
@@ -1703,10 +1748,7 @@ def _assess_dependency(
 
     # Rule 6: a breaking term between current and the target lowers the verdict.
     if verdict in (VERDICT_UPGRADE, VERDICT_TEST):
-        scope = [
-            item for item in eligible if current.key < item["version"].key <= target.key
-        ]
-        if any(_breaking_terms_in(item["notes"], terms) for item in scope):
+        if any(found for item, found in scanned if item["version"].key <= target.key):
             if verdict == VERDICT_UPGRADE and not policy["strict"]:
                 verdict = VERDICT_TEST
             else:
@@ -1718,11 +1760,10 @@ def _assess_dependency(
         reasons.append(PRERELEASE_SKIPPED)
 
     breaking_terms: List[str] = []
-    for item in eligible:
-        if current.key < item["version"].key <= latest.key:
-            for term in _breaking_terms_in(item["notes"], terms):
-                if term not in breaking_terms:
-                    breaking_terms.append(term)
+    for _, found in scanned:
+        for term in found:
+            if term not in breaking_terms:
+                breaking_terms.append(term)
     breaking_terms.sort(key=terms.index)
 
     drift = {"major": max(0, latest.major - current.major), "minor": 0, "patch": 0}
@@ -1899,34 +1940,33 @@ def _check_watched(watched: List[Any], as_of: date) -> List[Dict[str, Any]]:
     repositories: List[Dict[str, Any]] = []
     for index, repository in enumerate(watched):
         path = f"watched[{index}]"
-        _check_object_keys(repository, path, WATCHED_KEYS, (), INVALID_REQUEST)
+        _check_object(repository, path, WATCHED_KEYS, INVALID_REQUEST)
+        _check_present(repository, path, "repo", INVALID_REQUEST)
         repo = repository["repo"]
         if not _is_string(repo) or not _REPO_RE.fullmatch(repo):
             _fail(INVALID_REQUEST, "invalid_repo", path=f"{path}.repo")
         if repo in seen_repos:
             _fail(INVALID_REQUEST, "duplicate_repo", path=f"{path}.repo")
         seen_repos.add(repo)
+        _check_present(repository, path, "events", INVALID_REQUEST)
         if not isinstance(repository["events"], list):
             _fail(INVALID_REQUEST, "not_a_list", path=f"{path}.events")
         seen_ids: Set[str] = set()
         events: List[Dict[str, Any]] = []
         for position, event in enumerate(repository["events"]):
             event_path = f"{path}.events[{position}]"
-            _check_object_keys(
-                event,
-                event_path,
-                EVENT_REQUIRED_KEYS,
-                EVENT_OPTIONAL_KEYS,
-                INVALID_REQUEST,
-            )
+            _check_object(event, event_path, EVENT_KEYS, INVALID_REQUEST)
+            _check_present(event, event_path, "type", INVALID_REQUEST)
             if not _is_string(event["type"]) or event["type"] not in EVENT_TYPES:
                 _fail(INVALID_REQUEST, "unknown_event_type", path=f"{event_path}.type")
+            _check_present(event, event_path, "id", INVALID_REQUEST)
             event_id = event["id"]
             if not _is_string(event_id) or not _ID_RE.fullmatch(event_id):
                 _fail(INVALID_REQUEST, "invalid_id", path=f"{event_path}.id")
             if event_id in seen_ids:
                 _fail(INVALID_REQUEST, "duplicate_id", path=f"{event_path}.id")
             seen_ids.add(event_id)
+            _check_present(event, event_path, "at", INVALID_REQUEST)
             at = _parse_timestamp(event["at"])
             if at is None:
                 _fail(INVALID_REQUEST, "invalid_timestamp", path=f"{event_path}.at")
@@ -1969,12 +2009,18 @@ def _jump_kind(previous: _Version, following: _Version) -> str:
 
 
 def _title_version(event: Dict[str, Any]) -> Optional[_Version]:
-    """A release or tag title read as a version after one leading `v`."""
+    """A release or tag title read as a version after one leading `v`.
+
+    What remains must be at most MAX_VERSION_CHARS characters, the cap of an
+    assess version, and valid semver; a longer title does not parse.
+    """
     title = event["title"]
     if event["type"] == "commit" or title is None:
         return None
     if title.startswith("v"):
         title = title[1:]
+    if len(title) > MAX_VERSION_CHARS:
+        return None
     return _parse_npm(title)
 
 

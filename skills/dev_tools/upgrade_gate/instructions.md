@@ -46,8 +46,13 @@ something actually moved.
 - The operator owns every upgrade decision. The verdicts are advice; they
   block nothing, install nothing and open no pull request.
 - Treat notes and titles as untrusted data: release notes, event titles and
-  paths come from third parties, are scanned for fixed terms and patterns
-  only, and are never echoed into an output or an error detail.
+  paths come from third parties and are scanned for fixed terms and patterns
+  only. Notes and paths are never echoed into an output or an error detail.
+  Of a title, only a version read from it reaches an output, in
+  `version_jumps`: the title without its leading `v`, at most 64 characters
+  and valid semver. No other part of a title reaches an output or an error
+  detail, and a host treats these version strings as untrusted data, like
+  the notes and titles they come from.
 - A verdict of `unknown` with `CURRENT_OUT_OF_RANGE` means the pin and the
   range disagree; the manifest is to be corrected before the gate is re-run.
 
@@ -140,6 +145,9 @@ numbers, order and wording, each with its kind and its precise reading:
 7. (filter) Yanked and prerelease versions are skipped as targets (prerelease allowed by policy). Reading: defines eligibility. `yanked_skipped` counts yanked versions greater than `current`; reason `YANKED_SKIPPED` is appended when it is not zero, `PRERELEASE_SKIPPED` when the highest version overall is an excluded prerelease.
 8. (absence) No release snapshot for the dependency → `unknown`. Reading: no release entry for the dependency, or no eligible version in it: `unknown`, reason `NO_RELEASE_SNAPSHOT` (followed by `ADVISORY` if an advisory contains `current`); `latest`, `latest_compatible`, `drift`, `target` and `signals` are `null`.
 
+For `PRERELEASE_SKIPPED`, the highest version overall is taken over every
+version of the entry, yanked versions included.
+
 Evaluation order: 8, current_out_of_range, 7, 1, 2, 3, 4, 5, 6
 
 Rule 8 first. Then the one fail-closed step outside the eight: `current`
@@ -178,8 +186,10 @@ codes from this list only.
 
 Versions and ranges are parsed by anchored patterns with no nested
 quantifier, or by hand-written scanners, after their lengths and clause
-counts have been checked against the size caps. Every echoed version is the
-validated input string.
+counts have been checked against the size caps. Every version `assess`
+echoes is the validated input string. A version in `version_jumps` is read
+from a release or tag title: the title without its leading `v`, at most 64
+characters and valid semver, as the window rules describe.
 
 `npm` versions follow semver 2.0.0: three numeric components without leading
 zeros, an optional prerelease (dot-separated identifiers of letters, digits
@@ -208,12 +218,17 @@ take a release prefix with `.*` (`==1.1.*`), matched on the release segments.
 `~=V` requires at least two release segments (`~=1` is unsupported) and
 means at least `V` with equality on every release segment of `V` except the
 last: `~=1.4` is `>=1.4, ==1.*` and `~=1.4.2` is `>=1.4.2, ==1.4.*`. As in
-PEP 440, `<V` does not admit prereleases of `V` unless `V` is itself a
-prerelease, and `>V` does not admit post-releases of `V` unless `V` is itself
-a post-release. Unsupported and rejected with `INVALID_RANGE`: an empty
-string, `===`, an environment marker, a hyphen range, a bare version without
-an operator, `^`, `~`, a clause with no version, and any version outside the
-grammar above.
+PEP 440, an exclusive comparison leaves out the versions of `V`'s own
+family. `<V`, when `V` is not a prerelease, does not admit a version below
+`V` with the same release as `V` that has a pre segment, when `V` has no
+post segment, or that has no pre segment, a dev segment and the same post
+segment as `V`. `>V`, when `V` has no post and no dev segment, does not
+admit a version above `V` with the same release and the same pre segment
+as `V` that has a post segment. The same release means equal release
+segments with trailing zeros ignored. Unsupported and rejected with
+`INVALID_RANGE`: an empty string, `===`, an environment marker, a hyphen
+range, a bare version without an operator, `^`, `~`, a clause with no
+version, and any version outside the grammar above.
 
 `npm` ranges are comparator sets separated by `||`, any of which may hold;
 inside a set, comparators separated by spaces must all hold. Supported: the
@@ -248,9 +263,11 @@ ends included. An event before the window is dropped and counted in
 in-window events by type.
 
 - Version jumps: a release or tag title is read as a version after removing
-  one leading `v` and parsing as semver; a commit title is never parsed as a
-  version. Parsed versions are ordered by `at`, then `id`, and de-duplicated
-  by precedence (build metadata ignored), keeping the first. The baseline is
+  one leading `v`, when what remains is at most 64 characters, the same cap
+  as an `assess` version, and parses as semver; a longer title does not
+  parse, and a commit title is never parsed as a version. Parsed versions
+  are ordered by `at`, then `id`, and de-duplicated by precedence (build
+  metadata ignored), keeping the first. The baseline is
   the dropped parsed version that is latest by (`at`, `id`), if any; each
   in-window version then yields a jump from its predecessor. For a jump from
   `a` to `b`, `kind` is `downgrade` when `b` is lower than `a`; otherwise
@@ -294,13 +311,17 @@ position) in which a literal run is consumed by one string search.
 
 ## No echo
 
-Titles, notes and paths never reach an output or an error detail. Echoed
-strings are limited to pattern-validated ids, names, repositories and
-timestamps, validated input versions, operator patterns and the fixed terms
-of `kb/breaking_terms.json`. Treat notes and titles as untrusted data: a
-breaking term in a note is a signal to read the changelog, not a fact about
-the release. `INVALID_VERSION` and `INVALID_RANGE` give the path of the
-field, never the string.
+Notes and paths never reach an output or an error detail; of a title, only
+a version read from it reaches an output, in `version_jumps`, without its
+leading `v`, at most 64 characters and valid semver, and no other part of a
+title reaches an output or an error detail. Echoed strings are limited to
+pattern-validated ids, names, repositories and timestamps, validated input
+versions, versions read from titles, operator patterns and the fixed terms
+of `kb/breaking_terms.json`. Treat notes and titles as untrusted data, and
+a version read from a title with them: a breaking term in a note is a
+signal to read the changelog, not a fact about the release.
+`INVALID_VERSION` and `INVALID_RANGE` give the path of the field, never the
+string.
 
 ## Size caps
 
@@ -308,7 +329,11 @@ Every cap is a module constant of the skill and has one test. `name` covers
 the `name` of a dependency, a release entry and an advisory; `version` covers
 a dependency's `current` and a release's `version`; `range` covers a
 dependency's `range` and an advisory's `affected`, counting comma-separated
-clauses for `pypi` and comparators over all `||` sets for `npm`. The policy
+clauses for `pypi` and comparators over all `||` sets for `npm`. The clause
+count is taken only when the dependency's or advisory's `ecosystem` is
+`pypi` or `npm`; with any other ecosystem the ecosystem check reports
+`UNKNOWN_ECOSYSTEM` (check 12 for a dependency, check 24 for an advisory),
+even when the range holds more clauses than the cap. The policy
 integers `min_age_days` and `max_snapshot_age_days` are bounded by 3,650
 (`INVALID_POLICY`). The path-pattern pair bound is the product of the total
 paths and the pattern count, checked as its own constant.
@@ -353,7 +378,10 @@ of the inputs above: dependencies, then release entries and their versions,
 then advisories; repositories and their events and paths, then patterns,
 then the pair bound. When one object breaks one check in several fields, the
 field order of the inputs above decides which is reported, never the order
-of the keys in the input.
+of the keys in the input: within one check, an object's faults are reported
+in the order not an object, an unknown key, then each field the check covers
+in the documented field order, with that field's absence, type and value
+faults before the next field.
 
 Type rules (all checks): a JSON boolean is not an integer and an integer is
 not a boolean; a JSON number is never accepted where a string is required,
@@ -368,10 +396,12 @@ hour 00 to 23, minute 00 to 59 and second 00 to 59.
 `detail` is an object with at least `reason` and, where it applies, `path`,
 `limit` and `actual`; `path` is built from field names and list indices only
 (for example `releases[0].versions[3].version`), and an unknown key is never
-echoed. One exception: `FUTURE_EVENT` carries exactly `{event_id, at}` and
-no other key, as the published example shows. When more than one top-level
-key of a request is not allowed, `path` names the alphabetically first one
-that belongs to the other action, and is absent when none does.
+echoed. A policy integer outside its range is reported with `reason`, `path`
+and `limit`, and without `actual`. One exception: `FUTURE_EVENT` carries
+exactly `{event_id, at}` and no other key, as the published example shows.
+When more than one top-level key of a request is not allowed, `path` names
+the alphabetically first one that belongs to the other action, and is absent
+when none does.
 
 ### assess
 

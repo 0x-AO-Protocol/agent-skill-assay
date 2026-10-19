@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/0x-AO-Protocol/agent-skill-assay/skills/dev_tools/upgrade_gate/schemas/output.schema.json",
   "title": "upgrade_gate output (v1)",
-  "description": "Documentation of the three envelopes execute() returns: the assess result, the digest result and the error envelope. Outputs carry ids, versions, counts, operator patterns and matched fixed terms only; release notes, event titles and paths appear in no field.",
+  "description": "Documentation of the three envelopes execute() returns: the assess result, the digest result and the error envelope. Outputs carry ids, versions, counts, operator patterns and matched fixed terms only; release notes and paths appear in no field, and of an event title only a version read from it, without its leading v, at most 64 characters and valid semver, appears, in version_jumps, as untrusted data.",
   "oneOf": [
     {
       "$ref": "#/$defs/assess_result"
@@ -17,7 +17,7 @@
   "$defs": {
     "version": {
       "type": "string",
-      "description": "A validated input version, echoed as given."
+      "description": "In an assess result, a validated input version, echoed as given. In a version jump, the version read from a release or tag title: the title without its leading v, at most 64 characters and valid semver, to be treated as untrusted data like the title."
     },
     "assess_result": {
       "type": "object",

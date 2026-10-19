@@ -1598,21 +1598,21 @@ def test_object_faults_follow_the_field_order(skill, assess_params, digest_param
         ),
         (
             assess_with(entry=set_entry),
-            [("name", "demo_http"), ("versions", 1)],
+            [("name", "demo_http"), ("versions", [])],
             INVALID_REQUEST,
             "missing_key",
             "releases[0].ecosystem",
         ),
         (
             digest_with(repository=set_repository),
-            [("events", "x")],
+            [("events", [])],
             INVALID_REQUEST,
             "missing_key",
             "watched[0].repo",
         ),
         (
             digest_with(event=set_event),
-            [("type", "release"), ("at", 5), ("paths", "x")],
+            [("type", "release"), ("at", 5)],
             INVALID_REQUEST,
             "missing_key",
             "watched[0].events[0].id",
@@ -1627,7 +1627,12 @@ def test_object_faults_follow_the_field_order(skill, assess_params, digest_param
         ),
         (
             assess_with(advisory=set_advisory),
-            [("id", "bad!"), ("name", 5), ("ecosystem", "pypi"), ("affected", "<1")],
+            [
+                ("id", "bad!"),
+                ("name", "demo_http"),
+                ("ecosystem", 5),
+                ("affected", "<1"),
+            ],
             INVALID_REQUEST,
             "invalid_id",
             "advisories[0].id",
@@ -1649,7 +1654,7 @@ def test_object_faults_follow_the_field_order(skill, assess_params, digest_param
         ),
         (
             assess_with(advisory=set_advisory),
-            [("zzz", 1), ("name", 5)],
+            [("zzz", 1), ("ecosystem", 5), ("id", "DEMO-1"), ("name", "demo_http")],
             INVALID_REQUEST,
             "unknown_key",
             "advisories[0]",
