@@ -2112,9 +2112,54 @@ def test_rule_cases_cover_every_rule_and_the_competing_pairs():
         "rule_8_with_advisory",
         "out_of_range_without_advisory",
         "out_of_range_with_advisory",
+        "rule_3_target_has_advisory",
+        "rule_3_target_has_advisory_lower_patch_clean",
+        "rule_4_target_has_advisory",
+        "rule_5_target_has_advisory",
+        "npm_rule_3_target_has_advisory",
+        "npm_rule_4_target_has_advisory",
+        "rule_6_not_applied_when_target_has_advisory",
+        "npm_rule_5_target_has_advisory",
     ):
         assert required in names, required
     assert len(names) == len(_load_json(FIXTURES_DIR, "rule_cases.json")["cases"])
+
+
+def test_duplicate_ids_and_repositories_are_rejected(skill):
+    detail = _assert_error(
+        skill.execute(_assess_params(advisories=[_advisory(), _advisory()])),
+        INVALID_REQUEST,
+        "duplicate_id",
+    )
+    assert detail["path"] == "advisories[1].id"
+    events = [_event(ident="c1"), _event(ident="c1", at="2026-09-10T08:00:00Z")]
+    detail = _assert_error(
+        skill.execute(_digest_params(watched=[_repository(events=events)])),
+        INVALID_REQUEST,
+        "duplicate_id",
+    )
+    assert detail["path"] == "watched[0].events[1].id"
+    two = [_repository(repo="demo/kit"), _repository(repo="demo/alpha")]
+    assert skill.execute(_digest_params(watched=two))["status"] == "completed"
+    detail = _assert_error(
+        skill.execute(_digest_params(watched=[_repository(), _repository()])),
+        INVALID_REQUEST,
+        "duplicate_repo",
+    )
+    assert detail["path"] == "watched[1].repo"
+
+
+def test_reason_tokens_are_named(skill):
+    for params in ([], "text", None, 5):
+        _assert_error(skill.execute(params), INVALID_REQUEST, "parameters_not_object")
+    for pattern, reason in (
+        ("", "empty_pattern"),
+        ("src/***/x", "too_many_consecutive_stars"),
+        ("a*b*c*d*e*", "too_many_wildcards"),
+    ):
+        params = _digest_params(policy={"paths_of_interest": [pattern]})
+        detail = _assert_error(skill.execute(params), INVALID_POLICY, reason)
+        assert detail["path"] == "policy.paths_of_interest[0]"
 
 
 @pytest.mark.parametrize("case", _named_cases("age_cases.json"))
@@ -2143,8 +2188,9 @@ def test_reason_codes_are_closed():
         "PRERELEASE_SKIPPED",
         "NO_RELEASE_SNAPSHOT",
         "CURRENT_OUT_OF_RANGE",
+        "ADVISORY_ON_TARGET",
     )
-    assert len(REASON_CODES) == 14
+    assert len(REASON_CODES) == 15
     assert VERDICTS == ("hold", "upgrade", "test", "unknown")
     seen = set()
     for name in ("rule_cases.json", "age_cases.json"):

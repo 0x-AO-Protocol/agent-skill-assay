@@ -3921,6 +3921,679 @@
         "insufficient": true,
         "stale_snapshot": false
       }
+    },
+    {
+      "name": "rule_3_target_has_advisory",
+      "params": {
+        "action": "assess",
+        "as_of": "2026-09-12",
+        "snapshot_at": "2026-09-11T02:00:00Z",
+        "dependencies": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "current": "2.3.1",
+            "range": ">=2.3,<3"
+          }
+        ],
+        "policy": {
+          "allow_major": false,
+          "allow_prerelease": false,
+          "min_age_days": 3,
+          "max_snapshot_age_days": 7
+        },
+        "releases": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "versions": [
+              {
+                "version": "2.3.4",
+                "published_at": "2026-09-01T00:00:00Z"
+              }
+            ]
+          }
+        ],
+        "advisories": [
+          {
+            "id": "DEMO-2026-0101",
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "affected": "==2.3.4"
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "results": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "current": "2.3.1",
+            "latest": "2.3.4",
+            "latest_compatible": "2.3.4",
+            "drift": {
+              "major": 0,
+              "minor": 0,
+              "patch": 3
+            },
+            "verdict": "hold",
+            "target": null,
+            "reasons": [
+              "PATCH_AVAILABLE",
+              "MIN_AGE_MET",
+              "ADVISORY_ON_TARGET"
+            ],
+            "signals": {
+              "breaking_terms": [],
+              "yanked_skipped": 0,
+              "advisory": false,
+              "major_available": false
+            }
+          }
+        ],
+        "summary": {
+          "hold": 1,
+          "upgrade": 0,
+          "test": 0,
+          "unknown": 0
+        },
+        "fired_any": false,
+        "insufficient": false,
+        "stale_snapshot": false
+      }
+    },
+    {
+      "name": "rule_3_target_has_advisory_lower_patch_clean",
+      "params": {
+        "action": "assess",
+        "as_of": "2026-09-12",
+        "snapshot_at": "2026-09-11T02:00:00Z",
+        "dependencies": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "current": "2.3.1",
+            "range": ">=2.3,<3"
+          }
+        ],
+        "policy": {
+          "allow_major": false,
+          "allow_prerelease": false,
+          "min_age_days": 3,
+          "max_snapshot_age_days": 7
+        },
+        "releases": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "versions": [
+              {
+                "version": "2.3.2",
+                "published_at": "2026-09-01T00:00:00Z"
+              },
+              {
+                "version": "2.3.4",
+                "published_at": "2026-09-01T00:00:00Z"
+              }
+            ]
+          }
+        ],
+        "advisories": [
+          {
+            "id": "DEMO-2026-0102",
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "affected": "==2.3.4"
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "results": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "current": "2.3.1",
+            "latest": "2.3.4",
+            "latest_compatible": "2.3.4",
+            "drift": {
+              "major": 0,
+              "minor": 0,
+              "patch": 3
+            },
+            "verdict": "hold",
+            "target": null,
+            "reasons": [
+              "PATCH_AVAILABLE",
+              "MIN_AGE_MET",
+              "ADVISORY_ON_TARGET"
+            ],
+            "signals": {
+              "breaking_terms": [],
+              "yanked_skipped": 0,
+              "advisory": false,
+              "major_available": false
+            }
+          }
+        ],
+        "summary": {
+          "hold": 1,
+          "upgrade": 0,
+          "test": 0,
+          "unknown": 0
+        },
+        "fired_any": false,
+        "insufficient": false,
+        "stale_snapshot": false
+      }
+    },
+    {
+      "name": "rule_4_target_has_advisory",
+      "params": {
+        "action": "assess",
+        "as_of": "2026-09-12",
+        "snapshot_at": "2026-09-11T02:00:00Z",
+        "dependencies": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "current": "2.3.1",
+            "range": ">=2.3,<3"
+          }
+        ],
+        "policy": {
+          "allow_major": false,
+          "allow_prerelease": false,
+          "min_age_days": 3,
+          "max_snapshot_age_days": 7
+        },
+        "releases": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "versions": [
+              {
+                "version": "2.4.0",
+                "published_at": "2026-09-10T00:00:00Z"
+              }
+            ]
+          }
+        ],
+        "advisories": [
+          {
+            "id": "DEMO-2026-0103",
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "affected": "==2.4.0"
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "results": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "current": "2.3.1",
+            "latest": "2.4.0",
+            "latest_compatible": "2.4.0",
+            "drift": {
+              "major": 0,
+              "minor": 1,
+              "patch": 0
+            },
+            "verdict": "hold",
+            "target": null,
+            "reasons": [
+              "MINOR_AVAILABLE",
+              "ADVISORY_ON_TARGET"
+            ],
+            "signals": {
+              "breaking_terms": [],
+              "yanked_skipped": 0,
+              "advisory": false,
+              "major_available": false
+            }
+          }
+        ],
+        "summary": {
+          "hold": 1,
+          "upgrade": 0,
+          "test": 0,
+          "unknown": 0
+        },
+        "fired_any": false,
+        "insufficient": false,
+        "stale_snapshot": false
+      }
+    },
+    {
+      "name": "rule_5_target_has_advisory",
+      "params": {
+        "action": "assess",
+        "as_of": "2026-09-12",
+        "snapshot_at": "2026-09-11T02:00:00Z",
+        "dependencies": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "current": "2.3.1",
+            "range": ">=2.3,<3"
+          }
+        ],
+        "policy": {
+          "allow_major": true,
+          "allow_prerelease": false,
+          "min_age_days": 3,
+          "max_snapshot_age_days": 7
+        },
+        "releases": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "versions": [
+              {
+                "version": "3.0.0",
+                "published_at": "2026-09-01T00:00:00Z"
+              },
+              {
+                "version": "3.1.0",
+                "published_at": "2026-09-11T00:00:00Z"
+              }
+            ]
+          }
+        ],
+        "advisories": [
+          {
+            "id": "DEMO-2026-0104",
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "affected": "==3.1.0"
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "results": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "current": "2.3.1",
+            "latest": "3.1.0",
+            "latest_compatible": null,
+            "drift": {
+              "major": 1,
+              "minor": 0,
+              "patch": 0
+            },
+            "verdict": "hold",
+            "target": null,
+            "reasons": [
+              "MAJOR_AVAILABLE",
+              "MAJOR_ALLOWED",
+              "ADVISORY_ON_TARGET"
+            ],
+            "signals": {
+              "breaking_terms": [],
+              "yanked_skipped": 0,
+              "advisory": false,
+              "major_available": true
+            }
+          }
+        ],
+        "summary": {
+          "hold": 1,
+          "upgrade": 0,
+          "test": 0,
+          "unknown": 0
+        },
+        "fired_any": false,
+        "insufficient": false,
+        "stale_snapshot": false
+      }
+    },
+    {
+      "name": "npm_rule_3_target_has_advisory",
+      "params": {
+        "action": "assess",
+        "as_of": "2026-09-12",
+        "snapshot_at": "2026-09-11T02:00:00Z",
+        "dependencies": [
+          {
+            "name": "demo_yaml",
+            "ecosystem": "npm",
+            "current": "1.0.0",
+            "range": "^1.0"
+          }
+        ],
+        "policy": {
+          "allow_major": false,
+          "allow_prerelease": false,
+          "min_age_days": 3,
+          "max_snapshot_age_days": 7
+        },
+        "releases": [
+          {
+            "name": "demo_yaml",
+            "ecosystem": "npm",
+            "versions": [
+              {
+                "version": "1.0.1",
+                "published_at": "2026-09-01T00:00:00Z"
+              },
+              {
+                "version": "2.0.0",
+                "published_at": "2026-09-01T00:00:00Z",
+                "notes": "BREAKING: dropped node 16"
+              }
+            ]
+          }
+        ],
+        "advisories": [
+          {
+            "id": "DEMO-2026-0105",
+            "name": "demo_yaml",
+            "ecosystem": "npm",
+            "affected": "1.0.1"
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "results": [
+          {
+            "name": "demo_yaml",
+            "ecosystem": "npm",
+            "current": "1.0.0",
+            "latest": "2.0.0",
+            "latest_compatible": "1.0.1",
+            "drift": {
+              "major": 1,
+              "minor": 0,
+              "patch": 1
+            },
+            "verdict": "hold",
+            "target": null,
+            "reasons": [
+              "PATCH_AVAILABLE",
+              "MIN_AGE_MET",
+              "ADVISORY_ON_TARGET"
+            ],
+            "signals": {
+              "breaking_terms": [
+                "BREAKING",
+                "DROPPED"
+              ],
+              "yanked_skipped": 0,
+              "advisory": false,
+              "major_available": true
+            }
+          }
+        ],
+        "summary": {
+          "hold": 1,
+          "upgrade": 0,
+          "test": 0,
+          "unknown": 0
+        },
+        "fired_any": false,
+        "insufficient": false,
+        "stale_snapshot": false
+      }
+    },
+    {
+      "name": "npm_rule_4_target_has_advisory",
+      "params": {
+        "action": "assess",
+        "as_of": "2026-09-12",
+        "snapshot_at": "2026-09-11T02:00:00Z",
+        "dependencies": [
+          {
+            "name": "demo_yaml",
+            "ecosystem": "npm",
+            "current": "1.0.0",
+            "range": "^1.0.0"
+          }
+        ],
+        "policy": {
+          "allow_major": false,
+          "allow_prerelease": true,
+          "min_age_days": 3,
+          "max_snapshot_age_days": 7
+        },
+        "releases": [
+          {
+            "name": "demo_yaml",
+            "ecosystem": "npm",
+            "versions": [
+              {
+                "version": "1.1.0",
+                "published_at": "2026-09-01T00:00:00Z"
+              },
+              {
+                "version": "2.0.0-alpha",
+                "published_at": "2026-09-01T00:00:00Z"
+              }
+            ]
+          }
+        ],
+        "advisories": [
+          {
+            "id": "DEMO-2026-0106",
+            "name": "demo_yaml",
+            "ecosystem": "npm",
+            "affected": ">=1.1.0 <1.2.0"
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "results": [
+          {
+            "name": "demo_yaml",
+            "ecosystem": "npm",
+            "current": "1.0.0",
+            "latest": "2.0.0-alpha",
+            "latest_compatible": "1.1.0",
+            "drift": {
+              "major": 1,
+              "minor": 1,
+              "patch": 0
+            },
+            "verdict": "hold",
+            "target": null,
+            "reasons": [
+              "MINOR_AVAILABLE",
+              "ADVISORY_ON_TARGET"
+            ],
+            "signals": {
+              "breaking_terms": [],
+              "yanked_skipped": 0,
+              "advisory": false,
+              "major_available": true
+            }
+          }
+        ],
+        "summary": {
+          "hold": 1,
+          "upgrade": 0,
+          "test": 0,
+          "unknown": 0
+        },
+        "fired_any": false,
+        "insufficient": false,
+        "stale_snapshot": false
+      }
+    },
+    {
+      "name": "rule_6_not_applied_when_target_has_advisory",
+      "params": {
+        "action": "assess",
+        "as_of": "2026-09-12",
+        "snapshot_at": "2026-09-11T02:00:00Z",
+        "dependencies": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "current": "2.3.1",
+            "range": ">=2.3,<3"
+          }
+        ],
+        "policy": {
+          "allow_major": false,
+          "allow_prerelease": false,
+          "min_age_days": 3,
+          "max_snapshot_age_days": 7
+        },
+        "releases": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "versions": [
+              {
+                "version": "2.3.4",
+                "published_at": "2026-09-01T00:00:00Z",
+                "notes": "Removed the legacy client"
+              }
+            ]
+          }
+        ],
+        "advisories": [
+          {
+            "id": "DEMO-2026-0108",
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "affected": "==2.3.4"
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "results": [
+          {
+            "name": "demo_http",
+            "ecosystem": "pypi",
+            "current": "2.3.1",
+            "latest": "2.3.4",
+            "latest_compatible": "2.3.4",
+            "drift": {
+              "major": 0,
+              "minor": 0,
+              "patch": 3
+            },
+            "verdict": "hold",
+            "target": null,
+            "reasons": [
+              "PATCH_AVAILABLE",
+              "MIN_AGE_MET",
+              "ADVISORY_ON_TARGET"
+            ],
+            "signals": {
+              "breaking_terms": [
+                "REMOVED"
+              ],
+              "yanked_skipped": 0,
+              "advisory": false,
+              "major_available": false
+            }
+          }
+        ],
+        "summary": {
+          "hold": 1,
+          "upgrade": 0,
+          "test": 0,
+          "unknown": 0
+        },
+        "fired_any": false,
+        "insufficient": false,
+        "stale_snapshot": false
+      }
+    },
+    {
+      "name": "npm_rule_5_target_has_advisory",
+      "params": {
+        "action": "assess",
+        "as_of": "2026-09-12",
+        "snapshot_at": "2026-09-11T02:00:00Z",
+        "dependencies": [
+          {
+            "name": "demo_yaml",
+            "ecosystem": "npm",
+            "current": "1.0.0",
+            "range": "^1.0.0"
+          }
+        ],
+        "policy": {
+          "allow_major": true,
+          "allow_prerelease": false,
+          "min_age_days": 3,
+          "max_snapshot_age_days": 7
+        },
+        "releases": [
+          {
+            "name": "demo_yaml",
+            "ecosystem": "npm",
+            "versions": [
+              {
+                "version": "2.0.0",
+                "published_at": "2026-09-01T00:00:00Z"
+              },
+              {
+                "version": "2.1.0",
+                "published_at": "2026-09-01T00:00:00Z"
+              }
+            ]
+          }
+        ],
+        "advisories": [
+          {
+            "id": "DEMO-2026-0107",
+            "name": "demo_yaml",
+            "ecosystem": "npm",
+            "affected": "2.1.0"
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "results": [
+          {
+            "name": "demo_yaml",
+            "ecosystem": "npm",
+            "current": "1.0.0",
+            "latest": "2.1.0",
+            "latest_compatible": null,
+            "drift": {
+              "major": 1,
+              "minor": 0,
+              "patch": 0
+            },
+            "verdict": "hold",
+            "target": null,
+            "reasons": [
+              "MAJOR_AVAILABLE",
+              "MAJOR_ALLOWED",
+              "ADVISORY_ON_TARGET"
+            ],
+            "signals": {
+              "breaking_terms": [],
+              "yanked_skipped": 0,
+              "advisory": false,
+              "major_available": true
+            }
+          }
+        ],
+        "summary": {
+          "hold": 1,
+          "upgrade": 0,
+          "test": 0,
+          "unknown": 0
+        },
+        "fired_any": false,
+        "insufficient": false,
+        "stale_snapshot": false
+      }
     }
   ]
 }
