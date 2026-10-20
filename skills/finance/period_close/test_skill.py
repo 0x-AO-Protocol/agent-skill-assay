@@ -1839,9 +1839,23 @@ def test_warnings_and_info_do_not_block(skill, error_inputs, code):
     result = _assert_completed(skill.execute(params))
     assert result["closed"] is True and result["provisional"] is False
     assert code in [item["code"] for item in result["checks"]]
-    assert result["fired_any"] is (code != UNUSED_ACCOUNT) or any(
-        item["severity"] != SEVERITY_INFO for item in result["checks"]
-    )
+    expected = any(item["severity"] != SEVERITY_INFO for item in result["checks"])
+    assert result["fired_any"] is expected
+
+
+def test_info_only_close_does_not_set_fired_any(skill, close_params):
+    params = copy.deepcopy(close_params)
+    params["prior_journals"] = []
+    params["action"] = "close"
+    result = _assert_completed(skill.execute(params))
+    assert result["closed"] is True and result["provisional"] is False
+    assert len(result["checks"]) == 1
+    (item,) = result["checks"]
+    assert item["code"] == UNUSED_ACCOUNT
+    assert item["severity"] == SEVERITY_INFO
+    assert item["refs"] == ["rent"]
+    assert result["fired_any"] is False
+    assert result["insufficient"] is True
 
 
 # --------------------------------------------------------------------------
