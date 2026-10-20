@@ -157,9 +157,13 @@ not satisfying its own `range` gives `unknown`, reasons
 are `null`. `unknown` with `CURRENT_OUT_OF_RANGE` means the pin and the range
 disagree; the manifest is to be corrected before the gate is re-run. Then
 eligibility by rule 7, then the deciders 1 to 5 in order with the first match
-deciding, then rule 6. `target` is `null` whenever the verdict is `hold` or
-`unknown`. Reasons appear in the order: decider reasons (rule 3's age fact
-included), `BREAKING_TERM`, `YANKED_SKIPPED`, `PRERELEASE_SKIPPED`.
+deciding, then rule 6. A target is never one that an advisory for the
+dependency contains: when the target of rule 3, 4 or 5 is contained, the
+verdict is `hold`, the target `null`, and `ADVISORY_ON_TARGET` follows the
+decider's reasons; rule 6 then does not apply. `target` is `null` whenever
+the verdict is `hold` or `unknown`. Reasons appear in the order: decider
+reasons (rule 3's age fact included), `ADVISORY_ON_TARGET`, `BREAKING_TERM`,
+`YANKED_SKIPPED`, `PRERELEASE_SKIPPED`.
 
 `drift.major` is `latest`'s major less `current`'s, floored at zero;
 `drift.minor` and `drift.patch` are measured against `latest_compatible`
@@ -179,8 +183,8 @@ The closed list, in the order the code declares it: `ADVISORY`,
 `NO_FIX_IN_RANGE`, `UP_TO_DATE`, `PATCH_AVAILABLE`, `MINOR_AVAILABLE`,
 `MAJOR_AVAILABLE`, `MAJOR_ALLOWED`, `MIN_AGE_MET`, `MIN_AGE_NOT_MET`,
 `BREAKING_TERM`, `YANKED_SKIPPED`, `PRERELEASE_SKIPPED`,
-`NO_RELEASE_SNAPSHOT`, `CURRENT_OUT_OF_RANGE`. A result's `reasons` holds
-codes from this list only.
+`NO_RELEASE_SNAPSHOT`, `CURRENT_OUT_OF_RANGE`, `ADVISORY_ON_TARGET`. A
+result's `reasons` holds codes from this list only.
 
 ## Version and range grammar
 

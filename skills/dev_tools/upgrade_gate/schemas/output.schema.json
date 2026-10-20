@@ -80,7 +80,7 @@
                 "type": "array",
                 "items": {
                   "type": "string",
-                  "enum": ["ADVISORY", "NO_FIX_IN_RANGE", "UP_TO_DATE", "PATCH_AVAILABLE", "MINOR_AVAILABLE", "MAJOR_AVAILABLE", "MAJOR_ALLOWED", "MIN_AGE_MET", "MIN_AGE_NOT_MET", "BREAKING_TERM", "YANKED_SKIPPED", "PRERELEASE_SKIPPED", "NO_RELEASE_SNAPSHOT", "CURRENT_OUT_OF_RANGE"]
+                  "enum": ["ADVISORY", "NO_FIX_IN_RANGE", "UP_TO_DATE", "PATCH_AVAILABLE", "MINOR_AVAILABLE", "MAJOR_AVAILABLE", "MAJOR_ALLOWED", "MIN_AGE_MET", "MIN_AGE_NOT_MET", "BREAKING_TERM", "YANKED_SKIPPED", "PRERELEASE_SKIPPED", "NO_RELEASE_SNAPSHOT", "CURRENT_OUT_OF_RANGE", "ADVISORY_ON_TARGET"]
                 }
               },
               "signals": {

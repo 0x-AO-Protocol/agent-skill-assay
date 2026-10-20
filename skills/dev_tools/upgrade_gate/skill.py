@@ -101,6 +101,7 @@ YANKED_SKIPPED = "YANKED_SKIPPED"
 PRERELEASE_SKIPPED = "PRERELEASE_SKIPPED"
 NO_RELEASE_SNAPSHOT = "NO_RELEASE_SNAPSHOT"
 CURRENT_OUT_OF_RANGE = "CURRENT_OUT_OF_RANGE"
+ADVISORY_ON_TARGET = "ADVISORY_ON_TARGET"
 REASON_CODES = (
     ADVISORY,
     NO_FIX_IN_RANGE,
@@ -116,6 +117,7 @@ REASON_CODES = (
     PRERELEASE_SKIPPED,
     NO_RELEASE_SNAPSHOT,
     CURRENT_OUT_OF_RANGE,
+    ADVISORY_ON_TARGET,
 )
 
 # Every file the skill opens lives in this bundle; one open() call per entry.
@@ -1031,7 +1033,7 @@ def _npm_comparators(operator: str, text: str) -> List[Tuple[str, Tuple[Any, ...
     complete = [number for number in numbers if number is not None]
     count = len(complete)
     if count == 0:
-        if operator in ("", "=", "^", "~"):
+        if operator == "":
             return []
         raise _RangeError()
     major = complete[0]
@@ -1745,6 +1747,11 @@ def _assess_dependency(
     else:
         # Rule 5, major upgrades not allowed.
         reasons = [MAJOR_AVAILABLE]
+
+    # A target that an advisory for this dependency contains is never proposed.
+    if target is not None and any(affected.contains(target) for affected in advisories):
+        verdict, target = VERDICT_HOLD, None
+        reasons.append(ADVISORY_ON_TARGET)
 
     # Rule 6: a breaking term between current and the target lowers the verdict.
     if verdict in (VERDICT_UPGRADE, VERDICT_TEST):
