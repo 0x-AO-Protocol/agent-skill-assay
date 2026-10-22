@@ -18,8 +18,8 @@ def test_public_text_is_clean():
     )
 
 
-PLANNED_4_4B = {"period_close": "v0.1.2", "upgrade_gate": "v0.1.3"}
-SHIPPED_4_4B = {"office/outreach_manager": "v0.1.1"}
+PLANNED_4_4B = {"upgrade_gate": "v0.1.3"}
+SHIPPED_4_4B = {"office/outreach_manager": "v0.1.1", "finance/period_close": "v0.1.2"}
 
 
 def _manifest(skill_id):

@@ -82,8 +82,8 @@ def test_support_policy_is_machine_readable():
     )
 
 
-PLANNED_4_4B = {"period_close": "v0.1.2", "upgrade_gate": "v0.1.3"}
-SHIPPED_4_4B = {"office/outreach_manager": "v0.1.1"}
+PLANNED_4_4B = {"upgrade_gate": "v0.1.3"}
+SHIPPED_4_4B = {"office/outreach_manager": "v0.1.1", "finance/period_close": "v0.1.2"}
 
 
 def test_roadmap_tracks_the_4_4b_skills():
