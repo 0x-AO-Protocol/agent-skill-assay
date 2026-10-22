@@ -1,0 +1,441 @@
+{
+  "action": "close",
+  "as_of": "2026-07-10",
+  "period": {
+    "start": "2026-04-01",
+    "end": "2026-06-30"
+  },
+  "currency": "USD",
+  "chart_of_accounts": [
+    {
+      "account": "cash",
+      "class": "asset",
+      "subclass": "cash"
+    },
+    {
+      "account": "bank",
+      "class": "asset",
+      "subclass": "cash"
+    },
+    {
+      "account": "receivable",
+      "class": "asset",
+      "subclass": "receivable"
+    },
+    {
+      "account": "inventory",
+      "class": "asset",
+      "subclass": "inventory"
+    },
+    {
+      "account": "equipment",
+      "class": "asset",
+      "subclass": "fixed"
+    },
+    {
+      "account": "payable",
+      "class": "liability",
+      "subclass": "payable"
+    },
+    {
+      "account": "loan",
+      "class": "liability",
+      "subclass": "long_term"
+    },
+    {
+      "account": "owner_equity",
+      "class": "equity"
+    },
+    {
+      "account": "sales",
+      "class": "revenue",
+      "subclass": "operating"
+    },
+    {
+      "account": "interest_income",
+      "class": "revenue",
+      "subclass": "other"
+    },
+    {
+      "account": "cogs",
+      "class": "expense",
+      "subclass": "cogs"
+    },
+    {
+      "account": "rent",
+      "class": "expense",
+      "subclass": "operating"
+    },
+    {
+      "account": "interest_expense",
+      "class": "expense",
+      "subclass": "non_operating"
+    }
+  ],
+  "opening_balances": [
+    {
+      "account": "cash",
+      "debit": "2000.00",
+      "credit": "0"
+    },
+    {
+      "account": "bank",
+      "debit": "8000.00",
+      "credit": "0"
+    },
+    {
+      "account": "inventory",
+      "debit": "3000.00",
+      "credit": "0"
+    },
+    {
+      "account": "equipment",
+      "debit": "5000.00",
+      "credit": "0"
+    },
+    {
+      "account": "payable",
+      "debit": "0",
+      "credit": "1500.00"
+    },
+    {
+      "account": "loan",
+      "debit": "0",
+      "credit": "6000.00"
+    },
+    {
+      "account": "owner_equity",
+      "debit": "0",
+      "credit": "10500.00"
+    }
+  ],
+  "journal": [
+    {
+      "id": "f01",
+      "date": "2026-04-01",
+      "counterparty": "demo_customer",
+      "lines": [
+        {
+          "account": "receivable",
+          "debit": "4000.00",
+          "credit": "0"
+        },
+        {
+          "account": "sales",
+          "debit": "0",
+          "credit": "4000.00"
+        }
+      ]
+    },
+    {
+      "id": "f02",
+      "date": "2026-04-05",
+      "counterparty": "demo_customer",
+      "lines": [
+        {
+          "account": "bank",
+          "debit": "2500.00",
+          "credit": "0"
+        },
+        {
+          "account": "receivable",
+          "debit": "0",
+          "credit": "2500.00"
+        }
+      ]
+    },
+    {
+      "id": "f03",
+      "date": "2026-04-10",
+      "lines": [
+        {
+          "account": "cogs",
+          "debit": "2200.00",
+          "credit": "0"
+        },
+        {
+          "account": "inventory",
+          "debit": "0",
+          "credit": "2200.00"
+        }
+      ]
+    },
+    {
+      "id": "f04",
+      "date": "2026-04-30",
+      "counterparty": "demo_landlord",
+      "lines": [
+        {
+          "account": "rent",
+          "debit": "1500.00",
+          "credit": "0"
+        },
+        {
+          "account": "cash",
+          "debit": "0",
+          "credit": "1500.00"
+        }
+      ]
+    },
+    {
+      "id": "f05",
+      "date": "2026-05-15",
+      "lines": [
+        {
+          "account": "cash",
+          "debit": "1000.00",
+          "credit": "0"
+        },
+        {
+          "account": "bank",
+          "debit": "0",
+          "credit": "1000.00"
+        }
+      ]
+    },
+    {
+      "id": "f06",
+      "date": "2026-05-31",
+      "counterparty": "demo_landlord",
+      "lines": [
+        {
+          "account": "rent",
+          "debit": "1500.00",
+          "credit": "0"
+        },
+        {
+          "account": "cash",
+          "debit": "0",
+          "credit": "1500.00"
+        }
+      ]
+    },
+    {
+      "id": "f07",
+      "date": "2026-06-01",
+      "counterparty": "demo_bank",
+      "lines": [
+        {
+          "account": "interest_expense",
+          "debit": "120.00",
+          "credit": "0"
+        },
+        {
+          "account": "bank",
+          "debit": "0",
+          "credit": "120.00"
+        }
+      ]
+    },
+    {
+      "id": "f08",
+      "date": "2026-06-15",
+      "counterparty": "demo_bank",
+      "lines": [
+        {
+          "account": "bank",
+          "debit": "30.00",
+          "credit": "0"
+        },
+        {
+          "account": "interest_income",
+          "debit": "0",
+          "credit": "30.00"
+        }
+      ]
+    },
+    {
+      "id": "f09",
+      "date": "2026-06-20",
+      "counterparty": "demo_owner",
+      "lines": [
+        {
+          "account": "bank",
+          "debit": "500.00",
+          "credit": "0"
+        },
+        {
+          "account": "owner_equity",
+          "debit": "0",
+          "credit": "500.00"
+        }
+      ]
+    },
+    {
+      "id": "f10",
+      "date": "2026-06-25",
+      "counterparty": "demo_supplier",
+      "lines": [
+        {
+          "account": "inventory",
+          "debit": "800.00",
+          "credit": "0"
+        },
+        {
+          "account": "payable",
+          "debit": "0",
+          "credit": "800.00"
+        }
+      ]
+    },
+    {
+      "id": "f11",
+      "date": "2026-06-28",
+      "counterparty": "demo_supplier",
+      "lines": [
+        {
+          "account": "payable",
+          "debit": "1000.00",
+          "credit": "0"
+        },
+        {
+          "account": "bank",
+          "debit": "0",
+          "credit": "1000.00"
+        }
+      ]
+    },
+    {
+      "id": "f12",
+      "date": "2026-06-30",
+      "counterparty": "demo_landlord",
+      "lines": [
+        {
+          "account": "rent",
+          "debit": "1500.00",
+          "credit": "0"
+        },
+        {
+          "account": "bank",
+          "debit": "0",
+          "credit": "1500.00"
+        }
+      ]
+    }
+  ],
+  "prior_journals": [
+    {
+      "period": {
+        "start": "2025-10-01",
+        "end": "2025-12-31"
+      },
+      "journal": [
+        {
+          "id": "rent-2025-10",
+          "date": "2025-10-31",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "1500.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "1500.00"
+            }
+          ]
+        },
+        {
+          "id": "rent-2025-11",
+          "date": "2025-11-30",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "1500.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "1500.00"
+            }
+          ]
+        },
+        {
+          "id": "rent-2025-12",
+          "date": "2025-12-31",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "1500.00",
+              "credit": "0"
+            },
+            {
+              "account": "bank",
+              "debit": "0",
+              "credit": "1500.00"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "period": {
+        "start": "2026-01-01",
+        "end": "2026-03-31"
+      },
+      "journal": [
+        {
+          "id": "rent-2026-01",
+          "date": "2026-01-31",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "1500.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "1500.00"
+            }
+          ]
+        },
+        {
+          "id": "rent-2026-02",
+          "date": "2026-02-28",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "1500.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "1500.00"
+            }
+          ]
+        },
+        {
+          "id": "rent-2026-03",
+          "date": "2026-03-31",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "1500.00",
+              "credit": "0"
+            },
+            {
+              "account": "bank",
+              "debit": "0",
+              "credit": "1500.00"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "options": {
+    "soft_close": false,
+    "recurrence_min_periods": 2,
+    "deviation_threshold": "0.20"
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "status": "completed",
+  "closed": true,
+  "provisional": false,
+  "trial_balance": [
+    {
+      "account": "cash",
+      "class": "asset",
+      "opening": "2000.00",
+      "debit": "1000.00",
+      "credit": "3000.00",
+      "closing": "0"
+    },
+    {
+      "account": "bank",
+      "class": "asset",
+      "opening": "8000.00",
+      "debit": "3030.00",
+      "credit": "3620.00",
+      "closing": "7410.00"
+    },
+    {
+      "account": "receivable",
+      "class": "asset",
+      "opening": "0",
+      "debit": "4000.00",
+      "credit": "2500.00",
+      "closing": "1500.00"
+    },
+    {
+      "account": "inventory",
+      "class": "asset",
+      "opening": "3000.00",
+      "debit": "800.00",
+      "credit": "2200.00",
+      "closing": "1600.00"
+    },
+    {
+      "account": "equipment",
+      "class": "asset",
+      "opening": "5000.00",
+      "debit": "0",
+      "credit": "0",
+      "closing": "5000.00"
+    },
+    {
+      "account": "payable",
+      "class": "liability",
+      "opening": "1500.00",
+      "debit": "1000.00",
+      "credit": "800.00",
+      "closing": "1300.00"
+    },
+    {
+      "account": "loan",
+      "class": "liability",
+      "opening": "6000.00",
+      "debit": "0",
+      "credit": "0",
+      "closing": "6000.00"
+    },
+    {
+      "account": "owner_equity",
+      "class": "equity",
+      "opening": "10500.00",
+      "debit": "0",
+      "credit": "500.00",
+      "closing": "11000.00"
+    },
+    {
+      "account": "sales",
+      "class": "revenue",
+      "opening": "0",
+      "debit": "0",
+      "credit": "4000.00",
+      "closing": "4000.00"
+    },
+    {
+      "account": "interest_income",
+      "class": "revenue",
+      "opening": "0",
+      "debit": "0",
+      "credit": "30.00",
+      "closing": "30.00"
+    },
+    {
+      "account": "cogs",
+      "class": "expense",
+      "opening": "0",
+      "debit": "2200.00",
+      "credit": "0",
+      "closing": "2200.00"
+    },
+    {
+      "account": "rent",
+      "class": "expense",
+      "opening": "0",
+      "debit": "4500.00",
+      "credit": "0",
+      "closing": "4500.00"
+    },
+    {
+      "account": "interest_expense",
+      "class": "expense",
+      "opening": "0",
+      "debit": "120.00",
+      "credit": "0",
+      "closing": "120.00"
+    }
+  ],
+  "income_statement": {
+    "revenue": "4030.00",
+    "cogs": "2200.00",
+    "gross_profit": "1830.00",
+    "expenses": "4620.00",
+    "net_income": "-2790.00"
+  },
+  "balance_sheet": {
+    "assets": "15510.00",
+    "liabilities": "7300.00",
+    "equity_opening": "10500.00",
+    "equity_movements": "500.00",
+    "net_income": "-2790.00",
+    "equity_closing": "8210.00",
+    "balanced": true
+  },
+  "cash_flow": {
+    "cash_opening": "10000.00",
+    "inflows": "3030.00",
+    "outflows": "5620.00",
+    "cash_closing": "7410.00"
+  },
+  "checks": [],
+  "notes": [],
+  "ratios": {
+    "gross_margin": "0.4541",
+    "operating_margin": "-0.6700",
+    "net_margin": "-0.6923",
+    "current_ratio": "8.0846",
+    "runway_months": "8.5536",
+    "expense_concentration_top1": "0.6598"
+  },
+  "observations": [
+    {
+      "metric": "revenue",
+      "value": "4030.00",
+      "as_of": "2026-06-30"
+    },
+    {
+      "metric": "cash_closing",
+      "value": "7410.00",
+      "as_of": "2026-06-30"
+    }
+  ],
+  "fired_any": false,
+  "insufficient": false
+}

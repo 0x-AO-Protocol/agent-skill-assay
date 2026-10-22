@@ -1,0 +1,310 @@
+{
+  "action": "validate",
+  "as_of": "2026-07-05",
+  "period": {
+    "start": "2026-04-01",
+    "end": "2026-06-30"
+  },
+  "currency": "USD",
+  "chart_of_accounts": [
+    {
+      "account": "cash",
+      "class": "asset",
+      "subclass": "cash"
+    },
+    {
+      "account": "petty_cash",
+      "class": "asset",
+      "subclass": "cash"
+    },
+    {
+      "account": "sales",
+      "class": "revenue"
+    },
+    {
+      "account": "rent",
+      "class": "expense"
+    },
+    {
+      "account": "supplies",
+      "class": "expense"
+    },
+    {
+      "account": "owner_equity",
+      "class": "equity"
+    },
+    {
+      "account": "unused_reserve",
+      "class": "liability"
+    }
+  ],
+  "opening_balances": [
+    {
+      "account": "cash",
+      "debit": "1000.00",
+      "credit": "0"
+    },
+    {
+      "account": "owner_equity",
+      "debit": "0",
+      "credit": "1000.00"
+    }
+  ],
+  "journal": [
+    {
+      "id": "j1",
+      "date": "2026-04-02",
+      "counterparty": "demo_customer",
+      "lines": [
+        {
+          "account": "cash",
+          "debit": "300.00",
+          "credit": "0"
+        },
+        {
+          "account": "sales",
+          "debit": "0",
+          "credit": "300.00"
+        }
+      ]
+    },
+    {
+      "id": "j2",
+      "date": "2026-04-02",
+      "counterparty": "demo_customer",
+      "lines": [
+        {
+          "account": "sales",
+          "debit": "0",
+          "credit": "300"
+        },
+        {
+          "account": "cash",
+          "debit": "300",
+          "credit": "0"
+        }
+      ]
+    },
+    {
+      "id": "j3",
+      "date": "2026-04-10",
+      "lines": [
+        {
+          "account": "supplies",
+          "debit": "0",
+          "credit": "0"
+        }
+      ]
+    },
+    {
+      "id": "j4",
+      "date": "2026-05-01",
+      "counterparty": "demo_landlord",
+      "lines": [
+        {
+          "account": "rent",
+          "debit": "700.00",
+          "credit": "0"
+        },
+        {
+          "account": "cash",
+          "debit": "0",
+          "credit": "700.00"
+        }
+      ]
+    },
+    {
+      "id": "j5",
+      "date": "2026-06-15",
+      "counterparty": "demo_customer",
+      "lines": [
+        {
+          "account": "cash",
+          "debit": "100.00",
+          "credit": "0"
+        },
+        {
+          "account": "sales",
+          "debit": "0",
+          "credit": "100.00"
+        }
+      ]
+    },
+    {
+      "id": "j6",
+      "date": "2026-06-20",
+      "counterparty": "demo_shop",
+      "lines": [
+        {
+          "account": "supplies",
+          "debit": "50.00",
+          "credit": "0"
+        },
+        {
+          "account": "petty_cash",
+          "debit": "0",
+          "credit": "50.00"
+        }
+      ]
+    }
+  ],
+  "prior_journals": [
+    {
+      "period": {
+        "start": "2025-10-01",
+        "end": "2025-12-31"
+      },
+      "journal": [
+        {
+          "id": "rent-2025-10",
+          "date": "2025-10-31",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "500.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "500.00"
+            }
+          ]
+        },
+        {
+          "id": "rent-2025-11",
+          "date": "2025-11-30",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "500.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "500.00"
+            }
+          ]
+        },
+        {
+          "id": "rent-2025-12",
+          "date": "2025-12-31",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "500.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "500.00"
+            }
+          ]
+        },
+        {
+          "id": "sup-2025-12",
+          "date": "2025-12-15",
+          "counterparty": "demo_supplier",
+          "lines": [
+            {
+              "account": "supplies",
+              "debit": "120.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "120.00"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "period": {
+        "start": "2026-01-01",
+        "end": "2026-03-31"
+      },
+      "journal": [
+        {
+          "id": "rent-2026-01",
+          "date": "2026-01-31",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "500.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "500.00"
+            }
+          ]
+        },
+        {
+          "id": "rent-2026-02",
+          "date": "2026-02-28",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "500.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "500.00"
+            }
+          ]
+        },
+        {
+          "id": "rent-2026-03",
+          "date": "2026-03-31",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "500.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "500.00"
+            }
+          ]
+        },
+        {
+          "id": "sup-2026-03",
+          "date": "2026-03-15",
+          "counterparty": "demo_supplier",
+          "lines": [
+            {
+              "account": "supplies",
+              "debit": "120.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "120.00"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "options": {
+    "soft_close": false,
+    "recurrence_min_periods": 2,
+    "deviation_threshold": "0.20"
+  }
+}

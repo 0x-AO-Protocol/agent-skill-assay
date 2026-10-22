@@ -28,5 +28,11 @@ and tests.
 | :--- | :--- | :--- | :--- | :--- |
 | [Outreach Manager](outreach_manager.md) | `office/outreach_manager` | `0.1.0` | AO | Plans partitioned platform searches and scores exported lead rows. |
 
-The planned `period_close` and `upgrade_gate` skills are
-tracked in the public roadmap and are not v0.1 registry entries.
+## Finance
+
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| [Period Close](period_close.md) | `finance/period_close` | `0.1.0` | AO | Closes a period from a journal into statements, checks and gap notes. |
+
+The planned `upgrade_gate` skill is tracked in the public roadmap
+and is not a v0.1 registry entry.

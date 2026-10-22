@@ -1,0 +1,133 @@
+{
+  "action": "close",
+  "as_of": "2026-07-05",
+  "period": {
+    "start": "2026-04-01",
+    "end": "2026-06-30"
+  },
+  "currency": "USD",
+  "chart_of_accounts": [
+    {
+      "account": "cash",
+      "class": "asset",
+      "subclass": "cash"
+    },
+    {
+      "account": "sales",
+      "class": "revenue"
+    },
+    {
+      "account": "rent",
+      "class": "expense"
+    },
+    {
+      "account": "owner_equity",
+      "class": "equity"
+    }
+  ],
+  "opening_balances": [
+    {
+      "account": "cash",
+      "debit": "4000.00",
+      "credit": "0"
+    },
+    {
+      "account": "owner_equity",
+      "debit": "0",
+      "credit": "4000.00"
+    }
+  ],
+  "journal": [
+    {
+      "id": "j1",
+      "date": "2026-04-03",
+      "counterparty": "demo_customer",
+      "lines": [
+        {
+          "account": "cash",
+          "debit": "9800.00",
+          "credit": "0"
+        },
+        {
+          "account": "sales",
+          "debit": "0",
+          "credit": "9800.00"
+        }
+      ]
+    },
+    {
+      "id": "rent-2026-04",
+      "date": "2026-04-30",
+      "counterparty": "demo_landlord",
+      "lines": [
+        {
+          "account": "rent",
+          "debit": "590.00",
+          "credit": "0"
+        },
+        {
+          "account": "cash",
+          "debit": "0",
+          "credit": "590.00"
+        }
+      ]
+    }
+  ],
+  "prior_journals": [
+    {
+      "period": {
+        "start": "2025-10-01",
+        "end": "2025-12-31"
+      },
+      "journal": [
+        {
+          "id": "rent-2025-12",
+          "date": "2025-12-31",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "500.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "500.00"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "period": {
+        "start": "2026-01-01",
+        "end": "2026-03-31"
+      },
+      "journal": [
+        {
+          "id": "rent-2026-03",
+          "date": "2026-03-31",
+          "counterparty": "demo_landlord",
+          "lines": [
+            {
+              "account": "rent",
+              "debit": "500.00",
+              "credit": "0"
+            },
+            {
+              "account": "cash",
+              "debit": "0",
+              "credit": "500.00"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "options": {
+    "soft_close": false,
+    "recurrence_min_periods": 2,
+    "deviation_threshold": "0.20"
+  }
+}

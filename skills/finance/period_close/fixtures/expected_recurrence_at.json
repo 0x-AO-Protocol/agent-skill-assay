@@ -1,0 +1,104 @@
+{
+  "status": "completed",
+  "closed": true,
+  "provisional": false,
+  "trial_balance": [
+    {
+      "account": "cash",
+      "class": "asset",
+      "opening": "4000.00",
+      "debit": "9800.00",
+      "credit": "0",
+      "closing": "13800.00"
+    },
+    {
+      "account": "sales",
+      "class": "revenue",
+      "opening": "0",
+      "debit": "0",
+      "credit": "9800.00",
+      "closing": "9800.00"
+    },
+    {
+      "account": "rent",
+      "class": "expense",
+      "opening": "0",
+      "debit": "0",
+      "credit": "0",
+      "closing": "0"
+    },
+    {
+      "account": "owner_equity",
+      "class": "equity",
+      "opening": "4000.00",
+      "debit": "0",
+      "credit": "0",
+      "closing": "4000.00"
+    }
+  ],
+  "income_statement": {
+    "revenue": "9800.00",
+    "cogs": null,
+    "gross_profit": null,
+    "expenses": "0",
+    "net_income": "9800.00"
+  },
+  "balance_sheet": {
+    "assets": "13800.00",
+    "liabilities": "0",
+    "equity_opening": "4000.00",
+    "equity_movements": "0",
+    "net_income": "9800.00",
+    "equity_closing": "13800.00",
+    "balanced": true
+  },
+  "cash_flow": {
+    "cash_opening": "4000.00",
+    "inflows": "9800.00",
+    "outflows": "0",
+    "cash_closing": "13800.00"
+  },
+  "checks": [
+    {
+      "code": "EXPECTED_MISSING",
+      "severity": "warning",
+      "count": 1,
+      "refs": [
+        "rent/demo_landlord"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "code": "EXPECTED_MISSING",
+      "account": "rent",
+      "counterparty": "demo_landlord",
+      "cadence": "quarterly",
+      "last_seen": "2026-03-31",
+      "expected_amount": "500.00",
+      "detail": "seen in 3 of the last 3 periods, absent in this one"
+    }
+  ],
+  "ratios": {
+    "gross_margin": null,
+    "operating_margin": "1.0000",
+    "net_margin": "1.0000",
+    "current_ratio": null,
+    "runway_months": null,
+    "expense_concentration_top1": "0.0000"
+  },
+  "observations": [
+    {
+      "metric": "revenue",
+      "value": "9800.00",
+      "as_of": "2026-06-30"
+    },
+    {
+      "metric": "cash_closing",
+      "value": "13800.00",
+      "as_of": "2026-06-30"
+    }
+  ],
+  "fired_any": true,
+  "insufficient": true
+}

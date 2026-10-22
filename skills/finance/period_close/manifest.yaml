@@ -1,0 +1,162 @@
+name: finance/period_close
+version: 0.1.0
+description: >
+  Deterministic period close over a journal and a chart of accounts supplied
+  by the host. validate checks the journal against the chart and returns
+  findings from a closed registry: blocking faults, warnings and one
+  informational code. close runs validate first and fails closed on any
+  blocking finding unless soft_close is set; it returns a trial balance,
+  income statement, balance sheet, direct-method cash flow, checks, gap
+  notes, ratios and observations. Given prior periods' journals it names
+  recurring items that are missing or out of line against their past median,
+  and never fills them in. Single currency, single entity; amounts are
+  decimal strings and every figure is computed with one private decimal
+  context, so no binary floating-point value reaches the output. Closed
+  error registry and fail-closed contract errors; no network, no clock, no
+  file access; identical input always returns identical output.
+short_description: "Close a period from a journal: trial balance, statements, checks and gap notes. Use for the monthly or quarterly close."
+issuer:
+  name: Masa
+  email: masa88keith@gmail.com
+  github: mrmasa88
+  org: AO
+trust_tier: L0
+provenance:
+  anchor: repository
+  content_sha256: "9f8fe4bb4ca85ea4d26e56cb81174e69496a816d0ce2df9e7d30edb5458ffffe"
+  authored_on: "2026-10-20"
+economic_effect:
+  claim: "Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption."
+  baseline_task: "The same task performed by an LLM agent without this skill (prompt-only)."
+  metric: "LLM tokens (input + output) per task run."
+  method: "Run the skill's reference fixtures through (a) the baseline agent and (b) the same agent calling the skill; publish the median tokens per run for both and the reduction."
+norm_version: norms-1.0.0
+category: finance
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      enum: [validate, close]
+      description: >
+        validate returns the findings of the journal against the chart of
+        accounts; close runs validate first and returns the statements,
+        checks, notes, ratios and observations.
+    as_of:
+      type: string
+      description: >
+        Required. The date of the run as YYYY-MM-DD; no clock is read. close
+        needs as_of on or after period.end.
+    period:
+      type: object
+      description: >
+        Required. start and end as YYYY-MM-DD, start not after end; both ends
+        belong to the period.
+    currency:
+      type: string
+      description: >
+        Required. Three upper-case letters; every entry and prior journal
+        that names a currency must name this one.
+    chart_of_accounts:
+      type: array
+      description: >
+        Required. Rows of account (unique, ^[a-z][a-z0-9_]{0,63}$), class
+        (asset, liability, equity, revenue, expense) and an optional subclass
+        from the closed set of that class. Retired accounts stay in the
+        chart.
+    opening_balances:
+      type: array
+      description: >
+        Optional. One line per balance-sheet account with account, debit and
+        credit as decimal strings.
+    journal:
+      type: array
+      description: >
+        Required, non-empty. Entries of id, date, optional counterparty,
+        optional currency and lines of account, debit and credit as decimal
+        strings with at most two decimals.
+    prior_journals:
+      type: array
+      description: >
+        Optional. Earlier periods, oldest first, each with period, journal
+        and optional currency; comparable in length to the current period
+        within three days.
+    options:
+      type: object
+      description: >
+        Optional. soft_close (boolean, default false), recurrence_min_periods
+        (integer 1 to 24, default 2) and deviation_threshold (decimal string
+        greater than zero with at most four decimals, default 0.20).
+  required:
+    - action
+  additionalProperties: false
+outputs:
+  status:
+    type: string
+    description: completed for a successful run; error for a contract violation.
+  findings:
+    type: array
+    description: >
+      validate result: one element per finding code that fired, in registry
+      order, each with code, severity, count and refs.
+  blocking:
+    type: boolean
+    description: "validate result: true when any blocking finding exists."
+  closed:
+    type: boolean
+    description: "close result: true for a hard close, false for a soft close."
+  provisional:
+    type: boolean
+    description: "close result: true for a soft close."
+  trial_balance:
+    type: array
+    description: >
+      close result: one row per chart account in chart order with account,
+      class, opening, debit, credit and closing.
+  income_statement:
+    type: object
+    description: "close result: revenue, cogs, gross_profit, expenses, net_income."
+  balance_sheet:
+    type: object
+    description: >
+      close result: assets, liabilities, equity_opening, equity_movements,
+      net_income, equity_closing and balanced.
+  cash_flow:
+    type: object
+    description: "close result: cash_opening, inflows, outflows, cash_closing (direct method)."
+  checks:
+    type: array
+    description: "close result: the findings of validate for the same input."
+  notes:
+    type: array
+    description: >
+      close result: one EXPECTED_MISSING or AMOUNT_DEVIATION note per gap
+      pair; in a soft close, first one {code, refs} element per blocking
+      finding.
+  ratios:
+    type: object
+    description: >
+      close result: gross_margin, operating_margin, net_margin,
+      current_ratio, runway_months and expense_concentration_top1 as
+      four-decimal strings or null.
+  observations:
+    type: array
+    description: >
+      close result: exactly revenue and cash_closing, each with metric, value
+      and as_of equal to period.end.
+  fired_any:
+    type: boolean
+    description: "close result: true when any blocking or warning finding exists."
+  insufficient:
+    type: boolean
+    description: "close result: true when any ratio is null."
+requirements: []
+constitution: |
+  1. Compute only - the skill closes the books it is given; it fetches nothing, posts nothing and sends nothing.
+  2. Deterministic, offline core - no network, no clock and no file access in execute(); identical input returns identical output.
+  3. Name gaps, never fill them - a recurring item that is missing or out of line is reported as a question for the operator, never as a number written into the books.
+  4. Fail closed - a blocking finding stops a hard close with CLOSE_BLOCKED; a contract violation returns a code from the closed registry, never a guess.
+  5. Decimal arithmetic only - amounts are decimal strings, every figure is computed in one private decimal context and rendered by one rounding rule.
+presentation:
+  icon: calculator
+  color: "#1d4ed8"
