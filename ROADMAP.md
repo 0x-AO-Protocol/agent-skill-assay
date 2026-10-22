@@ -18,6 +18,7 @@ The v0.1 registry contains four AO-authored skills:
 | Skill | Release | Status |
 | :--- | :--- | :--- |
 | `office/outreach_manager` | v0.1.1 | Registered |
+| `finance/period_close` | v0.1.2 | Registered |
 
 ## Planned skills
 
@@ -25,7 +26,6 @@ These skills are planned for separate v0.1.x releases. They are not v0.1 catalog
 
 | Skill | Planned release | Economic-effect declaration |
 | :--- | :--- | :--- |
-| `period_close` | v0.1.2 | **Claim:** Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption.<br>**Baseline task:** The same task performed by an LLM agent without this skill (prompt-only).<br>**Metric:** LLM tokens (input + output) per task run.<br>**Method:** Run the skill's reference fixtures through (a) the baseline agent and (b) the same agent calling the skill; publish the median tokens per run for both and the reduction. |
 | `upgrade_gate` | v0.1.3 | **Claim:** Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption.<br>**Baseline task:** The same task performed by an LLM agent without this skill (prompt-only).<br>**Metric:** LLM tokens (input + output) per task run.<br>**Method:** Run the skill's reference fixtures through (a) the baseline agent and (b) the same agent calling the skill; publish the median tokens per run for both and the reduction. |
 
 These are declarations, not measurements. No token-reduction numbers will be
