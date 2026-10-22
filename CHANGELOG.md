@@ -6,6 +6,8 @@ The project uses Semantic Versioning. The public fork release line starts at v0.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-22
+
 ### Added
 
 - `finance/period_close`: `validate` returns the findings of a period's journal against its chart of accounts; `close` adds a trial balance, income statement, balance sheet, direct-method cash flow and ratios, fails closed on a blocking finding unless `soft_close` is set, and names recurring items that are missing or out of line against prior periods without filling them in. Single currency and single entity; offline and deterministic.
