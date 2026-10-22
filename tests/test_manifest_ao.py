@@ -429,6 +429,26 @@ def test_ao_contract_check_reports_a_manifest_that_is_not_a_mapping(tmp_path, te
     assert any(": <root>: " in failure for failure in failures), failures
 
 
+@pytest.mark.parametrize(
+    "data",
+    [
+        pytest.param(b"provenance:\n  authored_on: 2026-02-30\n", id="impossible-date"),
+        pytest.param(b"x: " + b"1" * 4301 + b"\n", id="long-integer"),
+        pytest.param(
+            b"x: " + b"{a: " * 1500 + b"1" + b"}" * 1500 + b"\n", id="deep-nesting"
+        ),
+        pytest.param(b"name: \xff\n", id="invalid-utf8"),
+    ],
+)
+def test_ao_contract_check_reports_a_manifest_it_cannot_read(tmp_path, data):
+    skills_root = tmp_path / "skills"
+    _repository_anchored_manifest(skills_root)
+    (skills_root / "category" / "skill_name" / "manifest.yaml").write_bytes(data)
+    failures = ao_manifest_failures(skills_root)
+    expected = "category/skill_name: <root>: cannot read manifest: "
+    assert any(failure.startswith(expected) for failure in failures), failures
+
+
 def test_archive_form_is_used_only_by_the_pinned_bundles():
     skills_root = ROOT / "skills"
     archive_anchored = set()
@@ -518,6 +538,26 @@ def test_provenance_check_passes_a_valid_bundle(tmp_path, monkeypatch, capsys):
             "provenance:\n- anchor\n", "recorded=None, actual=", id="provenance-list"
         ),
         pytest.param("name: [unclosed\n", "invalid YAML: ", id="malformed-yaml"),
+        pytest.param(
+            "provenance:\n  authored_on: 2026-02-30\n",
+            "cannot read manifest: ValueError",
+            id="impossible-date",
+        ),
+        pytest.param(
+            "x: " + "1" * 4301 + "\n",
+            "cannot read manifest: ValueError",
+            id="long-integer",
+        ),
+        pytest.param(
+            "x: " + "{a: " * 1500 + "1" + "}" * 1500 + "\n",
+            "cannot read manifest: RecursionError",
+            id="deep-nesting",
+        ),
+        pytest.param(
+            b"name: \xff\n",
+            "cannot read manifest: UnicodeDecodeError",
+            id="invalid-utf8",
+        ),
     ],
 )
 def test_provenance_check_reports_a_manifest_it_cannot_read(
@@ -525,9 +565,8 @@ def test_provenance_check_reports_a_manifest_it_cannot_read(
 ):
     skills_root = tmp_path / "skills"
     _repository_anchored_manifest(skills_root)
-    (skills_root / "category" / "skill_name" / "manifest.yaml").write_text(
-        text, encoding="utf-8"
-    )
+    data = text.encode("utf-8") if isinstance(text, str) else text
+    (skills_root / "category" / "skill_name" / "manifest.yaml").write_bytes(data)
     assert _run_provenance_check(monkeypatch, skills_root) == 1
     lines = capsys.readouterr().out.splitlines()
     assert lines[0] == "Provenance check failed:"
@@ -552,4 +591,26 @@ def test_provenance_check_reports_every_bundle_it_cannot_read(
     assert lines[0] == "Provenance check failed:"
     assert lines[1].startswith("  - skills/category/other_skill: recorded=None, ")
     assert lines[2].startswith("  - skills/category/skill_name: invalid YAML: ")
+    assert len(lines) == 3
+
+
+def test_provenance_check_goes_on_after_a_manifest_it_cannot_construct(
+    tmp_path, monkeypatch, capsys
+):
+    skills_root = tmp_path / "skills"
+    _repository_anchored_manifest(skills_root)
+    (skills_root / "category" / "skill_name" / "manifest.yaml").write_text(
+        "provenance:\n  authored_on: 2026-02-30\n", encoding="utf-8"
+    )
+    other = skills_root / "category" / "other_skill"
+    other.mkdir()
+    (other / "skill.py").write_text("VALUE = 1\n", encoding="utf-8")
+    (other / "manifest.yaml").write_text("provenance: repository\n", encoding="utf-8")
+    assert _run_provenance_check(monkeypatch, skills_root) == 1
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[0] == "Provenance check failed:"
+    assert lines[1].startswith("  - skills/category/other_skill: recorded=None, ")
+    assert lines[2] == (
+        "  - skills/category/skill_name: cannot read manifest: ValueError"
+    )
     assert len(lines) == 3
