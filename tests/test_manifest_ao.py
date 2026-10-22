@@ -162,6 +162,10 @@ def ao_manifest_failures(skills_root: Path) -> list[str]:
             reason = getattr(exc, "problem", None) or str(exc).splitlines()[0]
             failures.append(f"{bundle_id}: <root>: invalid YAML: {reason}")
             continue
+        except (ValueError, RecursionError) as exc:
+            name = type(exc).__name__
+            failures.append(f"{bundle_id}: <root>: cannot read manifest: {name}")
+            continue
         if not isinstance(manifest, dict):
             failures.append(f"{bundle_id}: <root>: not a mapping")
             continue
