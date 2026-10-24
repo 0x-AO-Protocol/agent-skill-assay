@@ -6,6 +6,10 @@ The project uses Semantic Versioning. The public fork release line starts at v0.
 
 ## [Unreleased]
 
+### Added
+
+- `dev_tools/upgrade_gate`: `digest` summarises host-supplied repository events since a date, with version jumps, breaking terms and commits touching paths of interest; `assess` gives each pinned dependency a verdict, `hold`, `upgrade`, `test` or `unknown`, with a target and reason codes from eight ordered rules. It never fetches; `pypi` and `npm` only, with its own version comparator; offline and deterministic.
+
 ### Fixed
 
 - `python scripts/provenance.py --check` also reports a bundle whose `manifest.yaml` cannot be decoded as UTF-8 or cannot be constructed (an impossible date, an integer too long to convert, nesting too deep to parse) as a failure of that bundle, and goes on to the next bundle.

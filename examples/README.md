@@ -11,3 +11,4 @@ live provider credentials:
 | `business_diagnostic_demo.py` | `monitoring/business_diagnostic` |
 | `outreach_manager_demo.py` | `office/outreach_manager` |
 | `period_close_demo.py` | `finance/period_close` |
+| `upgrade_gate_demo.py` | `dev_tools/upgrade_gate` |

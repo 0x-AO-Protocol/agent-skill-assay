@@ -1,0 +1,49 @@
+{
+    "name": "Upgrade Gate",
+    "description": "Deterministic upgrade gate for pinned dependencies: a digest of repository events and a hold, upgrade, test or unknown verdict per dependency, with reasons.",
+    "issuer": {
+        "name": "Masa",
+        "email": "masa88keith@gmail.com",
+        "github": "mrmasa88",
+        "org": "AO"
+    },
+    "icon": "package",
+    "color": "#1d4ed8",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {
+                "key": "status",
+                "label": "Status"
+            },
+            {
+                "key": "summary.upgrade",
+                "label": "Upgrade"
+            },
+            {
+                "key": "summary.test",
+                "label": "Test"
+            },
+            {
+                "key": "summary.hold",
+                "label": "Hold"
+            },
+            {
+                "key": "summary.unknown",
+                "label": "Unknown"
+            },
+            {
+                "key": "fired_any",
+                "label": "Fired"
+            },
+            {
+                "key": "insufficient",
+                "label": "Insufficient"
+            },
+            {
+                "key": "stale_snapshot",
+                "label": "Stale snapshot"
+            }
+        ]
+    }
+}
