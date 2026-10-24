@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/0x-AO-Protocol/agent-skill-assay/skills/finance/period_close/schemas/request.schema.json",
+  "title": "Period close request (v1)",
+  "description": "The request accepted by validate and close. This schema is documentation: the skill enforces the same rules, in its documented check order, with explicit standard-library checks. Size caps are given as maxItems; the one figure for all lines (200000 across journal and every prior journal together) cannot be expressed here.",
+  "type": "object",
+  "required": ["action", "as_of", "period", "currency", "chart_of_accounts", "journal"],
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["validate", "close"]
+    },
+    "as_of": {
+      "$ref": "#/$defs/date",
+      "description": "The date of the run; no clock is read. close needs as_of on or after period.end."
+    },
+    "period": {
+      "$ref": "#/$defs/period"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "chart_of_accounts": {
+      "type": "array",
+      "maxItems": 2000,
+      "items": {
+        "$ref": "#/$defs/chart_row"
+      }
+    },
+    "opening_balances": {
+      "type": "array",
+      "maxItems": 2000,
+      "description": "One line per balance-sheet account; a second line for the same account or a line on a revenue or expense account is a contract error.",
+      "items": {
+        "$ref": "#/$defs/line"
+      }
+    },
+    "journal": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20000,
+      "items": {
+        "$ref": "#/$defs/entry"
+      }
+    },
+    "prior_journals": {
+      "type": "array",
+      "maxItems": 24,
+      "description": "Earlier periods, oldest first. Each must end before period.start, overlap no earlier-listed prior period and be comparable in length to the current period within three days. Every line's account must be in the chart.",
+      "items": {
+        "$ref": "#/$defs/prior_period"
+      }
+    },
+    "options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "soft_close": {
+          "type": "boolean",
+          "default": false
+        },
+        "recurrence_min_periods": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24,
+          "default": 2
+        },
+        "deviation_threshold": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,14})(\\.[0-9]{1,4})?$",
+          "default": "0.20",
+          "description": "A decimal string greater than zero with at most four decimals."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "YYYY-MM-DD naming a real calendar date."
+    },
+    "amount": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,14})(\\.[0-9]{1,2})?$",
+      "description": "A non-negative decimal string with at most two decimals. A JSON number, a sign, an exponent or a third decimal is INVALID_AMOUNT."
+    },
+    "account": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    "period": {
+      "type": "object",
+      "required": ["start", "end"],
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "$ref": "#/$defs/date"
+        },
+        "end": {
+          "$ref": "#/$defs/date"
+        }
+      },
+      "description": "start not after end; both ends belong to the period."
+    },
+    "chart_row": {
+      "type": "object",
+      "required": ["account", "class"],
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "$ref": "#/$defs/account",
+          "description": "Unique within the chart."
+        },
+        "class": {
+          "type": "string",
+          "enum": ["asset", "liability", "equity", "revenue", "expense"]
+        },
+        "subclass": {
+          "type": "string",
+          "enum": [
+            "cash",
+            "receivable",
+            "inventory",
+            "other_current",
+            "fixed",
+            "payable",
+            "long_term",
+            "operating",
+            "other",
+            "cogs",
+            "non_operating"
+          ],
+          "description": "Must be allowed for the class: asset cash, receivable, inventory, other_current, fixed; liability payable, other_current, long_term; equity none; revenue operating, other; expense cogs, operating, non_operating. An omitted asset or liability subclass is other_current; an omitted revenue or expense subclass is operating."
+        }
+      }
+    },
+    "line": {
+      "type": "object",
+      "required": ["account", "debit", "credit"],
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "$ref": "#/$defs/account"
+        },
+        "debit": {
+          "$ref": "#/$defs/amount"
+        },
+        "credit": {
+          "$ref": "#/$defs/amount"
+        }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "required": ["id", "date", "lines"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$"
+        },
+        "date": {
+          "$ref": "#/$defs/date"
+        },
+        "counterparty": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$",
+          "description": "An identifier, because it is echoed in refs."
+        },
+        "currency": {
+          "type": "string",
+          "description": "When present it must equal the request's currency."
+        },
+        "lines": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "$ref": "#/$defs/line"
+          }
+        }
+      }
+    },
+    "prior_period": {
+      "type": "object",
+      "required": ["period", "journal"],
+      "additionalProperties": false,
+      "properties": {
+        "period": {
+          "$ref": "#/$defs/period"
+        },
+        "journal": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "$ref": "#/$defs/entry"
+          },
+          "description": "Every entry is dated within the prior period."
+        },
+        "currency": {
+          "type": "string",
+          "description": "When present it must equal the request's currency."
+        }
+      }
+    }
+  }
+}

@@ -28,11 +28,14 @@ and tests.
 | :--- | :--- | :--- | :--- | :--- |
 | [Outreach Manager](outreach_manager.md) | `office/outreach_manager` | `0.1.0` | AO | Plans partitioned platform searches and scores exported lead rows. |
 
+## Finance
+
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| [Period Close](period_close.md) | `finance/period_close` | `0.1.0` | AO | Closes a period from a journal into statements, checks and gap notes. |
+
 ## Dev Tools
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | [Upgrade Gate](upgrade_gate.md) | `dev_tools/upgrade_gate` | `0.1.0` | AO | Assesses pinned dependencies against release snapshots: hold, upgrade or test. |
-
-The planned `period_close` skill is tracked in the public roadmap
-and is not a v0.1 registry entry.

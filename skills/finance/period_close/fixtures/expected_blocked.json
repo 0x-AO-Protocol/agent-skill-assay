@@ -1,0 +1,16 @@
+{
+  "status": "error",
+  "error": {
+    "code": "CLOSE_BLOCKED",
+    "detail": {
+      "findings": [
+        {
+          "code": "UNBALANCED_ENTRY",
+          "refs": [
+            "j2"
+          ]
+        }
+      ]
+    }
+  }
+}

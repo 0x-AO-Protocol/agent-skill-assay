@@ -1,0 +1,120 @@
+{
+  "status": "completed",
+  "closed": true,
+  "provisional": false,
+  "trial_balance": [
+    {
+      "account": "receivable",
+      "class": "asset",
+      "opening": "1000.00",
+      "debit": "100.00",
+      "credit": "0",
+      "closing": "1100.00"
+    },
+    {
+      "account": "payable",
+      "class": "liability",
+      "opening": "0",
+      "debit": "0",
+      "credit": "300.50",
+      "closing": "300.50"
+    },
+    {
+      "account": "owner_equity",
+      "class": "equity",
+      "opening": "1000.00",
+      "debit": "0",
+      "credit": "0",
+      "closing": "1000.00"
+    },
+    {
+      "account": "sales",
+      "class": "revenue",
+      "opening": "0",
+      "debit": "0",
+      "credit": "100.00",
+      "closing": "100.00"
+    },
+    {
+      "account": "rent",
+      "class": "expense",
+      "opening": "0",
+      "debit": "300.00",
+      "credit": "0",
+      "closing": "300.00"
+    },
+    {
+      "account": "fees",
+      "class": "expense",
+      "opening": "0",
+      "debit": "0.50",
+      "credit": "0",
+      "closing": "0.50"
+    }
+  ],
+  "income_statement": {
+    "revenue": "100.00",
+    "cogs": null,
+    "gross_profit": null,
+    "expenses": "300.50",
+    "net_income": "-200.50"
+  },
+  "balance_sheet": {
+    "assets": "1100.00",
+    "liabilities": "300.50",
+    "equity_opening": "1000.00",
+    "equity_movements": "0",
+    "net_income": "-200.50",
+    "equity_closing": "799.50",
+    "balanced": true
+  },
+  "cash_flow": {
+    "cash_opening": null,
+    "inflows": null,
+    "outflows": null,
+    "cash_closing": null
+  },
+  "checks": [
+    {
+      "code": "EXPECTED_MISSING",
+      "severity": "warning",
+      "count": 1,
+      "refs": [
+        "rent/demo_landlord"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "code": "EXPECTED_MISSING",
+      "account": "rent",
+      "counterparty": "demo_landlord",
+      "cadence": "quarterly",
+      "last_seen": "2026-03-31",
+      "expected_amount": "500.01",
+      "detail": "seen in 2 of the last 2 periods, absent in this one"
+    }
+  ],
+  "ratios": {
+    "gross_margin": null,
+    "operating_margin": "-2.0000",
+    "net_margin": "-2.0050",
+    "current_ratio": "3.6606",
+    "runway_months": null,
+    "expense_concentration_top1": "0.9983"
+  },
+  "observations": [
+    {
+      "metric": "revenue",
+      "value": "100.00",
+      "as_of": "2026-06-30"
+    },
+    {
+      "metric": "cash_closing",
+      "value": null,
+      "as_of": "2026-06-30"
+    }
+  ],
+  "fired_any": true,
+  "insufficient": true
+}

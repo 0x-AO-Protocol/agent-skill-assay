@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-skill-assay"
-version = "0.1.1"
+version = "0.1.2"
 description = "AO registry and runtime for modular agent skills."
 readme = "README.md"
 authors = [
@@ -76,6 +76,8 @@ bedrock = [
 
 dev_tools = []
 
+finance = []
+
 monitoring = []
 
 office = []
@@ -87,6 +89,8 @@ wellness = [
 ]
 
 dev_tools_upgrade_gate = []
+
+finance_period_close = []
 
 monitoring_business_diagnostic = []
 

@@ -54,6 +54,11 @@ def check() -> int:
             reason = getattr(exc, "problem", None) or type(exc).__name__
             failures.append(f"{bundle}: invalid YAML: {reason}")
             continue
+        except (ValueError, RecursionError) as exc:
+            # Undecodable bytes, values the YAML constructors reject, or nesting
+            # too deep to parse: report the bundle and go on to the next one.
+            failures.append(f"{bundle}: cannot read manifest: {type(exc).__name__}")
+            continue
         manifest = _as_mapping(loaded)
         actual = content_sha256(manifest_path.parent)
         recorded = _as_mapping(manifest.get("provenance")).get("content_sha256")

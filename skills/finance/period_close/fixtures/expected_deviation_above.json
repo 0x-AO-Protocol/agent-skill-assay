@@ -1,0 +1,103 @@
+{
+  "status": "completed",
+  "closed": true,
+  "provisional": false,
+  "trial_balance": [
+    {
+      "account": "cash",
+      "class": "asset",
+      "opening": "4000.00",
+      "debit": "9800.00",
+      "credit": "600.01",
+      "closing": "13199.99"
+    },
+    {
+      "account": "sales",
+      "class": "revenue",
+      "opening": "0",
+      "debit": "0",
+      "credit": "9800.00",
+      "closing": "9800.00"
+    },
+    {
+      "account": "rent",
+      "class": "expense",
+      "opening": "0",
+      "debit": "600.01",
+      "credit": "0",
+      "closing": "600.01"
+    },
+    {
+      "account": "owner_equity",
+      "class": "equity",
+      "opening": "4000.00",
+      "debit": "0",
+      "credit": "0",
+      "closing": "4000.00"
+    }
+  ],
+  "income_statement": {
+    "revenue": "9800.00",
+    "cogs": null,
+    "gross_profit": null,
+    "expenses": "600.01",
+    "net_income": "9199.99"
+  },
+  "balance_sheet": {
+    "assets": "13199.99",
+    "liabilities": "0",
+    "equity_opening": "4000.00",
+    "equity_movements": "0",
+    "net_income": "9199.99",
+    "equity_closing": "13199.99",
+    "balanced": true
+  },
+  "cash_flow": {
+    "cash_opening": "4000.00",
+    "inflows": "9800.00",
+    "outflows": "600.01",
+    "cash_closing": "13199.99"
+  },
+  "checks": [
+    {
+      "code": "AMOUNT_DEVIATION",
+      "severity": "warning",
+      "count": 1,
+      "refs": [
+        "rent/demo_landlord"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "code": "AMOUNT_DEVIATION",
+      "account": "rent",
+      "counterparty": "demo_landlord",
+      "amount": "600.01",
+      "median": "500.00",
+      "deviation": "0.2000"
+    }
+  ],
+  "ratios": {
+    "gross_margin": null,
+    "operating_margin": "0.9388",
+    "net_margin": "0.9388",
+    "current_ratio": null,
+    "runway_months": null,
+    "expense_concentration_top1": "1.0000"
+  },
+  "observations": [
+    {
+      "metric": "revenue",
+      "value": "9800.00",
+      "as_of": "2026-06-30"
+    },
+    {
+      "metric": "cash_closing",
+      "value": "13199.99",
+      "as_of": "2026-06-30"
+    }
+  ],
+  "fired_any": true,
+  "insufficient": true
+}

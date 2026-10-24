@@ -52,6 +52,16 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ],
     ),
     (
+        "period_close_demo.py",
+        [
+            "finance/period_close",
+            "closed:",
+            "CLOSE_BLOCKED",
+            "fail-closed",
+            "Demo complete.",
+        ],
+    ),
+    (
         "upgrade_gate_demo.py",
         [
             "dev_tools/upgrade_gate",

@@ -1,0 +1,446 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/0x-AO-Protocol/agent-skill-assay/skills/finance/period_close/schemas/output.schema.json",
+  "title": "Period close output (v1)",
+  "description": "The three shapes execute() returns: the validate result, the close result, or the error envelope. Every amount is a decimal string with exactly two decimals, or 0; every ratio and deviation a decimal string with exactly four decimals; no binary floating-point value appears.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/validate_result"
+    },
+    {
+      "$ref": "#/$defs/close_result"
+    },
+    {
+      "$ref": "#/$defs/error_envelope"
+    }
+  ],
+  "$defs": {
+    "amount": {
+      "type": "string",
+      "pattern": "^(0|-?(0|[1-9][0-9]*)\\.[0-9]{2})$"
+    },
+    "optional_amount": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/amount"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ratio": {
+      "type": "string",
+      "pattern": "^(0\\.0000|-?(0|[1-9][0-9]*)\\.[0-9]{4})$"
+    },
+    "optional_ratio": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ratio"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "finding_code": {
+      "type": "string",
+      "enum": [
+        "UNBALANCED_ENTRY",
+        "UNMAPPED_ACCOUNT",
+        "ENTRY_OUT_OF_PERIOD",
+        "ENTRY_AFTER_AS_OF",
+        "DUPLICATE_ENTRY_ID",
+        "OPENING_UNBALANCED",
+        "SUSPECTED_DUPLICATE",
+        "ZERO_LINE",
+        "NEGATIVE_CASH",
+        "EXPECTED_MISSING",
+        "AMOUNT_DEVIATION",
+        "UNUSED_ACCOUNT"
+      ]
+    },
+    "finding": {
+      "type": "object",
+      "required": ["code", "severity", "count", "refs"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/finding_code"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["blocking", "warning", "info"]
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Unique and sorted by code point: entry ids, account ids or account/counterparty pairs; empty for OPENING_UNBALANCED."
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      },
+      "description": "One element per code that fired, in registry order."
+    },
+    "validate_result": {
+      "type": "object",
+      "required": ["status", "findings", "blocking"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "completed"
+        },
+        "findings": {
+          "$ref": "#/$defs/findings"
+        },
+        "blocking": {
+          "type": "boolean"
+        }
+      }
+    },
+    "blocking_note": {
+      "type": "object",
+      "required": ["code", "refs"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/finding_code"
+        },
+        "refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "In a soft close, one element per blocking finding, before the gap notes."
+    },
+    "expected_missing_note": {
+      "type": "object",
+      "required": ["code", "account", "counterparty", "cadence", "last_seen", "expected_amount", "detail"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "const": "EXPECTED_MISSING"
+        },
+        "account": {
+          "type": "string"
+        },
+        "counterparty": {
+          "type": "string"
+        },
+        "cadence": {
+          "type": "string",
+          "enum": ["weekly", "monthly", "quarterly", "longer"]
+        },
+        "last_seen": {
+          "$ref": "#/$defs/date"
+        },
+        "expected_amount": {
+          "$ref": "#/$defs/amount"
+        },
+        "detail": {
+          "type": "string",
+          "pattern": "^seen in [0-9]+ of the last [0-9]+ periods, absent in this one$"
+        }
+      }
+    },
+    "amount_deviation_note": {
+      "type": "object",
+      "required": ["code", "account", "counterparty", "amount", "median", "deviation"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "const": "AMOUNT_DEVIATION"
+        },
+        "account": {
+          "type": "string"
+        },
+        "counterparty": {
+          "type": "string"
+        },
+        "amount": {
+          "$ref": "#/$defs/amount"
+        },
+        "median": {
+          "$ref": "#/$defs/amount"
+        },
+        "deviation": {
+          "$ref": "#/$defs/ratio"
+        }
+      }
+    },
+    "trial_balance_row": {
+      "type": "object",
+      "required": ["account", "class", "opening", "debit", "credit", "closing"],
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "type": "string"
+        },
+        "class": {
+          "type": "string",
+          "enum": ["asset", "liability", "equity", "revenue", "expense"]
+        },
+        "opening": {
+          "$ref": "#/$defs/amount"
+        },
+        "debit": {
+          "$ref": "#/$defs/amount"
+        },
+        "credit": {
+          "$ref": "#/$defs/amount"
+        },
+        "closing": {
+          "$ref": "#/$defs/amount"
+        }
+      }
+    },
+    "close_result": {
+      "type": "object",
+      "required": [
+        "status",
+        "closed",
+        "provisional",
+        "trial_balance",
+        "income_statement",
+        "balance_sheet",
+        "cash_flow",
+        "checks",
+        "notes",
+        "ratios",
+        "observations",
+        "fired_any",
+        "insufficient"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "completed"
+        },
+        "closed": {
+          "type": "boolean"
+        },
+        "provisional": {
+          "type": "boolean"
+        },
+        "trial_balance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/trial_balance_row"
+          },
+          "description": "One row per chart account, in chart order."
+        },
+        "income_statement": {
+          "type": "object",
+          "required": ["revenue", "cogs", "gross_profit", "expenses", "net_income"],
+          "additionalProperties": false,
+          "properties": {
+            "revenue": {
+              "$ref": "#/$defs/optional_amount"
+            },
+            "cogs": {
+              "$ref": "#/$defs/optional_amount"
+            },
+            "gross_profit": {
+              "$ref": "#/$defs/optional_amount"
+            },
+            "expenses": {
+              "$ref": "#/$defs/optional_amount"
+            },
+            "net_income": {
+              "$ref": "#/$defs/amount"
+            }
+          }
+        },
+        "balance_sheet": {
+          "type": "object",
+          "required": [
+            "assets",
+            "liabilities",
+            "equity_opening",
+            "equity_movements",
+            "net_income",
+            "equity_closing",
+            "balanced"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "assets": {
+              "$ref": "#/$defs/amount"
+            },
+            "liabilities": {
+              "$ref": "#/$defs/amount"
+            },
+            "equity_opening": {
+              "$ref": "#/$defs/amount"
+            },
+            "equity_movements": {
+              "$ref": "#/$defs/amount"
+            },
+            "net_income": {
+              "$ref": "#/$defs/amount"
+            },
+            "equity_closing": {
+              "$ref": "#/$defs/amount"
+            },
+            "balanced": {
+              "type": "boolean"
+            }
+          }
+        },
+        "cash_flow": {
+          "type": "object",
+          "required": ["cash_opening", "inflows", "outflows", "cash_closing"],
+          "additionalProperties": false,
+          "properties": {
+            "cash_opening": {
+              "$ref": "#/$defs/optional_amount"
+            },
+            "inflows": {
+              "$ref": "#/$defs/optional_amount"
+            },
+            "outflows": {
+              "$ref": "#/$defs/optional_amount"
+            },
+            "cash_closing": {
+              "$ref": "#/$defs/optional_amount"
+            }
+          }
+        },
+        "checks": {
+          "$ref": "#/$defs/findings"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/blocking_note"
+              },
+              {
+                "$ref": "#/$defs/expected_missing_note"
+              },
+              {
+                "$ref": "#/$defs/amount_deviation_note"
+              }
+            ]
+          }
+        },
+        "ratios": {
+          "type": "object",
+          "required": [
+            "gross_margin",
+            "operating_margin",
+            "net_margin",
+            "current_ratio",
+            "runway_months",
+            "expense_concentration_top1"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "gross_margin": {
+              "$ref": "#/$defs/optional_ratio"
+            },
+            "operating_margin": {
+              "$ref": "#/$defs/optional_ratio"
+            },
+            "net_margin": {
+              "$ref": "#/$defs/optional_ratio"
+            },
+            "current_ratio": {
+              "$ref": "#/$defs/optional_ratio"
+            },
+            "runway_months": {
+              "$ref": "#/$defs/optional_ratio"
+            },
+            "expense_concentration_top1": {
+              "$ref": "#/$defs/optional_ratio"
+            }
+          }
+        },
+        "observations": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["metric", "value", "as_of"],
+            "additionalProperties": false,
+            "properties": {
+              "metric": {
+                "type": "string",
+                "enum": ["revenue", "cash_closing"]
+              },
+              "value": {
+                "$ref": "#/$defs/optional_amount"
+              },
+              "as_of": {
+                "$ref": "#/$defs/date"
+              }
+            }
+          },
+          "description": "Exactly revenue then cash_closing; as_of equals period.end."
+        },
+        "fired_any": {
+          "type": "boolean"
+        },
+        "insufficient": {
+          "type": "boolean"
+        }
+      }
+    },
+    "error_envelope": {
+      "type": "object",
+      "required": ["status", "error"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "error"
+        },
+        "error": {
+          "type": "object",
+          "required": ["code", "detail"],
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "type": "string",
+              "enum": [
+                "INVALID_REQUEST",
+                "MISSING_AS_OF",
+                "INVALID_PERIOD",
+                "CLOSE_BEFORE_PERIOD_END",
+                "EMPTY_JOURNAL",
+                "INVALID_AMOUNT",
+                "UNKNOWN_ACCOUNT_CLASS",
+                "UNKNOWN_SUBCLASS",
+                "CURRENCY_MISMATCH",
+                "INVALID_DATE",
+                "CLOSE_BLOCKED",
+                "INTERNAL_ERROR"
+              ]
+            },
+            "detail": {
+              "type": "object",
+              "description": "For CLOSE_BLOCKED exactly {findings: [{code, refs}, ...]}; for every other code an object with at least reason and, where they apply, path, limit and actual (INTERNAL_ERROR: reason and exception). It never echoes input text other than validated ids and dates."
+            }
+          }
+        }
+      }
+    }
+  }
+}
