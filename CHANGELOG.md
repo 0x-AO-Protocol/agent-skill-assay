@@ -8,7 +8,7 @@ The project uses Semantic Versioning. The public fork release line starts at v0.
 
 ### Fixed
 
-- `python scripts/provenance.py --check` also reports a bundle whose `manifest.yaml` cannot be decoded as UTF-8 or cannot be constructed (an impossible date, an integer too long to convert, nesting too deep to parse) as a failure of that bundle, and goes on to the next bundle.
+- `python scripts/provenance.py --check` also reports a bundle whose `manifest.yaml` cannot be read or constructed (bytes that are not valid UTF-8, an impossible date, an integer too long to convert, a tagged value the YAML constructors reject, nesting too deep to parse) as a failure of that bundle, and goes on to the next bundle. A recorded `content_sha256` that is not a string is shown by its type, such as `recorded=<int>`, so that a value Python cannot print, such as a very long hexadecimal integer, no longer stops the check.
 
 ## [0.1.2] - 2026-10-22
 

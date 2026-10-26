@@ -146,6 +146,40 @@ def _schema_failures(error):
     yield ".".join(str(part) for part in path) or "<root>", error.message
 
 
+def _rule_failures(
+    validator, bundle: Path, bundle_id: str, manifest: dict
+) -> list[str]:
+    """Return the failures of one bundle whose manifest is a mapping."""
+    failures: list[str] = []
+    seen: set[tuple[str, str]] = set()
+    for error in validator.iter_errors(manifest):
+        for field, message in _schema_failures(error):
+            if (field, message) in seen:
+                continue
+            seen.add((field, message))
+            failures.append(f"{bundle_id}: {field}: {message}")
+    issuer = manifest.get("issuer")
+    if not isinstance(issuer, dict):
+        issuer = {}
+    if issuer.get("org") != "AO":
+        failures.append(f"{bundle_id}: issuer.org: {issuer.get('org')!r}")
+    if manifest.get("norm_version") != "norms-1.0.0":
+        failures.append(f"{bundle_id}: norm_version: {manifest.get('norm_version')!r}")
+    if manifest.get("economic_effect") != EXPECTED_ECONOMIC_EFFECT:
+        failures.append(f"{bundle_id}: economic_effect: differs from the common text")
+    provenance = manifest.get("provenance")
+    if not isinstance(provenance, dict):
+        provenance = {}
+    recorded = provenance.get("content_sha256")
+    actual = content_sha256(bundle)
+    if recorded != actual:
+        failures.append(
+            f"{bundle_id}: provenance.content_sha256: "
+            f"recorded={recorded!r}, actual={actual}"
+        )
+    return failures
+
+
 def ao_manifest_failures(skills_root: Path) -> list[str]:
     """Return one failure string per violated AO manifest rule under a skills root.
 
@@ -162,43 +196,20 @@ def ao_manifest_failures(skills_root: Path) -> list[str]:
             reason = getattr(exc, "problem", None) or str(exc).splitlines()[0]
             failures.append(f"{bundle_id}: <root>: invalid YAML: {reason}")
             continue
-        except (ValueError, RecursionError) as exc:
+        except Exception as exc:
             name = type(exc).__name__
             failures.append(f"{bundle_id}: <root>: cannot read manifest: {name}")
             continue
         if not isinstance(manifest, dict):
             failures.append(f"{bundle_id}: <root>: not a mapping")
             continue
-        seen: set[tuple[str, str]] = set()
-        for error in validator.iter_errors(manifest):
-            for field, message in _schema_failures(error):
-                if (field, message) in seen:
-                    continue
-                seen.add((field, message))
-                failures.append(f"{bundle_id}: {field}: {message}")
-        issuer = manifest.get("issuer")
-        if not isinstance(issuer, dict):
-            issuer = {}
-        if issuer.get("org") != "AO":
-            failures.append(f"{bundle_id}: issuer.org: {issuer.get('org')!r}")
-        if manifest.get("norm_version") != "norms-1.0.0":
-            failures.append(
-                f"{bundle_id}: norm_version: {manifest.get('norm_version')!r}"
-            )
-        if manifest.get("economic_effect") != EXPECTED_ECONOMIC_EFFECT:
-            failures.append(
-                f"{bundle_id}: economic_effect: differs from the common text"
-            )
-        provenance = manifest.get("provenance")
-        if not isinstance(provenance, dict):
-            provenance = {}
-        recorded = provenance.get("content_sha256")
-        actual = content_sha256(bundle)
-        if recorded != actual:
-            failures.append(
-                f"{bundle_id}: provenance.content_sha256: "
-                f"recorded={recorded!r}, actual={actual}"
-            )
+        try:
+            failures.extend(_rule_failures(validator, bundle, bundle_id, manifest))
+        except Exception as exc:
+            # A value that a failure message cannot show, such as an integer too
+            # long to convert to decimal text: report the bundle and go on.
+            name = type(exc).__name__
+            failures.append(f"{bundle_id}: <root>: cannot check manifest: {name}")
     return failures
 
 
