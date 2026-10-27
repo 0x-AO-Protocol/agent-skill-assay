@@ -146,6 +146,40 @@ def _schema_failures(error):
     yield ".".join(str(part) for part in path) or "<root>", error.message
 
 
+def _rule_failures(
+    validator, bundle: Path, bundle_id: str, manifest: dict
+) -> list[str]:
+    """Return the failures of one bundle whose manifest is a mapping."""
+    failures: list[str] = []
+    seen: set[tuple[str, str]] = set()
+    for error in validator.iter_errors(manifest):
+        for field, message in _schema_failures(error):
+            if (field, message) in seen:
+                continue
+            seen.add((field, message))
+            failures.append(f"{bundle_id}: {field}: {message}")
+    issuer = manifest.get("issuer")
+    if not isinstance(issuer, dict):
+        issuer = {}
+    if issuer.get("org") != "AO":
+        failures.append(f"{bundle_id}: issuer.org: {issuer.get('org')!r}")
+    if manifest.get("norm_version") != "norms-1.0.0":
+        failures.append(f"{bundle_id}: norm_version: {manifest.get('norm_version')!r}")
+    if manifest.get("economic_effect") != EXPECTED_ECONOMIC_EFFECT:
+        failures.append(f"{bundle_id}: economic_effect: differs from the common text")
+    provenance = manifest.get("provenance")
+    if not isinstance(provenance, dict):
+        provenance = {}
+    recorded = provenance.get("content_sha256")
+    actual = content_sha256(bundle)
+    if recorded != actual:
+        failures.append(
+            f"{bundle_id}: provenance.content_sha256: "
+            f"recorded={recorded!r}, actual={actual}"
+        )
+    return failures
+
+
 def ao_manifest_failures(skills_root: Path) -> list[str]:
     """Return one failure string per violated AO manifest rule under a skills root.
 
@@ -162,43 +196,20 @@ def ao_manifest_failures(skills_root: Path) -> list[str]:
             reason = getattr(exc, "problem", None) or str(exc).splitlines()[0]
             failures.append(f"{bundle_id}: <root>: invalid YAML: {reason}")
             continue
-        except (ValueError, RecursionError) as exc:
+        except Exception as exc:
             name = type(exc).__name__
             failures.append(f"{bundle_id}: <root>: cannot read manifest: {name}")
             continue
         if not isinstance(manifest, dict):
             failures.append(f"{bundle_id}: <root>: not a mapping")
             continue
-        seen: set[tuple[str, str]] = set()
-        for error in validator.iter_errors(manifest):
-            for field, message in _schema_failures(error):
-                if (field, message) in seen:
-                    continue
-                seen.add((field, message))
-                failures.append(f"{bundle_id}: {field}: {message}")
-        issuer = manifest.get("issuer")
-        if not isinstance(issuer, dict):
-            issuer = {}
-        if issuer.get("org") != "AO":
-            failures.append(f"{bundle_id}: issuer.org: {issuer.get('org')!r}")
-        if manifest.get("norm_version") != "norms-1.0.0":
-            failures.append(
-                f"{bundle_id}: norm_version: {manifest.get('norm_version')!r}"
-            )
-        if manifest.get("economic_effect") != EXPECTED_ECONOMIC_EFFECT:
-            failures.append(
-                f"{bundle_id}: economic_effect: differs from the common text"
-            )
-        provenance = manifest.get("provenance")
-        if not isinstance(provenance, dict):
-            provenance = {}
-        recorded = provenance.get("content_sha256")
-        actual = content_sha256(bundle)
-        if recorded != actual:
-            failures.append(
-                f"{bundle_id}: provenance.content_sha256: "
-                f"recorded={recorded!r}, actual={actual}"
-            )
+        try:
+            failures.extend(_rule_failures(validator, bundle, bundle_id, manifest))
+        except Exception as exc:
+            # A value that a failure message cannot show, such as an integer too
+            # long to convert to decimal text: report the bundle and go on.
+            name = type(exc).__name__
+            failures.append(f"{bundle_id}: <root>: cannot check manifest: {name}")
     return failures
 
 
@@ -442,6 +453,9 @@ def test_ao_contract_check_reports_a_manifest_that_is_not_a_mapping(tmp_path, te
             b"x: " + b"{a: " * 1500 + b"1" + b"}" * 1500 + b"\n", id="deep-nesting"
         ),
         pytest.param(b"name: \xff\n", id="invalid-utf8"),
+        pytest.param(b"x: !!timestamp nope\n", id="tagged-timestamp"),
+        pytest.param(b"x: !!bool nope\n", id="tagged-bool"),
+        pytest.param(b"x: !!int ''\n", id="tagged-int-empty"),
     ],
 )
 def test_ao_contract_check_reports_a_manifest_it_cannot_read(tmp_path, data):
@@ -451,6 +465,32 @@ def test_ao_contract_check_reports_a_manifest_it_cannot_read(tmp_path, data):
     failures = ao_manifest_failures(skills_root)
     expected = "category/skill_name: <root>: cannot read manifest: "
     assert any(failure.startswith(expected) for failure in failures), failures
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        pytest.param(
+            "provenance:\n  content_sha256: 0x" + "f" * 4000 + "\n",
+            id="long-hex-content-sha256",
+        ),
+        pytest.param(
+            "issuer:\n  org: 0x" + "f" * 4000 + "\n", id="long-hex-issuer-org"
+        ),
+        pytest.param(
+            "norm_version: 0b" + "1" * 15000 + "\n", id="long-binary-norm-version"
+        ),
+    ],
+)
+def test_ao_contract_check_reports_a_manifest_it_cannot_check(tmp_path, text):
+    skills_root = tmp_path / "skills"
+    _repository_anchored_manifest(skills_root)
+    (skills_root / "category" / "skill_name" / "manifest.yaml").write_text(
+        text, encoding="utf-8"
+    )
+    assert ao_manifest_failures(skills_root) == [
+        "category/skill_name: <root>: cannot check manifest: ValueError"
+    ]
 
 
 def test_archive_form_is_used_only_by_the_pinned_bundles():
@@ -562,6 +602,21 @@ def test_provenance_check_passes_a_valid_bundle(tmp_path, monkeypatch, capsys):
             "cannot read manifest: UnicodeDecodeError",
             id="invalid-utf8",
         ),
+        pytest.param(
+            "x: !!timestamp nope\n",
+            "cannot read manifest: AttributeError",
+            id="tagged-timestamp",
+        ),
+        pytest.param(
+            "x: !!bool nope\n",
+            "cannot read manifest: KeyError",
+            id="tagged-bool",
+        ),
+        pytest.param(
+            "x: !!int ''\n",
+            "cannot read manifest: IndexError",
+            id="tagged-int-empty",
+        ),
     ],
 )
 def test_provenance_check_reports_a_manifest_it_cannot_read(
@@ -598,13 +653,24 @@ def test_provenance_check_reports_every_bundle_it_cannot_read(
     assert len(lines) == 3
 
 
+@pytest.mark.parametrize(
+    ("text", "name"),
+    [
+        pytest.param(
+            "provenance:\n  authored_on: 2026-02-30\n",
+            "ValueError",
+            id="impossible-date",
+        ),
+        pytest.param("x: !!timestamp nope\n", "AttributeError", id="tagged-timestamp"),
+    ],
+)
 def test_provenance_check_goes_on_after_a_manifest_it_cannot_construct(
-    tmp_path, monkeypatch, capsys
+    tmp_path, monkeypatch, capsys, text, name
 ):
     skills_root = tmp_path / "skills"
     _repository_anchored_manifest(skills_root)
     (skills_root / "category" / "skill_name" / "manifest.yaml").write_text(
-        "provenance:\n  authored_on: 2026-02-30\n", encoding="utf-8"
+        text, encoding="utf-8"
     )
     other = skills_root / "category" / "other_skill"
     other.mkdir()
@@ -614,7 +680,43 @@ def test_provenance_check_goes_on_after_a_manifest_it_cannot_construct(
     lines = capsys.readouterr().out.splitlines()
     assert lines[0] == "Provenance check failed:"
     assert lines[1].startswith("  - skills/category/other_skill: recorded=None, ")
-    assert lines[2] == (
-        "  - skills/category/skill_name: cannot read manifest: ValueError"
+    assert lines[2] == f"  - skills/category/skill_name: cannot read manifest: {name}"
+    assert len(lines) == 3
+
+
+@pytest.mark.parametrize(
+    ("text", "shown"),
+    [
+        pytest.param(
+            "provenance:\n  content_sha256: 0x" + "f" * 4000 + "\n",
+            "<int>",
+            id="long-hex-integer",
+        ),
+        pytest.param("provenance:\n  content_sha256: 5\n", "<int>", id="integer"),
+        pytest.param("provenance:\n  content_sha256: [a]\n", "<list>", id="list"),
+        pytest.param(
+            "provenance:\n  content_sha256: 2026-01-01\n", "<date>", id="date"
+        ),
+        pytest.param("provenance:\n  content_sha256: stale\n", "'stale'", id="string"),
+    ],
+)
+def test_provenance_check_shows_a_recorded_value_that_is_not_a_string_by_its_type(
+    tmp_path, monkeypatch, capsys, text, shown
+):
+    skills_root = tmp_path / "skills"
+    _repository_anchored_manifest(skills_root)
+    (skills_root / "category" / "skill_name" / "manifest.yaml").write_text(
+        text, encoding="utf-8"
     )
+    other = skills_root / "category" / "other_skill"
+    other.mkdir()
+    (other / "skill.py").write_text("VALUE = 1\n", encoding="utf-8")
+    (other / "manifest.yaml").write_text("provenance: repository\n", encoding="utf-8")
+    assert _run_provenance_check(monkeypatch, skills_root) == 1
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[0] == "Provenance check failed:"
+    assert lines[1].startswith("  - skills/category/other_skill: recorded=None, ")
+    assert lines[2].startswith(
+        f"  - skills/category/skill_name: recorded={shown}, actual="
+    ), lines
     assert len(lines) == 3
