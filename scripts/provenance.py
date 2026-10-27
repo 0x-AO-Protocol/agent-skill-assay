@@ -44,6 +44,18 @@ def _as_mapping(value: object) -> dict:
     return value if isinstance(value, dict) else {}
 
 
+def _shown(value: object) -> str:
+    """Return a recorded value as the report shows it.
+
+    A string or None is shown with repr(). Any other value cannot be a content hash
+    and is shown by its type only: some values, such as an integer too long to
+    convert to decimal text, cannot be printed at all.
+    """
+    if value is None or isinstance(value, str):
+        return repr(value)
+    return f"<{type(value).__name__}>"
+
+
 def check() -> int:
     failures: list[str] = []
     for manifest_path in manifest_paths():
@@ -54,16 +66,17 @@ def check() -> int:
             reason = getattr(exc, "problem", None) or type(exc).__name__
             failures.append(f"{bundle}: invalid YAML: {reason}")
             continue
-        except (ValueError, RecursionError) as exc:
-            # Undecodable bytes, values the YAML constructors reject, or nesting
-            # too deep to parse: report the bundle and go on to the next one.
+        except Exception as exc:
+            # Undecodable bytes, a value the YAML constructors reject, nesting too
+            # deep to parse, or any other failure while reading the manifest:
+            # report the bundle and go on to the next one.
             failures.append(f"{bundle}: cannot read manifest: {type(exc).__name__}")
             continue
         manifest = _as_mapping(loaded)
         actual = content_sha256(manifest_path.parent)
         recorded = _as_mapping(manifest.get("provenance")).get("content_sha256")
         if recorded != actual:
-            failures.append(f"{bundle}: recorded={recorded!r}, actual={actual}")
+            failures.append(f"{bundle}: recorded={_shown(recorded)}, actual={actual}")
     if failures:
         print("Provenance check failed:")
         print("\n".join(f"  - {failure}" for failure in failures))
