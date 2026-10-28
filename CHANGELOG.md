@@ -6,6 +6,8 @@ The project uses Semantic Versioning. The public fork release line starts at v0.
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-28
+
 ### Added
 
 - `dev_tools/upgrade_gate`: `digest` summarises host-supplied repository events since a date, with version jumps, breaking terms and commits touching paths of interest; `assess` gives each pinned dependency a verdict, `hold`, `upgrade`, `test` or `unknown`, with a target and reason codes from eight ordered rules. It never fetches; `pypi` and `npm` only, with its own version comparator; offline and deterministic.
