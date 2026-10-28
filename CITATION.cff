@@ -8,8 +8,8 @@ abstract: >-
   Agent Skill Assay is an AO registry and Python runtime for modular,
   self-contained agent skill bundles with deterministic execute()
   implementations, manifests, safety constraints, and host adapters.
-version: "0.1.2"
-date-released: "2026-10-22"
+version: "0.1.3"
+date-released: "2026-10-28"
 license: MIT
 repository-code: "https://github.com/0x-AO-Protocol/agent-skill-assay"
 url: "https://github.com/0x-AO-Protocol/agent-skill-assay"
