@@ -174,3 +174,4 @@ skills in one harness.
 | `monitoring/business_diagnostic` | `business_diagnostic_demo.py` | `gemini_business_diagnostic.py` | `claude_business_diagnostic.py` | (catalog page) | (catalog page) | (catalog page) |
 | `office/outreach_manager` | `outreach_manager_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `finance/period_close` | `period_close_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `dev_tools/upgrade_gate` | `upgrade_gate_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |

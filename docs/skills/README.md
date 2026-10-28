@@ -34,5 +34,8 @@ and tests.
 | :--- | :--- | :--- | :--- | :--- |
 | [Period Close](period_close.md) | `finance/period_close` | `0.1.0` | AO | Closes a period from a journal into statements, checks and gap notes. |
 
-The planned `upgrade_gate` skill is tracked in the public roadmap
-and is not a v0.1 registry entry.
+## Dev Tools
+
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| [Upgrade Gate](upgrade_gate.md) | `dev_tools/upgrade_gate` | `0.1.0` | AO | Assesses pinned dependencies against release snapshots: hold, upgrade or test. |

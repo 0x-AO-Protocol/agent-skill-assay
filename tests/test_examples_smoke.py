@@ -61,6 +61,16 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
             "Demo complete.",
         ],
     ),
+    (
+        "upgrade_gate_demo.py",
+        [
+            "dev_tools/upgrade_gate",
+            "verdict:",
+            "notable:",
+            "fail-closed",
+            "Demo complete.",
+        ],
+    ),
 ]
 
 

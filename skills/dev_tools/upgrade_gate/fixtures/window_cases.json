@@ -1,0 +1,731 @@
+{
+  "description": "Named digest cases at both ends of the window and for the ordering rules, each with its input and its exact expected output.",
+  "cases": [
+    {
+      "name": "event_at_the_first_second_of_the_window",
+      "params": {
+        "action": "digest",
+        "as_of": "2026-09-12",
+        "since": "2026-09-05",
+        "watched": [
+          {
+            "repo": "demo/kit",
+            "events": [
+              {
+                "type": "release",
+                "id": "r1",
+                "at": "2026-09-05T00:00:00Z",
+                "title": "v1.5.0"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "window": {
+          "since": "2026-09-05",
+          "as_of": "2026-09-12"
+        },
+        "per_repo": [
+          {
+            "repo": "demo/kit",
+            "counts": {
+              "release": 1,
+              "tag": 0,
+              "commit": 0
+            },
+            "version_jumps": [],
+            "breaking_hits": [],
+            "path_hits": [],
+            "notable": [],
+            "dropped_before_since": 0,
+            "unparsed_versions": 0
+          }
+        ],
+        "fired_any": false,
+        "insufficient": false
+      }
+    },
+    {
+      "name": "event_one_second_before_the_window",
+      "params": {
+        "action": "digest",
+        "as_of": "2026-09-12",
+        "since": "2026-09-05",
+        "watched": [
+          {
+            "repo": "demo/kit",
+            "events": [
+              {
+                "type": "release",
+                "id": "r1",
+                "at": "2026-09-04T23:59:59Z",
+                "title": "v1.5.0"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "window": {
+          "since": "2026-09-05",
+          "as_of": "2026-09-12"
+        },
+        "per_repo": [
+          {
+            "repo": "demo/kit",
+            "counts": {
+              "release": 0,
+              "tag": 0,
+              "commit": 0
+            },
+            "version_jumps": [],
+            "breaking_hits": [],
+            "path_hits": [],
+            "notable": [],
+            "dropped_before_since": 1,
+            "unparsed_versions": 0
+          }
+        ],
+        "fired_any": false,
+        "insufficient": false
+      }
+    },
+    {
+      "name": "event_at_the_last_second_of_the_window",
+      "params": {
+        "action": "digest",
+        "as_of": "2026-09-12",
+        "since": "2026-09-05",
+        "watched": [
+          {
+            "repo": "demo/kit",
+            "events": [
+              {
+                "type": "release",
+                "id": "r1",
+                "at": "2026-09-12T23:59:59Z",
+                "title": "v1.5.0"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "window": {
+          "since": "2026-09-05",
+          "as_of": "2026-09-12"
+        },
+        "per_repo": [
+          {
+            "repo": "demo/kit",
+            "counts": {
+              "release": 1,
+              "tag": 0,
+              "commit": 0
+            },
+            "version_jumps": [],
+            "breaking_hits": [],
+            "path_hits": [],
+            "notable": [],
+            "dropped_before_since": 0,
+            "unparsed_versions": 0
+          }
+        ],
+        "fired_any": false,
+        "insufficient": false
+      }
+    },
+    {
+      "name": "event_one_second_after_the_window",
+      "params": {
+        "action": "digest",
+        "as_of": "2026-09-12",
+        "since": "2026-09-05",
+        "watched": [
+          {
+            "repo": "demo/kit",
+            "events": [
+              {
+                "type": "release",
+                "id": "r1",
+                "at": "2026-09-13T00:00:00Z",
+                "title": "v1.5.0"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "status": "error",
+        "error": {
+          "code": "FUTURE_EVENT",
+          "detail": {
+            "event_id": "r1",
+            "at": "2026-09-13T00:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "name": "window_of_one_day",
+      "params": {
+        "action": "digest",
+        "as_of": "2026-09-12",
+        "since": "2026-09-12",
+        "watched": [
+          {
+            "repo": "demo/kit",
+            "events": [
+              {
+                "type": "commit",
+                "id": "c1",
+                "at": "2026-09-12T00:00:00Z"
+              },
+              {
+                "type": "commit",
+                "id": "c0",
+                "at": "2026-09-11T23:59:59Z"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "window": {
+          "since": "2026-09-12",
+          "as_of": "2026-09-12"
+        },
+        "per_repo": [
+          {
+            "repo": "demo/kit",
+            "counts": {
+              "release": 0,
+              "tag": 0,
+              "commit": 1
+            },
+            "version_jumps": [],
+            "breaking_hits": [],
+            "path_hits": [],
+            "notable": [],
+            "dropped_before_since": 1,
+            "unparsed_versions": 0
+          }
+        ],
+        "fired_any": false,
+        "insufficient": false
+      }
+    },
+    {
+      "name": "baseline_from_the_latest_dropped_version",
+      "params": {
+        "action": "digest",
+        "as_of": "2026-09-12",
+        "since": "2026-09-05",
+        "watched": [
+          {
+            "repo": "demo/kit",
+            "events": [
+              {
+                "type": "release",
+                "id": "r0",
+                "at": "2026-09-01T10:00:00Z",
+                "title": "v1.3.0"
+              },
+              {
+                "type": "tag",
+                "id": "t0",
+                "at": "2026-09-02T10:00:00Z",
+                "title": "1.4.0"
+              },
+              {
+                "type": "release",
+                "id": "r1",
+                "at": "2026-09-07T10:00:00Z",
+                "title": "v1.5.0"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "window": {
+          "since": "2026-09-05",
+          "as_of": "2026-09-12"
+        },
+        "per_repo": [
+          {
+            "repo": "demo/kit",
+            "counts": {
+              "release": 1,
+              "tag": 0,
+              "commit": 0
+            },
+            "version_jumps": [
+              {
+                "from": "1.4.0",
+                "to": "1.5.0",
+                "kind": "minor"
+              }
+            ],
+            "breaking_hits": [],
+            "path_hits": [],
+            "notable": [
+              "r1"
+            ],
+            "dropped_before_since": 2,
+            "unparsed_versions": 0
+          }
+        ],
+        "fired_any": true,
+        "insufficient": false
+      }
+    },
+    {
+      "name": "no_baseline_gives_no_first_jump",
+      "params": {
+        "action": "digest",
+        "as_of": "2026-09-12",
+        "since": "2026-09-05",
+        "watched": [
+          {
+            "repo": "demo/kit",
+            "events": [
+              {
+                "type": "release",
+                "id": "r1",
+                "at": "2026-09-07T10:00:00Z",
+                "title": "v1.5.0"
+              },
+              {
+                "type": "release",
+                "id": "r2",
+                "at": "2026-09-08T10:00:00Z",
+                "title": "v2.0.0"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "window": {
+          "since": "2026-09-05",
+          "as_of": "2026-09-12"
+        },
+        "per_repo": [
+          {
+            "repo": "demo/kit",
+            "counts": {
+              "release": 2,
+              "tag": 0,
+              "commit": 0
+            },
+            "version_jumps": [
+              {
+                "from": "1.5.0",
+                "to": "2.0.0",
+                "kind": "major"
+              }
+            ],
+            "breaking_hits": [],
+            "path_hits": [],
+            "notable": [
+              "r2"
+            ],
+            "dropped_before_since": 0,
+            "unparsed_versions": 0
+          }
+        ],
+        "fired_any": true,
+        "insufficient": false
+      }
+    },
+    {
+      "name": "jump_kinds",
+      "params": {
+        "action": "digest",
+        "as_of": "2026-09-12",
+        "since": "2026-09-05",
+        "watched": [
+          {
+            "repo": "demo/kit",
+            "events": [
+              {
+                "type": "release",
+                "id": "r0",
+                "at": "2026-09-01T10:00:00Z",
+                "title": "v1.4.0"
+              },
+              {
+                "type": "release",
+                "id": "r1",
+                "at": "2026-09-06T10:00:00Z",
+                "title": "v1.4.1"
+              },
+              {
+                "type": "release",
+                "id": "r2",
+                "at": "2026-09-07T10:00:00Z",
+                "title": "v1.5.0"
+              },
+              {
+                "type": "release",
+                "id": "r3",
+                "at": "2026-09-08T10:00:00Z",
+                "title": "v2.0.0-rc.1"
+              },
+              {
+                "type": "release",
+                "id": "r4",
+                "at": "2026-09-09T10:00:00Z",
+                "title": "v2.0.0"
+              },
+              {
+                "type": "release",
+                "id": "r5",
+                "at": "2026-09-10T10:00:00Z",
+                "title": "v1.9.0"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "window": {
+          "since": "2026-09-05",
+          "as_of": "2026-09-12"
+        },
+        "per_repo": [
+          {
+            "repo": "demo/kit",
+            "counts": {
+              "release": 5,
+              "tag": 0,
+              "commit": 0
+            },
+            "version_jumps": [
+              {
+                "from": "1.4.0",
+                "to": "1.4.1",
+                "kind": "patch"
+              },
+              {
+                "from": "1.4.1",
+                "to": "1.5.0",
+                "kind": "minor"
+              },
+              {
+                "from": "1.5.0",
+                "to": "2.0.0-rc.1",
+                "kind": "major"
+              },
+              {
+                "from": "2.0.0-rc.1",
+                "to": "2.0.0",
+                "kind": "prerelease"
+              },
+              {
+                "from": "2.0.0",
+                "to": "1.9.0",
+                "kind": "downgrade"
+              }
+            ],
+            "breaking_hits": [],
+            "path_hits": [],
+            "notable": [
+              "r2",
+              "r3",
+              "r5"
+            ],
+            "dropped_before_since": 1,
+            "unparsed_versions": 0
+          }
+        ],
+        "fired_any": true,
+        "insufficient": false
+      }
+    },
+    {
+      "name": "duplicate_and_unparsed_titles",
+      "params": {
+        "action": "digest",
+        "as_of": "2026-09-12",
+        "since": "2026-09-05",
+        "watched": [
+          {
+            "repo": "demo/kit",
+            "events": [
+              {
+                "type": "release",
+                "id": "r1",
+                "at": "2026-09-07T10:00:00Z",
+                "title": "v1.5.0"
+              },
+              {
+                "type": "tag",
+                "id": "t1",
+                "at": "2026-09-07T10:00:00Z",
+                "title": "1.5.0+build.7"
+              },
+              {
+                "type": "release",
+                "id": "r2",
+                "at": "2026-09-08T10:00:00Z",
+                "title": "Release 1.5.1"
+              },
+              {
+                "type": "tag",
+                "id": "t2",
+                "at": "2026-09-09T10:00:00Z"
+              },
+              {
+                "type": "commit",
+                "id": "c1",
+                "at": "2026-09-10T10:00:00Z",
+                "title": "v9.9.9"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "status": "completed",
+        "window": {
+          "since": "2026-09-05",
+          "as_of": "2026-09-12"
+        },
+        "per_repo": [
+          {
+            "repo": "demo/kit",
+            "counts": {
+              "release": 2,
+              "tag": 2,
+              "commit": 1
+            },
+            "version_jumps": [],
+            "breaking_hits": [],
+            "path_hits": [],
+            "notable": [],
+            "dropped_before_since": 0,
+            "unparsed_versions": 2
+          }
+        ],
+        "fired_any": false,
+        "insufficient": true
+      }
+    },
+    {
+      "name": "breaking_hits_and_path_hits_ordering",
+      "params": {
+        "action": "digest",
+        "as_of": "2026-09-12",
+        "since": "2026-09-05",
+        "watched": [
+          {
+            "repo": "demo/kit",
+            "events": [
+              {
+                "type": "commit",
+                "id": "c2",
+                "at": "2026-09-09T08:00:00Z",
+                "title": "Dropped and REMOVED and dropped",
+                "paths": [
+                  "src/b.py",
+                  "docs/x.md"
+                ]
+              },
+              {
+                "type": "commit",
+                "id": "c1",
+                "at": "2026-09-09T08:00:00Z",
+                "title": "incompatible change",
+                "paths": [
+                  "src/a.py"
+                ]
+              },
+              {
+                "type": "release",
+                "id": "r1",
+                "at": "2026-09-10T08:00:00Z",
+                "title": "Breaking: v2",
+                "paths": [
+                  "src/z.py"
+                ]
+              },
+              {
+                "type": "commit",
+                "id": "c3",
+                "at": "2026-09-11T08:00:00Z",
+                "paths": [
+                  "lib/a.py",
+                  "src/c.py"
+                ]
+              }
+            ]
+          }
+        ],
+        "policy": {
+          "paths_of_interest": [
+            "src/*.py",
+            "docs/**",
+            "src/*.py",
+            "lib/*"
+          ]
+        }
+      },
+      "expected": {
+        "status": "completed",
+        "window": {
+          "since": "2026-09-05",
+          "as_of": "2026-09-12"
+        },
+        "per_repo": [
+          {
+            "repo": "demo/kit",
+            "counts": {
+              "release": 1,
+              "tag": 0,
+              "commit": 3
+            },
+            "version_jumps": [],
+            "breaking_hits": [
+              {
+                "event_id": "c1",
+                "term": "INCOMPATIBLE"
+              },
+              {
+                "event_id": "c2",
+                "term": "REMOVED"
+              },
+              {
+                "event_id": "c2",
+                "term": "DROPPED"
+              },
+              {
+                "event_id": "r1",
+                "term": "BREAKING"
+              }
+            ],
+            "path_hits": [
+              {
+                "event_id": "c1",
+                "pattern": "src/*.py"
+              },
+              {
+                "event_id": "c2",
+                "pattern": "src/*.py"
+              },
+              {
+                "event_id": "c2",
+                "pattern": "docs/**"
+              },
+              {
+                "event_id": "c3",
+                "pattern": "src/*.py"
+              },
+              {
+                "event_id": "c3",
+                "pattern": "lib/*"
+              }
+            ],
+            "notable": [
+              "c1",
+              "c2",
+              "r1",
+              "c3"
+            ],
+            "dropped_before_since": 0,
+            "unparsed_versions": 1
+          }
+        ],
+        "fired_any": true,
+        "insufficient": true
+      }
+    },
+    {
+      "name": "repositories_follow_watched_order",
+      "params": {
+        "action": "digest",
+        "as_of": "2026-09-12",
+        "since": "2026-09-05",
+        "watched": [
+          {
+            "repo": "demo/zeta",
+            "events": [
+              {
+                "type": "commit",
+                "id": "c1",
+                "at": "2026-09-06T00:00:00Z",
+                "paths": [
+                  "a"
+                ]
+              }
+            ]
+          },
+          {
+            "repo": "demo/alpha",
+            "events": []
+          }
+        ],
+        "policy": {
+          "paths_of_interest": [
+            "?"
+          ]
+        }
+      },
+      "expected": {
+        "status": "completed",
+        "window": {
+          "since": "2026-09-05",
+          "as_of": "2026-09-12"
+        },
+        "per_repo": [
+          {
+            "repo": "demo/zeta",
+            "counts": {
+              "release": 0,
+              "tag": 0,
+              "commit": 1
+            },
+            "version_jumps": [],
+            "breaking_hits": [],
+            "path_hits": [
+              {
+                "event_id": "c1",
+                "pattern": "?"
+              }
+            ],
+            "notable": [
+              "c1"
+            ],
+            "dropped_before_since": 0,
+            "unparsed_versions": 0
+          },
+          {
+            "repo": "demo/alpha",
+            "counts": {
+              "release": 0,
+              "tag": 0,
+              "commit": 0
+            },
+            "version_jumps": [],
+            "breaking_hits": [],
+            "path_hits": [],
+            "notable": [],
+            "dropped_before_since": 0,
+            "unparsed_versions": 0
+          }
+        ],
+        "fired_any": true,
+        "insufficient": false
+      }
+    }
+  ]
+}

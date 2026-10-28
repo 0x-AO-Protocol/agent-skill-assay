@@ -1,0 +1,15 @@
+{
+  "status": "completed",
+  "results": [
+    {"name": "demo_http", "ecosystem": "pypi", "current": "2.3.1", "latest": "3.0.0", "latest_compatible": "2.3.4",
+     "drift": {"major": 1, "minor": 0, "patch": 3}, "verdict": "upgrade", "target": "2.3.4",
+     "reasons": ["PATCH_AVAILABLE", "MIN_AGE_MET"],
+     "signals": {"breaking_terms": ["BREAKING"], "yanked_skipped": 0, "advisory": false, "major_available": true}},
+    {"name": "demo_yaml", "ecosystem": "npm", "current": "1.0.0", "latest": null, "latest_compatible": null,
+     "drift": null, "verdict": "unknown", "target": null, "reasons": ["NO_RELEASE_SNAPSHOT"], "signals": null}
+  ],
+  "summary": {"hold": 0, "upgrade": 1, "test": 0, "unknown": 1},
+  "fired_any": true,
+  "insufficient": true,
+  "stale_snapshot": false
+}

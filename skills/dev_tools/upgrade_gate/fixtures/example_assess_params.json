@@ -1,0 +1,15 @@
+{
+  "action": "assess",
+  "as_of": "2026-09-12",
+  "snapshot_at": "2026-09-11T02:00:00Z",
+  "dependencies": [
+    {"name": "demo_http", "ecosystem": "pypi", "current": "2.3.1", "range": ">=2.3,<3"},
+    {"name": "demo_yaml", "ecosystem": "npm", "current": "1.0.0", "range": "^1.0"}
+  ],
+  "releases": [
+    {"name": "demo_http", "ecosystem": "pypi", "versions": [
+      {"version": "2.3.4", "published_at": "2026-09-01T00:00:00Z"},
+      {"version": "3.0.0", "published_at": "2026-09-08T00:00:00Z", "notes": "BREAKING: client() signature changed"}]}
+  ],
+  "policy": {"allow_major": false, "allow_prerelease": false, "min_age_days": 3, "max_snapshot_age_days": 7}
+}

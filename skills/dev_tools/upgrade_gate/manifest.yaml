@@ -1,0 +1,136 @@
+name: dev_tools/upgrade_gate
+version: 0.1.0
+description: >
+  Deterministic upgrade gate for pinned dependencies. digest summarises
+  host-supplied repository events (release, tag, commit) inside a window:
+  counts by type, version jumps read from release and tag titles, breaking
+  terms found in titles, and commits touching paths of interest. assess gives
+  every pinned dependency a verdict, hold, upgrade, test or unknown, with a
+  target and reason codes decided by eight ordered rules over a release
+  snapshot and optional advisories. pypi and npm only, with the skill's own
+  version comparator (semver 2.0.0 and a canonical PEP 440 subset). The skill
+  never fetches; the host supplies manifests, snapshots, advisories and
+  events. Closed error registry and fail-closed contract errors; no network,
+  no clock, no file write; identical input always returns identical output.
+  The verdicts are advice to the operator and the agent and block nothing.
+short_description: "Assess pinned dependencies against release snapshots: hold, upgrade or test. Use for the weekly dependency check."
+issuer:
+  name: Masa
+  email: masa88keith@gmail.com
+  github: mrmasa88
+  org: AO
+trust_tier: L0
+provenance:
+  anchor: repository
+  content_sha256: "664c28618558c3b77d45cafcd9feed15a881726b02f76563a300928c66385867"
+  authored_on: "2026-10-20"
+economic_effect:
+  claim: "Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption."
+  baseline_task: "The same task performed by an LLM agent without this skill (prompt-only)."
+  metric: "LLM tokens (input + output) per task run."
+  method: "Run the skill's reference fixtures through (a) the baseline agent and (b) the same agent calling the skill; publish the median tokens per run for both and the reduction."
+norm_version: norms-1.0.0
+category: dev_tools
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      enum: [digest, assess]
+      description: >-
+        digest summarises host-supplied repository events since a date;
+        assess gives each pinned dependency a verdict against a release
+        snapshot.
+    as_of:
+      type: string
+      description: >-
+        Required by both actions: the evaluation date, YYYY-MM-DD. Time
+        enters the skill only through the inputs.
+    snapshot_at:
+      type: string
+      description: >-
+        assess input: when the release snapshot was taken,
+        YYYY-MM-DDTHH:MM:SSZ, not after the end of as_of.
+    since:
+      type: string
+      description: >-
+        digest input: the first day of the window, YYYY-MM-DD, not after
+        as_of.
+    policy:
+      type: object
+      description: >-
+        assess: allow_major, allow_prerelease (booleans), min_age_days,
+        max_snapshot_age_days (integers 0 to 3650) and the optional boolean
+        strict. digest: the optional list paths_of_interest of path patterns.
+    dependencies:
+      type: array
+      description: >-
+        assess input: pinned dependencies, each an object with name,
+        ecosystem (pypi or npm), current and range.
+    releases:
+      type: array
+      description: >-
+        assess input: release snapshot entries, each with name, ecosystem
+        and versions (version, published_at, optional yanked and notes).
+    advisories:
+      type: array
+      description: >-
+        assess input, optional: advisories, each with id, name, ecosystem
+        and the affected range.
+    watched:
+      type: array
+      description: >-
+        digest input: watched repositories, each with repo and its events
+        (type, id, at, optional title and paths).
+  required:
+    - action
+  additionalProperties: false
+outputs:
+  status:
+    type: string
+    description: completed for a successful run; error for a contract violation.
+  results:
+    type: array
+    description: >
+      assess result: one element per dependency, in dependency order, with
+      name, ecosystem, current, latest, latest_compatible, drift, verdict,
+      target, reasons and signals.
+  summary:
+    type: object
+    description: >
+      assess result: the counts of hold, upgrade, test and unknown verdicts.
+  window:
+    type: object
+    description: >
+      digest result: the window as since and as_of.
+  per_repo:
+    type: array
+    description: >
+      digest result: one element per watched repository with repo, counts,
+      version_jumps, breaking_hits, path_hits, notable, dropped_before_since
+      and unparsed_versions.
+  fired_any:
+    type: boolean
+    description: >
+      assess: any verdict is upgrade or test. digest: any repository has a
+      notable event.
+  insufficient:
+    type: boolean
+    description: >
+      assess: any verdict is unknown. digest: any repository has a release or
+      tag title that does not parse as a version.
+  stale_snapshot:
+    type: boolean
+    description: >
+      assess result: as_of minus the date of snapshot_at exceeds
+      max_snapshot_age_days. A flag only; verdicts are still computed.
+requirements: []
+constitution: |
+  1. Advise only - the verdicts are advice to the operator and the agent; the skill blocks nothing, installs nothing and opens no pull request.
+  2. Never fetch - the host supplies manifests, release snapshots, advisories and events; the skill contacts no registry and no repository.
+  3. Deterministic, offline core - no network, no clock and no file write in execute(); identical input returns identical output.
+  4. No free-text echo - release notes, event titles and paths are untrusted data; outputs carry ids, versions, counts, operator patterns and matched fixed terms only.
+  5. Fail closed - an unsupported version, range or pattern, an event after as_of or any other contract violation is an error from the closed registry, never a guess.
+presentation:
+  icon: package
+  color: "#1d4ed8"

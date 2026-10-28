@@ -1,0 +1,102 @@
+{
+  "samples": [
+    {
+      "status": "completed",
+      "results": [
+        {
+          "name": "demo_http",
+          "ecosystem": "pypi",
+          "current": "2.3.1",
+          "latest": "3.0.0",
+          "latest_compatible": "2.3.4",
+          "drift": {
+            "major": 1,
+            "minor": 0,
+            "patch": 3
+          },
+          "verdict": "upgrade",
+          "target": "2.3.4",
+          "reasons": [
+            "PATCH_AVAILABLE",
+            "MIN_AGE_MET"
+          ],
+          "signals": {
+            "breaking_terms": [
+              "BREAKING"
+            ],
+            "yanked_skipped": 0,
+            "advisory": false,
+            "major_available": true
+          }
+        },
+        {
+          "name": "demo_yaml",
+          "ecosystem": "npm",
+          "current": "1.0.0",
+          "latest": null,
+          "latest_compatible": null,
+          "drift": null,
+          "verdict": "unknown",
+          "target": null,
+          "reasons": [
+            "NO_RELEASE_SNAPSHOT"
+          ],
+          "signals": null
+        }
+      ],
+      "summary": {
+        "hold": 0,
+        "upgrade": 1,
+        "test": 0,
+        "unknown": 1
+      },
+      "fired_any": true,
+      "insufficient": true,
+      "stale_snapshot": false
+    },
+    {
+      "status": "completed",
+      "window": {
+        "since": "2026-09-05",
+        "as_of": "2026-09-12"
+      },
+      "per_repo": [
+        {
+          "repo": "demo/kit",
+          "counts": {
+            "release": 2,
+            "tag": 0,
+            "commit": 1
+          },
+          "version_jumps": [
+            {
+              "from": "1.4.0",
+              "to": "1.5.0",
+              "kind": "minor"
+            },
+            {
+              "from": "1.5.0",
+              "to": "1.5.1",
+              "kind": "patch"
+            }
+          ],
+          "breaking_hits": [],
+          "path_hits": [
+            {
+              "event_id": "c7",
+              "pattern": "src/config*"
+            }
+          ],
+          "notable": [
+            "r1",
+            "c7"
+          ],
+          "dropped_before_since": 1,
+          "unparsed_versions": 0
+        }
+      ],
+      "fired_any": true,
+      "insufficient": false
+    }
+  ]
+}
