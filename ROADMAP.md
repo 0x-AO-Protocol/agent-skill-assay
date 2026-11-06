@@ -15,15 +15,19 @@ The v0.1 registry contains four AO-authored skills:
 
 ## v0.1.x releases
 
+<!-- registry-sync:begin releases -->
 | Skill | Release | Status |
 | :--- | :--- | :--- |
 | `office/outreach_manager` | v0.1.1 | Registered |
 | `finance/period_close` | v0.1.2 | Registered |
 | `dev_tools/upgrade_gate` | v0.1.3 | Registered |
+<!-- registry-sync:end releases -->
 
 ## Planned skills
 
-No further v0.1.x skill is planned.
+<!-- registry-sync:begin planned-skills -->
+Standard skills are proposed as skill requests and are listed here only after their release.
+<!-- registry-sync:end planned-skills -->
 
 ## Near-term registry work
 

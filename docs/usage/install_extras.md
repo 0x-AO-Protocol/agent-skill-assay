@@ -19,6 +19,7 @@ dependency.
 
 ## Category extras
 
+<!-- registry-sync:begin category-extras -->
 | Extra | Skills | Packages |
 | :--- | :--- | :--- |
 | `dev_tools` | `dev_tools/upgrade_gate` | *(none today)* |
@@ -27,9 +28,11 @@ dependency.
 | `office` | `office/outreach_manager` | *(none today)* |
 | `security` | `security/prompt_injection_firewall` | *(none today)* |
 | `wellness` | `wellness/mental_coach` | `google-genai` |
+<!-- registry-sync:end category-extras -->
 
 ## Skill extras
 
+<!-- registry-sync:begin skill-extras -->
 | Extra | Registry ID | Packages |
 | :--- | :--- | :--- |
 | `dev_tools_upgrade_gate` | `dev_tools/upgrade_gate` | *(none today)* |
@@ -39,6 +42,7 @@ dependency.
 | `office_outreach_manager` | `office/outreach_manager` | *(none today)* |
 | `security_prompt_injection_firewall` | `security/prompt_injection_firewall` | *(none today)* |
 | `wellness_mental_coach` | `wellness/mental_coach` | `google-genai` |
+<!-- registry-sync:end skill-extras -->
 
 ## Meta extras
 

@@ -29,7 +29,11 @@ def _skill_id(skill_dir: Path) -> str:
 
 
 def _fixture_path(skill_dir: Path) -> Path:
-    return FIXTURES_ROOT / f"{_skill_id(skill_dir).replace('/', '__')}.json"
+    """The bundle-local fixtures/card_ui_samples.json first, the legacy path second."""
+    local = skill_dir / "fixtures" / "card_ui_samples.json"
+    if local.is_file():
+        return local
+    return FIXTURES_ROOT / f"{skill_dir.parent.name}__{skill_dir.name}.json"
 
 
 def _load_card(skill_dir: Path) -> dict | None:
@@ -82,6 +86,22 @@ def test_card_ui_schema_keys_match_execute_output_fixture(skill_id, skill_dir):
         f"{rel} card.json ui_schema keys missing from fixture samples: "
         f"{', '.join(missing)}"
     )
+
+
+def test_bundle_local_card_fixture_comes_first(tmp_path):
+    bundle = tmp_path / "skills" / "sample" / "word_tally"
+    (bundle / "fixtures").mkdir(parents=True)
+    local = bundle / "fixtures" / "card_ui_samples.json"
+    local.write_text('{"status": "ok"}', encoding="utf-8")
+    assert _fixture_path(bundle) == local
+    shipped = SKILLS_ROOT / "finance" / "period_close"
+    assert _fixture_path(shipped) == FIXTURES_ROOT / "finance__period_close.json"
+
+
+def test_card_fixture_missing_in_both_locations_is_not_found(tmp_path):
+    bundle = tmp_path / "skills" / "sample" / "word_tally"
+    (bundle / "fixtures").mkdir(parents=True)
+    assert not _fixture_path(bundle).is_file()
 
 
 def test_output_card_skills_have_fixture_files():

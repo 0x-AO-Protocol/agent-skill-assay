@@ -54,15 +54,6 @@ def indexed_example_scripts() -> set[str]:
     return set(EXAMPLE_PATTERN.findall(readme))
 
 
-@pytest.fixture(scope="session")
-def agent_loops_text() -> str:
-    return (
-        (REPO_ROOT / "docs" / "usage" / "agent_loops.md")
-        .read_text(encoding="utf-8")
-        .lower()
-    )
-
-
 def test_readme_matches_manifests(
     cataloged_skills: set[str],
     manifested_skills: set[str],
@@ -143,25 +134,39 @@ def test_examples_readme_matches_files(
     )
 
 
-def test_agent_loops_reference_all_skills(
+@pytest.fixture(scope="module")
+def registry_sync():
+    from scripts import registry_sync
+
+    return registry_sync
+
+
+def test_agent_loops_links_the_catalog_index_and_names_only_registered_skills(
+    registry_sync,
     manifested_skills: set[str],
-    agent_loops_text: str,
 ):
-    """Every manifested skill is referenced in agent_loops.md."""
+    """Per-skill rows are optional; the guide links the catalog index."""
+    text = (REPO_ROOT / "docs" / "usage" / "agent_loops.md").read_text(encoding="utf-8")
+    assert registry_sync.agent_loops_failures(text, manifested_skills) == []
 
-    missing = []
 
-    for skill in sorted(manifested_skills):
-        skill_name = Path(skill).name
+def test_agent_loops_check_flags_an_unknown_skill_id(registry_sync):
+    text = "See the [Skill Library](../skills/README.md).\n\n`office/missing_skill`\n"
+    failures = registry_sync.agent_loops_failures(text, {"office/outreach_manager"})
+    assert failures == ["unknown skill id: office/missing_skill"]
 
-        if (
-            skill.lower() not in agent_loops_text
-            and skill_name.lower() not in agent_loops_text
-        ):
-            missing.append(skill)
 
-    assert not missing, "Skills missing from docs/usage/agent_loops.md:\n" + "\n".join(
-        f"  - {skill}" for skill in missing
+def test_agent_loops_check_flags_a_missing_catalog_index_link(registry_sync):
+    text = "`office/outreach_manager` is described on its own page.\n"
+    failures = registry_sync.agent_loops_failures(text, {"office/outreach_manager"})
+    assert failures == ["missing link to the catalog index (../skills/README.md)"]
+
+
+def test_agent_loops_check_does_not_need_a_row_per_skill(registry_sync):
+    text = "Every skill: see the [Skill Library](../skills/README.md).\n"
+    assert (
+        registry_sync.agent_loops_failures(text, {"office/outreach_manager", "a/b"})
+        == []
     )
 
 

@@ -143,6 +143,7 @@ each skill with `pip install "agent-skill-assay[<category>_<skill>]"` (see
 `google-genai` SDK (`import google.genai`). Bedrock Converse reference:
 [`bedrock_business_diagnostic.py`](../../examples/bedrock_business_diagnostic.py) ([bedrock.md](bedrock.md)).
 All [skill catalog pages](../skills/README.md) include compact **Usage Examples** per provider.
+Rows in the table below are optional for a skill; every registered skill is listed in the [Skill Library](../skills/README.md).
 
 `Local execute / mixed` means the checked-in script is not a single-provider
 agent loop. It either calls `skill.execute(...)` directly or loads multiple

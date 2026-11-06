@@ -9,7 +9,7 @@ body:
         Thanks for helping expand the Agent Skill Assay ecosystem!
         Please review the [Contribution Guidelines](https://github.com/0x-AO-Protocol/agent-skill-assay/blob/main/CONTRIBUTING.md) and start from [templates/python_skill/](https://github.com/0x-AO-Protocol/agent-skill-assay/tree/main/templates/python_skill).
 
-        See the [Skill categories](https://github.com/0x-AO-Protocol/agent-skill-assay/blob/main/CONTRIBUTING.md#skill-categories) table for the list of valid categories used in the dropdown below. Maintainers may apply the matching `cat: <category>` label when triaging (see [label taxonomy](https://github.com/0x-AO-Protocol/agent-skill-assay/blob/main/CONTRIBUTING.md#getting-started)).
+        See the [Skill categories](https://github.com/0x-AO-Protocol/agent-skill-assay/blob/main/CONTRIBUTING.md#skill-categories) table for the registered categories to enter below. Maintainers may apply the matching `cat: <category>` label when triaging (see [label taxonomy](https://github.com/0x-AO-Protocol/agent-skill-assay/blob/main/CONTRIBUTING.md#getting-started)).
 
         **Issuer org:** Optional `issuer.org` — `AO` for AO-authored registry skills, contributor org for third-party skills, comma-separated values for co-affiliation (e.g. `AO`), or omit. See [Issuer org](https://github.com/0x-AO-Protocol/agent-skill-assay/blob/main/CONTRIBUTING.md#issuer-org).
 
@@ -24,24 +24,12 @@ body:
     validations:
       required: true
 
-  - type: dropdown
+  - type: input
     id: category
     attributes:
       label: Category
-      description: Pick an existing category or propose a new one in the description
-      options:
-        - compliance
-        - creative
-        - data_engineering
-        - defi
-        - dev_tools
-        - finance
-        - monitoring
-        - office
-        - optimization
-        - security
-        - wellness
-        - "Propose new category (describe below)"
+      description: A category from the [Skill categories](https://github.com/0x-AO-Protocol/agent-skill-assay/blob/main/CONTRIBUTING.md#skill-categories) table, or a new name to propose (describe it below)
+      placeholder: finance
     validations:
       required: true
 

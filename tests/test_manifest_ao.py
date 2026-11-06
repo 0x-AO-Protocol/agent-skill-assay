@@ -2,6 +2,7 @@
 """AO-native manifest fields and static provenance checks."""
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -161,8 +162,15 @@ def _rule_failures(
     issuer = manifest.get("issuer")
     if not isinstance(issuer, dict):
         issuer = {}
-    if issuer.get("org") != "AO":
-        failures.append(f"{bundle_id}: issuer.org: {issuer.get('org')!r}")
+    org = issuer.get("org")
+    # A third-party bundle names an organisation other than AO; every other
+    # bundle, including one without origin, names AO.
+    if manifest.get("origin") == "third_party":
+        wrong = not isinstance(org, str) or org.strip() in {"", "AO"}
+    else:
+        wrong = org != "AO"
+    if wrong:
+        failures.append(f"{bundle_id}: issuer.org: {org!r}")
     if manifest.get("norm_version") != "norms-1.0.0":
         failures.append(f"{bundle_id}: norm_version: {manifest.get('norm_version')!r}")
     if manifest.get("economic_effect") != EXPECTED_ECONOMIC_EFFECT:
@@ -304,8 +312,167 @@ def test_schema_rejects_malformed_provenance(block):
     assert not _is_valid(_minimal_manifest(block))
 
 
+DWA = {"onet_release": "31.0", "ids": ["4.A.2.a.4.b.4"]}
+
+
+def _with_origin(origin=None, org="AO", serves_dwa=None, drop_org=False):
+    manifest = _minimal_manifest(_repository_block())
+    manifest["issuer"]["org"] = org
+    if drop_org:
+        del manifest["issuer"]["org"]
+    if origin is not None:
+        manifest["origin"] = origin
+    if serves_dwa is not None:
+        manifest["serves_dwa"] = serves_dwa
+    return manifest
+
+
+def test_schema_declares_the_three_origin_values_as_optional():
+    assert SCHEMA["properties"]["origin"] == {
+        "enum": ["ao_standard", "ao_defined", "third_party"]
+    }
+    assert "origin" not in SCHEMA["required"]
+    assert "serves_dwa" not in SCHEMA["required"]
+
+
+@pytest.mark.parametrize("value", ["not_an_origin", "other", "", 1, None])
+def test_schema_rejects_an_origin_outside_the_enum(value):
+    manifest = _with_origin()
+    manifest["origin"] = value
+    assert not _is_valid(manifest)
+
+
+def test_ao_standard_needs_issuer_org_ao_and_serves_dwa():
+    assert _is_valid(_with_origin("ao_standard", serves_dwa=DWA))
+    assert not _is_valid(_with_origin("ao_standard"))
+    assert not _is_valid(_with_origin("ao_standard", org="Acme", serves_dwa=DWA))
+
+
+def test_ao_defined_needs_issuer_org_ao_and_validates_serves_dwa_when_present():
+    assert _is_valid(_with_origin("ao_defined"))
+    assert _is_valid(_with_origin("ao_defined", serves_dwa=DWA))
+    assert not _is_valid(
+        _with_origin("ao_defined", serves_dwa={"onet_release": "31.0", "ids": []})
+    )
+    assert not _is_valid(_with_origin("ao_defined", org="Acme"))
+
+
+def test_third_party_needs_an_issuer_org_other_than_ao():
+    assert _is_valid(_with_origin("third_party", org="Acme Labs"))
+    assert _is_valid(_with_origin("third_party", org="Acme Labs", serves_dwa=DWA))
+    assert not _is_valid(
+        _with_origin(
+            "third_party", org="Acme", serves_dwa={"onet_release": "31.0", "ids": []}
+        )
+    )
+    assert not _is_valid(_with_origin("third_party", org="AO"))
+    assert not _is_valid(_with_origin("third_party", org=""))
+    assert not _is_valid(_with_origin("third_party", drop_org=True))
+    # Without origin the bundle is held to issuer.org AO, as before.
+    assert not _is_valid(_with_origin(None, org="Acme Labs"))
+    assert _is_valid(_with_origin(None))
+
+
+@pytest.mark.parametrize(
+    "ids",
+    [
+        pytest.param(["4.A.2.a.4.b.4"], id="one"),
+        pytest.param(
+            ["4.A.1.a.1.a.1", "4.A.2.b.10.ab.2", "4.A.3.c.3.z.30", "4.A.4.d.4.d.4"],
+            id="four",
+        ),
+    ],
+)
+def test_serves_dwa_schema_accepts_one_to_four_ids(ids):
+    value = {"onet_release": "31.0", "ids": ids}
+    jsonschema.validate(value, SCHEMA["properties"]["serves_dwa"])
+    assert _is_valid(_with_origin("ao_standard", serves_dwa=value))
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param({"ids": ["4.A.2.a.4.b.4"]}, id="release-missing"),
+        pytest.param(
+            {"onet_release": "30.2", "ids": ["4.A.2.a.4.b.4"]}, id="release-30.2"
+        ),
+        pytest.param(
+            {"onet_release": 31.0, "ids": ["4.A.2.a.4.b.4"]}, id="release-float"
+        ),
+        pytest.param({"onet_release": "31.0"}, id="ids-missing"),
+        pytest.param({"onet_release": "31.0", "ids": []}, id="ids-empty"),
+        pytest.param(
+            {"onet_release": "31.0", "ids": [f"4.A.1.a.1.a.{n}" for n in range(5)]},
+            id="ids-five",
+        ),
+        pytest.param(
+            {"onet_release": "31.0", "ids": ["4.A.1.a.1.a.1", "4.A.1.a.1.a.1"]},
+            id="ids-duplicate",
+        ),
+        pytest.param(
+            {"onet_release": "31.0", "ids": ["4.A.1.a.1.a.1"], "titles": ["x"]},
+            id="extra-key",
+        ),
+        pytest.param(["4.A.1.a.1.a.1"], id="not-an-object"),
+        pytest.param({"onet_release": "31.0", "ids": [4]}, id="id-not-a-string"),
+        pytest.param({"onet_release": "31.0", "ids": ["4.B.1.a.1.a.1"]}, id="4.B"),
+        pytest.param({"onet_release": "31.0", "ids": ["4.A.5.a.1.a.1"]}, id="4.A.5"),
+        pytest.param({"onet_release": "31.0", "ids": ["4.A.1.e.1.a.1"]}, id="letter-e"),
+        pytest.param(
+            {"onet_release": "31.0", "ids": ["4.A.1.a.1.abc.1"]}, id="three-letters"
+        ),
+        pytest.param(
+            {"onet_release": "31.0", "ids": ["4.A.1.a.x.a.1"]}, id="letter-for-digit"
+        ),
+        pytest.param({"onet_release": "31.0", "ids": ["4.A.1.a.1.a."]}, id="no-tail"),
+    ],
+)
+def test_serves_dwa_schema_rejects_a_malformed_value(value):
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(value, SCHEMA["properties"]["serves_dwa"])
+    assert not _is_valid(_with_origin("ao_defined", serves_dwa=value))
+
+
+def test_serves_dwa_pattern_leaves_the_trailing_newline_to_the_profile_test():
+    # jsonschema applies "pattern" with re.search, and "$" also matches before a
+    # final newline, so the schema alone accepts this id. The standard-profile
+    # test therefore applies re.fullmatch to every id.
+    value = {"onet_release": "31.0", "ids": ["4.A.1.a.1.a.1\n"]}
+    jsonschema.validate(value, SCHEMA["properties"]["serves_dwa"])
+    pattern = SCHEMA["properties"]["serves_dwa"]["properties"]["ids"]["items"]
+    assert re.fullmatch(pattern["pattern"], "4.A.1.a.1.a.1\n") is None
+    assert re.fullmatch(pattern["pattern"], "4.A.1.a.1.a.1") is not None
+
+
+def test_serves_dwa_yaml_forms():
+    quoted = yaml.safe_load('onet_release: "31.0"\nids:\n  - 4.A.2.a.4.b.4\n')
+    assert quoted["ids"] == ["4.A.2.a.4.b.4"]
+    assert _is_valid(_with_origin("ao_standard", serves_dwa=quoted))
+    unquoted = yaml.safe_load("onet_release: 31.0\nids:\n  - 4.A.2.a.4.b.4\n")
+    assert unquoted["onet_release"] == 31.0
+    assert not _is_valid(_with_origin("ao_standard", serves_dwa=unquoted))
+
+
 def test_every_bundle_meets_the_ao_manifest_contract():
     assert ao_manifest_failures(ROOT / "skills") == []
+
+
+def test_ao_contract_check_accepts_a_third_party_bundle(tmp_path):
+    skills_root = tmp_path / "skills"
+    manifest = _repository_anchored_manifest(skills_root)
+    manifest["origin"] = "third_party"
+    manifest["issuer"]["org"] = "Acme Labs"
+    _rewrite_manifest(skills_root, manifest)
+    assert ao_manifest_failures(skills_root) == []
+
+
+def test_ao_contract_check_flags_a_third_party_bundle_with_org_ao(tmp_path):
+    skills_root = tmp_path / "skills"
+    manifest = _repository_anchored_manifest(skills_root)
+    manifest["origin"] = "third_party"
+    _rewrite_manifest(skills_root, manifest)
+    failures = ao_manifest_failures(skills_root)
+    assert any(": issuer.org: " in failure for failure in failures), failures
 
 
 def test_ao_contract_check_passes_a_valid_repository_anchored_bundle(tmp_path):

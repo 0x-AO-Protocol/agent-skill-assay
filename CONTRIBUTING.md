@@ -210,8 +210,8 @@ Agents must follow [Agent Contribution Workflow](docs/contributing/ai_native_wor
 
 1. Copy or align with `templates/python_skill/`.
 2. Create `skills/<category>/<skill_name>/` with the full bundle (see [Skill bundle standard](#skill-bundle-standard)).
-3. Add `docs/skills/<skill_name>.md` and a row in [docs/skills/README.md](docs/skills/README.md).
-4. When adding or renaming a runnable script under `examples/`, update [examples/README.md](examples/README.md) in the same PR.
+3. Add `docs/skills/<skill_name>.md`, then run `python scripts/registry_sync.py --write` to regenerate the shared files (the [Skill Library](docs/skills/README.md) row among them).
+4. Example scripts under `examples/` are optional. When adding or renaming one, update [examples/README.md](examples/README.md) in the same PR.
 5. Confirm `SkillLoader.load_skill("<category>/<skill_name>")` works or document required packages and environment variables.
 
 ---
@@ -309,7 +309,7 @@ The primary guide for the host LLM. Skill instructions should be a concise, appe
 - Describes UI presentation (`name`, `description`, `icon`, `ui_schema`, and similar).
 - When present, include an `issuer` object that matches `manifest.yaml` (`name` and `email` at minimum; copy `github` and `org` when used).
 - For output cards (`ui_schema.type` = `card`), each `ui_schema.fields[].key` must be a dot path into the JSON returned by `execute()` (for example `metadata.wallet_address`, `preview.you_pay`). Update `card.json` in the same PR when you change the output shape.
-- Add or refresh a representative output fixture at `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` (one object or a `{"samples": [...]}` list when multiple execute paths surface different fields). CI validates keys via `tests/test_card_ui_schema.py`.
+- Add or refresh a representative output fixture at `fixtures/card_ui_samples.json` in the bundle (the seven bundles shipped by v0.1.3 keep theirs at `tests/fixtures/card_ui_schema/<category>__<skill_name>.json`) (one object or a `{"samples": [...]}` list when multiple execute paths surface different fields). CI validates keys via `tests/test_card_ui_schema.py`.
 
 ### 5. `test_skill.py` (Assurance)
 
@@ -333,7 +333,7 @@ Not required for every skill. When present, document them on the catalog page un
 
 Registry skills are shipped inside the `skill-assay` wheel. Per-skill layout uses `manifest.yaml` and packaging hooks below — not per-skill edits to CI.
 
-- Add an empty `__init__.py` in `skills/<category>/` when you introduce a **new category**, and in `skills/<category>/<skill_name>/` for each new skill directory (enforced by `tests/test_skill_issuer.py`).
+- Add an empty `__init__.py` in `skills/<category>/<skill_name>/` for each new skill directory; `python scripts/registry_sync.py --write` creates the one in `skills/<category>/` (enforced by `tests/test_skill_issuer.py`).
 - Non-Python files (`manifest.yaml`, `instructions.md`, `card.json`, data files) are included automatically via `MANIFEST.in` and `[tool.setuptools.package-data]` (`skills = ["**/*"]`).
 - Confirm `SkillLoader.load_skill("<category>/<skill_name>")` works from the repo root. CI **wheel-smoke** verifies every bundled skill from a clean `pip install` of the built wheel; run [`scripts/wheel_smoke_test.py`](scripts/wheel_smoke_test.py) locally when changing packaging, `MANIFEST.in`, or skill bundle layout (see [TESTING.md](docs/TESTING.md#packaging-smoke-test)).
 
@@ -342,7 +342,7 @@ Registry skills are shipped inside the `skill-assay` wheel. Per-skill layout use
 - List runtime packages in the skill's `manifest.yaml` `requirements` (source of truth for loaders and docs).
 - **Unpinned** entries (for example `requests`) — loader checks the importable module exists.
 - **Pinned** entries (for example `rembg>=2.0.0`) — loader also verifies the installed distribution satisfies the specifier before `skill.py` runs. Pin when API or behavior breaks across versions; unpinned is fine for stable deps.
-- Run `python scripts/sync_extras.py` after changing manifests — it regenerates category, per-skill, and `[all]` rows in `pyproject.toml`. Update the hand-maintained tables in [Install extras](docs/usage/install_extras.md) in the same PR; CI guards them via `tests/test_extras_sync.py::test_install_extras_guide_matches_pyproject`.
+- Run `python scripts/registry_sync.py --write` after changing manifests — it regenerates the category, per-skill and `[all]` rows in `pyproject.toml` and the tables in [Install extras](docs/usage/install_extras.md).
 - Core already includes `requests`, `pyyaml`, and `beautifulsoup4` (manifests may say `bs4`); the sync script omits core packages from extras automatically.
 - Hand-maintained extras (`dev`, `gemini`, `claude`, `openai`, `bedrock`, `agents`) stay above the generated block in `pyproject.toml`.
 - Contributors and CI install skill runtime deps with `pip install -e ".[dev,all]"`; add `[agents]` when running SDK examples locally.
@@ -354,11 +354,34 @@ Registry skills are shipped inside the `skill-assay` wheel. Per-skill layout use
 - Describe capabilities, prerequisites, arguments, and limitations.
 - If the skill calls external services, list its environment variables in a short table and link to [API keys for skills](docs/usage/api_keys.md). Do not duplicate the full setup guide on the skill page.
 - Add a **Usage Examples** section with runnable snippets for Gemini, Claude, OpenAI, DeepSeek, and Ollama (prompt mode). Follow [skill usage example template](docs/usage/skill_usage_template.md) and link to [usage guides](docs/usage/README.md) and [agent loops](docs/usage/agent_loops.md).
-- Add a **Skill history** section before the enterprise disclaimer: a table of notable commits that touched the skill bundle or catalog page. Link each commit SHA and list contributors as linked GitHub usernames (`[@username](https://github.com/username)`). Append a row when you ship a skill update in the same PR.
+- Add a **Skill history** section before the enterprise disclaimer: a table of notable commits that touched the skill bundle or catalog page. Link each commit SHA and list contributors as linked GitHub usernames (`[@username](https://github.com/username)`). Append a row when you ship a skill update in the same PR. A new skill's page names no release number; it says the skill is published with the package release whose changelog lists it.
+- A new skill's page says "**Maturity:** Provisional" near the top.
 
 ### 7. Registry index row
 
-- Add or update the skill table in [docs/skills/README.md](docs/skills/README.md) (Skill, ID, Version, Issuer, Description). Set **Version** to `` `x.y.z` (DD Mon YYYY) `` from the manifest and the release/merge date.
+- The [docs/skills/README.md](docs/skills/README.md) index is generated by `python scripts/registry_sync.py --write`: one section per category, one row per skill (Skill from the page title; ID, Version and Issuer from the manifest; Description from the first sentence of `short_description`; the seven bundles shipped by v0.1.3 keep their existing descriptions). Do not edit it by hand.
+
+### Standard profile
+
+Every bundle added to the registry, whatever its `origin`, must meet the standard profile: it must be deterministic and make no model call. The seven bundles shipped by v0.1.3 are outside the profile and unchanged. The rules below are what a bundle must follow. `tests/test_standard_profile.py` runs two determinism guards on every other bundle in the `build` jobs; they look for common ways of breaking these rules, not for every way. The guards are pre-merge checks, not proof and not isolation (see the [skill trust model](docs/security/skill-trust-model.md)): a bundle written to get past them can pass, so passing them does not show that a bundle is deterministic. Maintainer review of every runtime module still applies. Run the guards on one bundle with `python scripts/determinism_guard.py skills/<category>/<name>`.
+
+- **Runtime modules** (every module except `test_skill.py`) import only from a closed allow-list: the standard-library modules `__future__`, `abc`, `bisect`, `collections`, `collections.abc`, `copy`, `dataclasses`, `decimal`, `enum`, `fractions`, `functools`, `hashlib`, `heapq`, `html`, `itertools`, `json`, `math`, `numbers`, `operator`, `re`, `string`, `textwrap`, `typing`, `unicodedata`; the framework's skill base API `skill_assay.core.base_skill`; and the bundle's own modules. A submodule is allowed only when it is on the list itself (`collections.abc` yes, `json.decoder` no). `datetime` is not on the list: dates are handled with `date` and `timedelta` only (`from datetime import date` and `from datetime import timedelta`, without an alias) and rendered with `isoformat()`; `time` and `calendar` are not allowed. The allow-list is part of the guard and changes only through a reviewed change to it, never per bundle.
+- Runtime modules must not access files; data the skill needs is part of its source. These names are not used in them, either in expressions or as assignment targets: `eval`, `exec`, `compile`, `__import__`, `open`, `input`, `breakpoint`, `vars`, `globals`, `locals`, `help`, `copyright`, `credits`, `license`, `exit` and `quit`. `getattr`, `setattr` and `delattr` are only called, with a literal name, never on a module; the name is not an underscore name, `format`, `format_map`, one of the names above, one of the attributes below or the name of one of the members below (such as `attrgetter`). An imported module, or a module reached through one (such as `dataclasses.re`), is used only through further attribute access, as in `json.dumps(data)`; it is never used as a value (assigned, passed, returned, subscripted, stored or used as the receiver of `getattr`). No underscore attribute of a module is read. Dunder names and attributes are a closed list: only `__name__` and `__doc__` are read or deleted as names and only `__all__` and `__slots__` are assigned as names; only `__class__`, `__doc__`, `__init__`, `__members__`, `__name__`, `__new__`, `__qualname__` and `__setattr__` are read as attributes, and no dunder attribute is assigned or deleted. These attributes are not used: the frame and code attributes `f_back`, `f_builtins`, `f_code`, `f_globals`, `f_locals`, `f_trace`, `gi_code`, `gi_frame`, `cr_code`, `cr_frame`, `ag_code`, `ag_frame`, `tb_frame` and `tb_next`; the clock and local-time attributes `now`, `today`, `utcnow`, `fromtimestamp`, `utcfromtimestamp`, `timestamp`, `astimezone`, `strptime` and `strftime`; and `environ`, `getenv` and `credential`. These members, which turn a string into an attribute access or into evaluated code, are neither imported nor read: `operator.attrgetter`, `operator.methodcaller`, `string.Formatter`, `typing.get_type_hints`, `typing.ForwardRef`, `typing.get_args`, `functools.singledispatch`, `functools.singledispatchmethod`, `functools.update_wrapper` and `functools.wraps`. Class patterns in `match` statements take keyword sub-patterns only (`case Point(x=0)`), and their names follow the attribute rules. Format specs in f-strings are literals in which `%` is at most the last character (the percent type, as in `{share:.1%}`); the built-in `format` is only called, with no spec or such a literal spec; and no `format` or `format_map` attribute is read, so `str.format` is not used. `%`-formatting and `string.Template` are allowed. Classes are created only by `class` statements without a `metaclass` keyword or `**` arguments and without `type` among their bases; `type` is used only as a call with one positional argument. `skills/__init__.py` and the category's `__init__.py`, which run when the bundle is imported, are checked under the runtime rules as well.
+- Guidance for authors (not a CI check): regular expressions over input text use explicit ASCII character classes or the `re.ASCII` flag, and case folding is ASCII A–Z unless the skill documents a Unicode-dependent rule.
+- **The test module** `test_skill.py` may start a child process for a hash-seed run, copy the environment for it, read a clock for a timing bound and read files inside the bundle. It imports no model SDK or runtime and no network module, does not use `__import__`, `eval`, `exec`, `compile` or `import_module`, does not import `open` or `FileIO` by name from `io`, `codecs` or `os`, and writes no file; writing through `io.open`, `codecs.open`, `io.FileIO` or `os.fdopen` counts as writing a file. Socket creation is disabled while it runs.
+- **Fixtures:** at least one `fixtures/*_params.json`. Each runs twice, in child processes with `PYTHONHASHSEED` 0 and 4242 under an audit hook, and the canonical JSON outputs must be byte-identical.
+- **Manifest:** `trust_tier: L0`; `issuer` with `name`, `email`, `github` and `org`; `provenance` with `anchor: repository` and the content hash; the common `economic_effect` declaration of `skills/finance/period_close/manifest.yaml`; no `env_vars` and no `requirements`; `origin`; and `serves_dwa` where required.
+- **Catalog page:** "**Maturity:** Provisional". Example scripts and agent-loop rows are optional.
+
+`origin` says who defines the requirements:
+
+| Value | Meaning | `issuer.org` | `serves_dwa` |
+| :--- | :--- | :--- | :--- |
+| `ao_standard` | A skill of AO's standard set, whose requirements AO published as a standard skill proposal | `AO` | Required |
+| `ao_defined` | A skill whose requirements the AO team defines outside the standard set | `AO` | Optional |
+| `third_party` | A skill whose requirements and code come from a contributor outside AO | The contributor's organisation, not AO | Optional |
+
+`serves_dwa` names the O*NET 31.0 Detailed Work Activities a skill serves, by identifier only (attribution in [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)): `onet_release: "31.0"` (quoted) and `ids`, one to four unique identifiers such as `4.A.2.a.4.b.4`. No identifier is served by two `ao_standard` bundles.
 
 ### Issuer attribution
 
@@ -389,31 +412,33 @@ Separate multiple orgs with a comma in the single `org` string (for example `org
 
 ## Skill categories
 
-Place each skill under one top-level directory under `skills/`. Use an existing category when it fits.
+Place each skill under one top-level directory under `skills/`. Use an existing category when it fits. The table is generated by `python scripts/registry_sync.py`; the Skills column counts the registered skills and links to their section of the [Skill Library](docs/skills/README.md).
 
-| Category | Purpose | Examples in registry |
+<!-- registry-sync:begin categories -->
+| Category | Purpose | Skills |
 | :--- | :--- | :--- |
-| `creative` | Image processing, media editing, and creative utilities | `business_diagnostic` |
-| `compliance` | Privacy, policy, regulatory guardrails | `prompt_injection_firewall`, `business_diagnostic`, `business_diagnostic` |
-| `data_engineering` | Datasets, generation, ETL-style tooling | `business_diagnostic`, `business_diagnostic` |
-| `defi` | On-chain trading and agent wallet execution | `kpi_gate` |
-| `dev_tools` | Developer workflows, issue resolution, repo tooling | `business_diagnostic`, `upgrade_gate` |
-| `finance` | Blockchain, risk, financial analysis | `kpi_gate`, `business_diagnostic`, `period_close` |
-| `office` | Documents, productivity, email | `business_diagnostic`, `mental_coach`, `outreach_manager` |
-| `optimization` | Middleware, compression, efficiency | `mental_coach` |
-| `monitoring` | Agent loop observability, budget gates, task control | `kpi_gate` |
-| `security` | Offline, local-first defenses for untrusted input reaching agents | `prompt_injection_firewall`, `prompt_injection_firewall` |
-| `wellness` | Coaching guardrails, mental health support | `mental_coach` |
+| `compliance` | Privacy, policy, regulatory guardrails | 0 |
+| `creative` | Image processing, media editing, and creative utilities | 0 |
+| `data_engineering` | Datasets, generation, ETL-style tooling | 0 |
+| `defi` | On-chain trading and agent wallet execution | 0 |
+| `dev_tools` | Developer workflows, issue resolution, repo tooling | [1](docs/skills/README.md#dev-tools) |
+| `finance` | Blockchain, risk, financial analysis | [1](docs/skills/README.md#finance) |
+| `monitoring` | Agent loop observability, budget gates, task control | [2](docs/skills/README.md#monitoring) |
+| `office` | Documents, productivity, email | [1](docs/skills/README.md#office) |
+| `optimization` | Middleware, compression, efficiency | 0 |
+| `security` | Offline, local-first defenses for untrusted input reaching agents | [1](docs/skills/README.md#security) |
+| `wellness` | Coaching guardrails, mental health support | [1](docs/skills/README.md#wellness) |
+<!-- registry-sync:end categories -->
 
 ### Choosing a category
 
-The table above is **illustrative**, not a closed list. When contributing a new skill, pick the category whose purpose best matches the skill's primary function.
+The table above lists the registered categories. When contributing a new skill, pick the category whose purpose best matches the skill's primary function.
 
 Registry IDs are always `category/skill_name` from the folder path and must match the `name` field in `manifest.yaml` (same string as `SkillLoader.load_skill(...)` and the CLI `ID` column). For the live registry, see [Skill Library](docs/skills/README.md).
 
 **New top-level category?** Open an issue and discuss with maintainers **before** adding a folder — do not create `skills/<new_category>/` in a pull request without that agreement.
 
-When a new top-level category lands under `skills/`, update this table and the category dropdown in [`.github/ISSUE_TEMPLATE/01_skill_proposal.yml`](.github/ISSUE_TEMPLATE/01_skill_proposal.yml) in the same PR. Add a matching `cat: <category>` entry to [`.github/labels.json`](.github/labels.json) (same pastel color as other `cat:` labels; never use the bare folder name as a repo-wide label). Update `REGISTRY_CATEGORIES` in [`tests/test_github_labels.py`](tests/test_github_labels.py) in the same PR. Labels sync via CI on merge to `main`.
+A maintainer registers an agreed category with `python scripts/registry_sync.py --add-category <name> --purpose "<text>"`. It adds the table row, the `cat: <name>` label in [`.github/labels.json`](.github/labels.json) and `skills/<name>/__init__.py`. `python scripts/registry_sync.py --check` fails while a directory under `skills/` holds a bundle of an unregistered category. Labels sync via CI on merge to `main`.
 
 ---
 
@@ -444,6 +469,7 @@ When a new top-level category lands under `skills/`, update this table and the c
 | :--- | :--- |
 | [API keys for skills](docs/usage/api_keys.md) | Configuring credentials for skills that call external services |
 | [Agent Contribution Workflow](docs/contributing/ai_native_workflow.md) | Workflow written for contributing agents; operators supervise |
+| [Release train](docs/contributing/release_train.md) | How skills reach the weekly package releases |
 | [Glossary](docs/glossary.md) | Canonical terms (operator, host agent, skill bundle, anatomy roles) |
 | [Inclusive language](docs/contributing/inclusive-language.md) | Khronos-aligned wording; exceptions |
 | [TESTING.md](docs/TESTING.md) | Black, Flake8, Pytest, local CI parity |

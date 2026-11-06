@@ -1,0 +1,47 @@
+name: sample/word_tally
+version: 0.1.0
+description: >
+  Synthetic bundle used by the framework tests of the standard profile.
+  Counts the words of a text and returns them sorted by word; offline and
+  deterministic.
+short_description: "Count the words of a text. Synthetic bundle for the framework tests."
+issuer:
+  name: Example Maintainer
+  email: maintainer@example.com
+  github: example
+  org: AO
+trust_tier: L0
+provenance:
+  anchor: repository
+  content_sha256: "648d1b1de6ba30ec46e0364d42ad9a1027b64088874e56bc97b1df921681d484"
+  authored_on: "2026-11-01"
+economic_effect:
+  claim: "Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption."
+  baseline_task: "The same task performed by an LLM agent without this skill (prompt-only)."
+  metric: "LLM tokens (input + output) per task run."
+  method: "Run the skill's reference fixtures through (a) the baseline agent and (b) the same agent calling the skill; publish the median tokens per run for both and the reduction."
+norm_version: norms-1.0.0
+origin: ao_standard
+serves_dwa:
+  onet_release: "31.0"
+  ids:
+    - 4.A.2.a.1.a.1
+category: sample
+parameters:
+  type: object
+  properties:
+    text:
+      type: string
+      description: The text to count, at most 10,000 characters.
+  required:
+    - text
+outputs:
+  status:
+    type: string
+  words:
+    type: array
+  total:
+    type: integer
+constitution: |
+  1. Count only the text that the caller supplies.
+  2. Return a structured error for invalid input; never raise.
