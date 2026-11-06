@@ -1,6 +1,6 @@
 # Review SLA
 
-Version: `1.0.0`
+Version: `1.1.0`
 
 ## Service level
 
@@ -17,7 +17,15 @@ discussed in a public issue.
 - **Roadmap owner:** maintains planned work and release sequencing.
 
 One person may hold more than one role only when the repository owner records
-the exception in the pull request.
+the exception in the pull request or in this document.
+
+### Current assignment
+
+- **Criteria owner, release owner and roadmap owner:** @mrmasa88, the
+  repository owner. This document records that exception.
+- **Reviewer:** @renoyang66.
+
+A change to this assignment is a versioned update of this document.
 
 ## Escalation
 

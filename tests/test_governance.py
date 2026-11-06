@@ -4,10 +4,18 @@
 from pathlib import Path
 
 import json
+import re
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 GOVERNANCE = ROOT / "governance"
+BUILD_JOBS = {"build (3.10)", "build (3.11)", "build (3.12)"}
+
+
+def stable_norms():
+    """The norm IDs that the contributor contract marks as stable."""
+    contract = (GOVERNANCE / "CONTRIBUTOR_CONTRACT.md").read_text(encoding="utf-8")
+    return set(re.findall(r"^### \[stable\] (N-[0-9]+) ", contract, re.M | re.ASCII))
 
 
 def test_governance_documents_are_published():
@@ -39,7 +47,8 @@ def test_repository_governance_files_are_present():
 def test_ci_checks_map_only_stable_norms():
     config = yaml.safe_load((GOVERNANCE / "ci_checks.yaml").read_text(encoding="utf-8"))
     assert config["schema_version"] == "1.0"
-    stable = {"N-1", "N-2", "N-3", "N-5"}
+    stable = stable_norms()
+    assert stable == {"N-1", "N-2", "N-3", "N-5", "N-6"}
     for check in config["checks"]:
         assert check["workflow_job"]
         assert set(check["norms"]) <= stable
@@ -53,6 +62,14 @@ def test_ci_checks_map_only_stable_norms():
         "public-text-lint",
     }
     assert {check["workflow_job"] for check in config["checks"]} == jobs
+
+
+def test_standard_profile_norm_is_mapped_to_every_build_job():
+    config = yaml.safe_load((GOVERNANCE / "ci_checks.yaml").read_text(encoding="utf-8"))
+    mapped = {
+        check["workflow_job"] for check in config["checks"] if "N-6" in check["norms"]
+    }
+    assert mapped == BUILD_JOBS
 
 
 def test_branch_protection_spec_matches_ci_checks():
