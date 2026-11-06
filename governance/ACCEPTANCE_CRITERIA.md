@@ -1,6 +1,6 @@
 # Merge Acceptance Criteria
 
-Version: `1.0.0`
+Version: `1.1.0`
 
 Every pull request that changes runtime code, a skill bundle, packaging, or
 public governance material must satisfy the criteria below before merge.
@@ -21,8 +21,12 @@ in the repository.
 5. Security-sensitive changes include a negative test and a fail-closed
    behavior check.
 6. The pull request has the required review under the review policy.
-7. The final merge commit is the accepted version of the change; follow-up
-   fixes require a new pull request or an explicitly recorded amendment.
+7. The pull request is merged by squash merge only. The squashed commit on
+   the default branch is the accepted version of the change; follow-up fixes
+   require a new pull request or an explicitly recorded amendment.
+8. Every skill bundle outside the frozen legacy set meets the standard
+   profile of contributor contract norm N-6. A bundle shipped by v0.1.3 leaves
+   the legacy set only through a recorded upgrade.
 
 ## Evidence model (from v0.2)
 

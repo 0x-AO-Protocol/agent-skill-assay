@@ -6,6 +6,7 @@
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.0` — 29 Aug 2026
 <!-- skill-doc-meta:end -->
+**Maturity:** Provisional — available for evaluation; interfaces or behavior may change in a compatible or documented breaking release.
 **Recommended install:** `pip install "agent-skill-assay[monitoring_kpi_gate]"`. See [Install extras](../usage/install_extras.md).
 
 [Skill Library](README.md) · [Testing](../TESTING.md)

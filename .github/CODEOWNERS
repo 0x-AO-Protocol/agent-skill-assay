@@ -1,7 +1,7 @@
-# Default owner for review and release governance.
-* @mrmasa88
+# Default owners for review and release governance.
+* @mrmasa88 @renoyang66
 
-# Security-sensitive surfaces require the repository owner.
-/skills/security/ @mrmasa88
-/governance/ @mrmasa88
-/.github/ @mrmasa88
+# Security-sensitive surfaces require a code owner's review.
+/skills/security/ @mrmasa88 @renoyang66
+/governance/ @mrmasa88 @renoyang66
+/.github/ @mrmasa88 @renoyang66
