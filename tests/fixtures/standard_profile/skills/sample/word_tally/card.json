@@ -1,0 +1,11 @@
+{
+    "name": "Word Tally",
+    "description": "Count the words of a text. Synthetic bundle for the framework tests.",
+    "issuer": {
+        "name": "Example Maintainer",
+        "email": "maintainer@example.com",
+        "github": "example",
+        "org": "AO"
+    },
+    "icon": "list"
+}

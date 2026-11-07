@@ -16,7 +16,7 @@
       "type": "object",
       "required": ["org", "name", "github"],
       "properties": {
-        "org": {"const": "AO"},
+        "org": {"type": "string", "minLength": 1},
         "name": {"type": "string", "minLength": 1},
         "github": {"type": "string", "minLength": 1}
       },
@@ -74,7 +74,37 @@
       "required": ["claim", "baseline_task", "metric", "method"],
       "additionalProperties": false
     },
-    "norm_version": {"type": "string", "minLength": 1}
+    "norm_version": {"type": "string", "minLength": 1},
+    "origin": {"enum": ["ao_standard", "ao_defined", "third_party"]},
+    "serves_dwa": {
+      "type": "object",
+      "required": ["onet_release", "ids"],
+      "properties": {
+        "onet_release": {"const": "31.0"},
+        "ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^4\\.A\\.[1-4]\\.[a-d]\\.[0-9]+\\.[a-z]{1,2}\\.[0-9]+$"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
   },
+  "allOf": [
+    {
+      "if": {"required": ["origin"], "properties": {"origin": {"const": "third_party"}}},
+      "then": {"properties": {"issuer": {"properties": {"org": {"not": {"const": "AO"}}}}}},
+      "else": {"properties": {"issuer": {"properties": {"org": {"const": "AO"}}}}}
+    },
+    {
+      "if": {"required": ["origin"], "properties": {"origin": {"const": "ao_standard"}}},
+      "then": {"required": ["serves_dwa"]}
+    }
+  ],
   "additionalProperties": true
 }

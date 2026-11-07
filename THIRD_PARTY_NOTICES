@@ -14,3 +14,9 @@ License identifiers:
 - Imported v0.1 skill trees: provenance is anchored in
   `agent-skill-assay-sources`; each bundle manifest is the source of its
   attribution and version metadata.
+
+This repository includes information from the O*NET 31.0 Database by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). Used under the CC BY 4.0 license. O*NET® is a trademark of USDOL/ETA.
+The CC BY 4.0 license: https://creativecommons.org/licenses/by/4.0/
+
+Only O*NET 31.0 Detailed Work Activity identifiers are used, in the manifest field
+`serves_dwa`; no O*NET titles or descriptions are reproduced.
