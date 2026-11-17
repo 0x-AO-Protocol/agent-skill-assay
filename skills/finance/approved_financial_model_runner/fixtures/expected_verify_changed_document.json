@@ -1,0 +1,10 @@
+{
+  "status": "error",
+  "error": {
+    "code": "ARCHIVE_MISMATCH",
+    "detail": {
+      "reason": "document_differs",
+      "field": "archive_document"
+    }
+  }
+}

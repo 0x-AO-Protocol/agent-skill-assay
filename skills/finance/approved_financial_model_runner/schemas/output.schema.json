@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "finance/approved_financial_model_runner output",
+  "description": "The figures and archive record of a run, the confirmation of a verify, or the error envelope.",
+  "oneOf": [
+    {"$ref": "#/$defs/run"},
+    {"$ref": "#/$defs/verify"},
+    {"$ref": "#/$defs/error"}
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "run_id": {"type": "string", "pattern": "^run-[a-f0-9]{16}$"},
+    "run": {
+      "type": "object",
+      "required": ["status", "model_name", "model_version", "parameter_revision", "results", "archive_record"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {"const": "completed"},
+        "model_name": {"type": "string"},
+        "model_version": {"type": "string"},
+        "parameter_revision": {"type": "string"},
+        "results": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["quantity", "value"],
+            "additionalProperties": false,
+            "properties": {
+              "quantity": {"type": "string"},
+              "value": {
+                "type": "string",
+                "description": "Rounded half-up to the quantity's decimals, in plain notation; never a negative zero.",
+                "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]{1,12})?$"
+              },
+              "unit": {"type": "string"}
+            }
+          }
+        },
+        "archive_record": {
+          "type": "object",
+          "required": [
+            "run_id", "input_digest", "registry_entry_sha256", "model_reference",
+            "inputs_reference", "outputs_reference", "document", "document_sha256"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "run_id": {"$ref": "#/$defs/run_id"},
+            "input_digest": {"$ref": "#/$defs/sha256"},
+            "registry_entry_sha256": {"$ref": "#/$defs/sha256"},
+            "model_reference": {"type": "string", "pattern": "^registry/"},
+            "inputs_reference": {"type": "string", "pattern": "^archive/.+/inputs$"},
+            "outputs_reference": {"type": "string", "pattern": "^archive/.+/outputs/results\\.json$"},
+            "document": {"type": "string", "description": "The canonical JSON text for the caller to store."},
+            "document_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      }
+    },
+    "verify": {
+      "type": "object",
+      "required": ["status", "verified", "run_id", "document_sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {"const": "completed"},
+        "verified": {"const": true},
+        "run_id": {"$ref": "#/$defs/run_id"},
+        "document_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": ["status", "error"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {"const": "error"},
+        "error": {
+          "type": "object",
+          "required": ["code", "detail"],
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "enum": [
+                "INVALID_REQUEST", "REGISTRY_INVALID", "MODEL_DEFINITION_INVALID", "MODEL_NOT_REGISTERED",
+                "VERSION_NOT_REGISTERED", "REVISION_NOT_REGISTERED", "QUANTITY_NOT_DEFINED",
+                "INPUT_BINDING_MISMATCH", "INPUT_NOT_VALIDATED", "DIGEST_MISMATCH", "INPUT_PARSE_ERROR",
+                "MODEL_EVALUATION_ERROR", "ARCHIVE_MISMATCH", "INTERNAL_ERROR"
+              ]
+            },
+            "detail": {
+              "type": "object",
+              "description": "A fixed reason and, when one applies, the field path. Paths use indexes, never names or values from the request.",
+              "required": ["reason"],
+              "additionalProperties": false,
+              "properties": {
+                "reason": {"type": "string", "pattern": "^[a-z][a-z_]*$"},
+                "field": {"type": "string", "pattern": "^[a-z_]+(\\[[0-9]+\\])?(\\.[a-z_0-9]+(\\[[0-9]+\\])?)*$"},
+                "exception": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

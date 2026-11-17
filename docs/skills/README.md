@@ -15,6 +15,7 @@ The tables below are generated from the bundle manifests by `python scripts/regi
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
+| [Approved Financial Model Runner](approved_financial_model_runner.md) | `finance/approved_financial_model_runner` | `0.1.0` | AO | Run a registered financial model version on prepared tables and return rounded decimal figures with an archive record for audit. |
 | [Period Close](period_close.md) | `finance/period_close` | `0.1.0` | AO | Closes a period from a journal into statements, checks and gap notes. |
 
 ## Monitoring

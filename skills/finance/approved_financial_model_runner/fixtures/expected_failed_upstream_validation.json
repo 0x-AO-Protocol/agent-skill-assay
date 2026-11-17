@@ -1,0 +1,10 @@
+{
+  "status": "error",
+  "error": {
+    "code": "INPUT_NOT_VALIDATED",
+    "detail": {
+      "reason": "not_passed",
+      "field": "input_files[0].validation_status"
+    }
+  }
+}

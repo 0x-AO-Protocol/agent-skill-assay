@@ -21,6 +21,7 @@ The v0.1 registry contains four AO-authored skills:
 | `office/outreach_manager` | v0.1.1 | Registered |
 | `finance/period_close` | v0.1.2 | Registered |
 | `dev_tools/upgrade_gate` | v0.1.3 | Registered |
+| `finance/approved_financial_model_runner` | v0.1.4 | Registered |
 <!-- registry-sync:end releases -->
 
 ## Planned skills

@@ -1,0 +1,10 @@
+{
+  "status": "error",
+  "error": {
+    "code": "MODEL_EVALUATION_ERROR",
+    "detail": {
+      "reason": "division_by_zero",
+      "field": "registry.models[0].versions[0].quantities[1].expression"
+    }
+  }
+}

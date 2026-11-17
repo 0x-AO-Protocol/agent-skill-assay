@@ -1,0 +1,10 @@
+{
+  "status": "error",
+  "error": {
+    "code": "REVISION_NOT_REGISTERED",
+    "detail": {
+      "reason": "revision_not_found",
+      "field": "parameter_revision"
+    }
+  }
+}

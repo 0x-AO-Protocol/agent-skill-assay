@@ -1,0 +1,141 @@
+name: finance/approved_financial_model_runner
+version: 0.1.0
+description: >-
+  Runs one model version from a registry document supplied with the call on
+  prepared tables, and returns the requested figures as rounded decimal
+  strings with an archive record for the caller to store. Before computing,
+  it checks the request and the whole registry document, looks up the model,
+  the version and the parameter revision, and requires every table to be
+  marked passed upstream and to match its declared SHA-256. Each quantity is a
+  formula in a closed arithmetic grammar over frozen parameter values and
+  table columns, evaluated in declaration order in one private decimal
+  context; a model is data, never code. verify rebuilds a run and compares its
+  archive document with a stored copy, character for character. execute()
+  makes no model call and uses no network, clock, file or environment; errors
+  come from a closed registry with fixed reasons, and an error that names a
+  field gives a path of names and indexes, never a value from the request.
+short_description: "Run a registered financial model version on prepared tables and return rounded decimal figures with an archive record for audit."
+issuer:
+  name: Masa
+  email: masa88keith@gmail.com
+  github: mrmasa88
+  org: AO
+trust_tier: L0
+provenance:
+  anchor: repository
+  content_sha256: "0b8b875b980ace493ba79b6964343b236902c9e65b86fc5c360471400b17524e"
+  authored_on: "2026-11-02"
+economic_effect:
+  claim: "Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption."
+  baseline_task: "The same task performed by an LLM agent without this skill (prompt-only)."
+  metric: "LLM tokens (input + output) per task run."
+  method: "Run the skill's reference fixtures through (a) the baseline agent and (b) the same agent calling the skill; publish the median tokens per run for both and the reduction."
+norm_version: norms-1.0.0
+origin: ao_standard
+serves_dwa:
+  onet_release: "31.0"
+  ids:
+    - 4.A.2.a.4.k.3
+category: finance
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      enum: [run, verify]
+      description: >-
+        run evaluates the model version and returns the figures and an archive
+        record; verify rebuilds the same run and compares it with a stored
+        archive document.
+    model_name:
+      type: string
+      description: Required. The model to run, as named in the registry.
+    model_version:
+      type: string
+      description: >-
+        Required. The registered version, MAJOR.MINOR.PATCH: three parts
+        joined by points, each 0 or 1 to 6 ASCII digits with no leading zero,
+        and nothing else.
+    parameter_revision:
+      type: string
+      description: >-
+        Required. The frozen parameter values to use: rev- and 1 to 9 ASCII
+        digits, the first of them 1 to 9, and nothing else. Values are never
+        changed at run time.
+    input_files:
+      type: array
+      description: >-
+        Required. 1 to 20 prepared tables, each with file_ref, input_alias,
+        sha256, validation_status and content (the table text as stored).
+    requested_quantities:
+      type: array
+      description: >-
+        Required. 1 to 100 distinct quantity names to return, in the order
+        wanted.
+    archive_label:
+      type: string
+      description: >-
+        Optional. A label for the suggested archive location; unlabelled when
+        absent.
+    registry:
+      type: object
+      description: >-
+        Required. The registry document: models, versions, input columns,
+        parameters, revisions and quantity formulas.
+    archive_document:
+      type: string
+      description: >-
+        verify only: the archive document an earlier run returned and the
+        caller stored.
+  required:
+    - action
+    - model_name
+    - model_version
+    - parameter_revision
+    - input_files
+    - requested_quantities
+    - registry
+  additionalProperties: false
+outputs:
+  status:
+    type: string
+    description: completed for a run or a verify; error for a contract violation, with error.code and error.detail.
+  model_name:
+    type: string
+    description: "run result: the model name, echoed."
+  model_version:
+    type: string
+    description: "run result: the model version, echoed."
+  parameter_revision:
+    type: string
+    description: "run result: the parameter revision, echoed."
+  results:
+    type: array
+    description: >-
+      run result: one entry per requested quantity, in request order, with
+      quantity, value (a rounded decimal string) and unit when the registry
+      declares one.
+  archive_record:
+    type: object
+    description: >-
+      run result: run_id, input_digest, registry_entry_sha256, the suggested
+      model, inputs and outputs references, the canonical archive document and
+      its SHA-256.
+  verified:
+    type: boolean
+    description: "verify result: true when the stored document equals the rebuilt one."
+  run_id:
+    type: string
+    description: "verify result: the run id of the rebuilt run."
+  document_sha256:
+    type: string
+    description: "verify result: the SHA-256 of the rebuilt archive document."
+constitution: |
+  1. Read only the request: the registry document and the table texts arrive with the call, and no model call, network, clock, file or environment is used.
+  2. Run only a model version, parameter revision and quantities that the supplied registry document declares, and never change a parameter value.
+  3. Refuse a table that is not marked passed upstream or whose SHA-256 differs from its declared digest.
+  4. For a run, return figures only, rounded half-up to each quantity's declared decimals, with a canonical archive document for the caller to store; for a verify, return only the confirmation, the run id and the document's SHA-256.
+  5. Return a structured error from the closed registry, and no figure, when any check fails; never raise.
+presentation:
+  icon: sigma
+  color: "#1d4ed8"

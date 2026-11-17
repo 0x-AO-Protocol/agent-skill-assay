@@ -1,0 +1,28 @@
+{
+  "status": "completed",
+  "model_name": "revenue_projection",
+  "model_version": "2.0.1",
+  "parameter_revision": "rev-2",
+  "results": [
+    {
+      "quantity": "projected_y1",
+      "value": "126.4",
+      "unit": "currency_units"
+    },
+    {
+      "quantity": "projected_y2",
+      "value": "131.4",
+      "unit": "currency_units"
+    }
+  ],
+  "archive_record": {
+    "run_id": "run-3d22ac6b56a03361",
+    "input_digest": "adec3f533dc2f27a9924e43ad969a7b771d681e5730a1b2551fc93731e677b08",
+    "registry_entry_sha256": "0311551b68831f1eb086b99627edad7ca8e528270fdc25581ef0296a791782dd",
+    "model_reference": "registry/revenue_projection/2.0.1",
+    "inputs_reference": "archive/weekly/run-3d22ac6b56a03361/inputs",
+    "outputs_reference": "archive/weekly/run-3d22ac6b56a03361/outputs/results.json",
+    "document": "{\"archive_label\":\"weekly\",\"input_digest\":\"adec3f533dc2f27a9924e43ad969a7b771d681e5730a1b2551fc93731e677b08\",\"inputs\":[{\"file_ref\":\"prepared/revenue.csv\",\"input_alias\":\"history\",\"sha256\":\"db10327d97f89175e6a1e3d9efa39128fa5612a02252869c51316142888f4a6e\"}],\"model_name\":\"revenue_projection\",\"model_version\":\"2.0.1\",\"parameter_revision\":\"rev-2\",\"parameter_values\":{\"growth_rate\":\"0.04\"},\"registry_entry_sha256\":\"0311551b68831f1eb086b99627edad7ca8e528270fdc25581ef0296a791782dd\",\"registry_id\":\"practice-models\",\"requested_quantities\":[\"projected_y1\",\"projected_y2\"],\"results\":[{\"quantity\":\"projected_y1\",\"unit\":\"currency_units\",\"value\":\"126.4\"},{\"quantity\":\"projected_y2\",\"unit\":\"currency_units\",\"value\":\"131.4\"}],\"run_id\":\"run-3d22ac6b56a03361\",\"schema\":\"approved_financial_model_runner.archive/1\"}",
+    "document_sha256": "8e8951cb152318a77ae6bb48b137f3119a65875196cbc1a457e665e1668e6315"
+  }
+}
