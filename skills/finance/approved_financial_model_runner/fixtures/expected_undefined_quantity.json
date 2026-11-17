@@ -1,0 +1,10 @@
+{
+  "status": "error",
+  "error": {
+    "code": "QUANTITY_NOT_DEFINED",
+    "detail": {
+      "reason": "quantity_not_found",
+      "field": "requested_quantities[0]"
+    }
+  }
+}

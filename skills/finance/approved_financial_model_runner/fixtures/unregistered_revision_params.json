@@ -1,0 +1,119 @@
+{
+  "action": "run",
+  "model_name": "capital_impact",
+  "model_version": "1.2.0",
+  "parameter_revision": "rev-4",
+  "input_files": [
+    {
+      "file_ref": "prepared/exposures.csv",
+      "input_alias": "exposures",
+      "sha256": "beea5db75f9277439c6df2f862248b285314deec5d6f909764ae941a0b8fec36",
+      "validation_status": "passed",
+      "content": "exposure,risk_weight\n1000000,0.5\n250000,1.0\n"
+    }
+  ],
+  "requested_quantities": [
+    "rwa_added",
+    "capital_required"
+  ],
+  "registry": {
+    "registry_id": "practice-models",
+    "models": [
+      {
+        "model_name": "capital_impact",
+        "versions": [
+          {
+            "model_version": "1.2.0",
+            "inputs": [
+              {
+                "input_alias": "exposures",
+                "columns": [
+                  "exposure",
+                  "risk_weight"
+                ]
+              }
+            ],
+            "parameters": [
+              "capital_ratio"
+            ],
+            "revisions": [
+              {
+                "label": "rev-3",
+                "values": {
+                  "capital_ratio": "0.08"
+                }
+              }
+            ],
+            "quantities": [
+              {
+                "name": "rwa_added",
+                "unit": "currency_units",
+                "decimals": 2,
+                "expression": "sumproduct(exposures.exposure, exposures.risk_weight)"
+              },
+              {
+                "name": "capital_required",
+                "unit": "currency_units",
+                "decimals": 2,
+                "expression": "q.rwa_added * param.capital_ratio"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "model_name": "revenue_projection",
+        "versions": [
+          {
+            "model_version": "2.0.1",
+            "inputs": [
+              {
+                "input_alias": "history",
+                "columns": [
+                  "period",
+                  "revenue"
+                ]
+              }
+            ],
+            "parameters": [
+              "growth_rate"
+            ],
+            "revisions": [
+              {
+                "label": "rev-1",
+                "values": {
+                  "growth_rate": "0.03"
+                }
+              },
+              {
+                "label": "rev-2",
+                "values": {
+                  "growth_rate": "0.04"
+                }
+              }
+            ],
+            "quantities": [
+              {
+                "name": "base_revenue",
+                "decimals": 1,
+                "expression": "last(history.revenue)"
+              },
+              {
+                "name": "projected_y1",
+                "unit": "currency_units",
+                "decimals": 1,
+                "expression": "q.base_revenue * (1 + param.growth_rate) ^ 1"
+              },
+              {
+                "name": "projected_y2",
+                "unit": "currency_units",
+                "decimals": 1,
+                "expression": "q.base_revenue * (1 + param.growth_rate) ^ 2"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

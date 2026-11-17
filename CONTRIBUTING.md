@@ -422,7 +422,7 @@ Place each skill under one top-level directory under `skills/`. Use an existing 
 | `data_engineering` | Datasets, generation, ETL-style tooling | 0 |
 | `defi` | On-chain trading and agent wallet execution | 0 |
 | `dev_tools` | Developer workflows, issue resolution, repo tooling | [1](docs/skills/README.md#dev-tools) |
-| `finance` | Blockchain, risk, financial analysis | [1](docs/skills/README.md#finance) |
+| `finance` | Blockchain, risk, financial analysis | [2](docs/skills/README.md#finance) |
 | `monitoring` | Agent loop observability, budget gates, task control | [2](docs/skills/README.md#monitoring) |
 | `office` | Documents, productivity, email | [1](docs/skills/README.md#office) |
 | `optimization` | Middleware, compression, efficiency | 0 |

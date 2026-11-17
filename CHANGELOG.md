@@ -6,12 +6,15 @@ The project uses Semantic Versioning. The public fork release line starts at v0.
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-11-18
+
 ### Added
 
 - `python scripts/registry_sync.py` generates the shared registry files from the bundles under `skills/`: the catalog index, the ROADMAP release table, the install-extras tables, the CONTRIBUTING category table, the `cat:` labels, the extras block of `pyproject.toml` and each category's `__init__.py`. `--check` runs in the test suite, `--add-category` registers a category and `--release-check` checks a release.
 - The standard profile for every bundle outside the seven shipped by v0.1.3, checked by `tests/test_standard_profile.py`. `scripts/determinism_guard.py` adds a static guard (a closed import allow-list and forbidden built-ins and attributes, read from the source) and a dynamic guard (every `fixtures/*_params.json` under two hash seeds and an audit hook); sockets are disabled in the tests of these bundles. The guards are pre-merge checks for common mistakes, not proof and not isolation.
 - AO manifest schema: the optional fields `origin` (`ao_standard`, `ao_defined`, `third_party`) and `serves_dwa` (O*NET 31.0 Detailed Work Activity identifiers); a `third_party` bundle names an `issuer.org` other than AO.
 - `docs/contributing/release_train.md` describes the weekly release process.
+- `finance/approved_financial_model_runner`: `run` evaluates one model version from a registry document supplied with the call on prepared tables, each quantity a formula in a closed arithmetic grammar, and returns the requested figures as rounded decimal strings with an archive record for the caller to store; it requires every table to be marked `passed` upstream and to match its declared SHA-256. `verify` rebuilds a run and compares its archive document with a stored copy, character for character. It makes no model call and uses no network, clock, file or environment.
 
 ### Changed
 

@@ -1,0 +1,10 @@
+{
+  "status": "error",
+  "error": {
+    "code": "DIGEST_MISMATCH",
+    "detail": {
+      "reason": "digest_differs",
+      "field": "input_files[0].sha256"
+    }
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "finance/approved_financial_model_runner request",
+  "description": "Run, or verify, one registered model version on prepared tables. Documentation only: the skill checks every rule in code, including the expression grammar, the table format and the cross-field rules this schema cannot state.",
+  "type": "object",
+  "required": ["action", "model_name", "model_version", "parameter_revision", "input_files", "requested_quantities", "registry"],
+  "additionalProperties": false,
+  "properties": {
+    "action": {"enum": ["run", "verify"]},
+    "model_name": {"$ref": "#/$defs/name"},
+    "model_version": {"$ref": "#/$defs/semver"},
+    "parameter_revision": {"$ref": "#/$defs/revision"},
+    "input_files": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["file_ref", "input_alias", "sha256", "validation_status", "content"],
+        "additionalProperties": false,
+        "properties": {
+          "file_ref": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "A relative path, recorded in the archive document: no leading slash, no backslash, no empty, dot or dot-dot segment, and no control character (U+0000 to U+001F or U+007F to U+009F)."
+          },
+          "input_alias": {"$ref": "#/$defs/alias"},
+          "sha256": {"$ref": "#/$defs/sha256"},
+          "validation_status": {"enum": ["passed", "failed"]},
+          "content": {
+            "type": "string",
+            "maxLength": 2000000,
+            "description": "The table text as stored, decoded as UTF-8 with no newline translation. All contents together hold at most 8,000,000 characters."
+          }
+        }
+      }
+    },
+    "requested_quantities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/name"}
+    },
+    "archive_label": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"},
+    "registry": {"$ref": "#/$defs/registry"},
+    "archive_document": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000000,
+      "description": "verify only: the stored archive document of an earlier run. It holds no control character (U+0000 to U+001F or U+007F to U+009F)."
+    }
+  },
+  "$defs": {
+    "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$"},
+    "alias": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$", "not": {"enum": ["param", "q"]}},
+    "semver": {"type": "string", "pattern": "^(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})$"},
+    "revision": {"type": "string", "pattern": "^rev-[1-9][0-9]{0,8}$"},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "decimal": {"type": "string", "pattern": "^-?(0|[1-9][0-9]{0,17})(\\.[0-9]{1,12})?$"},
+    "registry": {
+      "type": "object",
+      "required": ["registry_id", "models"],
+      "additionalProperties": false,
+      "properties": {
+        "registry_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"},
+        "models": {"type": "array", "minItems": 1, "maxItems": 100, "items": {"$ref": "#/$defs/model"}}
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": ["model_name", "versions"],
+      "additionalProperties": false,
+      "properties": {
+        "model_name": {"$ref": "#/$defs/name"},
+        "versions": {"type": "array", "minItems": 1, "maxItems": 20, "items": {"$ref": "#/$defs/version"}}
+      }
+    },
+    "version": {
+      "type": "object",
+      "required": ["model_version", "inputs", "parameters", "revisions", "quantities"],
+      "additionalProperties": false,
+      "properties": {
+        "model_version": {"$ref": "#/$defs/semver"},
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "required": ["input_alias", "columns"],
+            "additionalProperties": false,
+            "properties": {
+              "input_alias": {"$ref": "#/$defs/alias"},
+              "columns": {"type": "array", "minItems": 1, "maxItems": 50, "uniqueItems": true, "items": {"$ref": "#/$defs/name"}}
+            }
+          }
+        },
+        "parameters": {"type": "array", "maxItems": 100, "uniqueItems": true, "items": {"$ref": "#/$defs/name"}},
+        "revisions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "required": ["label", "values"],
+            "additionalProperties": false,
+            "properties": {
+              "label": {"$ref": "#/$defs/revision"},
+              "values": {
+                "type": "object",
+                "description": "One decimal string for each declared parameter, and nothing else.",
+                "additionalProperties": {"$ref": "#/$defs/decimal"}
+              }
+            }
+          }
+        },
+        "quantities": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "required": ["name", "decimals", "expression"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {"$ref": "#/$defs/name"},
+              "unit": {"type": "string", "pattern": "^[A-Za-z0-9_%/.-]{1,32}$"},
+              "decimals": {"type": "integer", "minimum": 0, "maximum": 12},
+              "expression": {
+                "type": "string",
+                "maxLength": 2000,
+                "description": "A formula in the closed grammar of instructions.md; it may name parameters, input columns and quantities declared before it."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

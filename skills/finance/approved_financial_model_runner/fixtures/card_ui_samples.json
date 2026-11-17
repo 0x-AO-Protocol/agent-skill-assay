@@ -1,0 +1,28 @@
+{
+  "status": "completed",
+  "model_name": "capital_impact",
+  "model_version": "1.2.0",
+  "parameter_revision": "rev-3",
+  "results": [
+    {
+      "quantity": "rwa_added",
+      "value": "750000.00",
+      "unit": "currency_units"
+    },
+    {
+      "quantity": "capital_required",
+      "value": "60000.00",
+      "unit": "currency_units"
+    }
+  ],
+  "archive_record": {
+    "run_id": "run-0c2f871458836088",
+    "input_digest": "267929b6e53433579c1b504856a8445adf65822447debb04d73108baa8c3a166",
+    "registry_entry_sha256": "07e5cd3955ce6fd5292c0bdc065189e535e7cfeb65a95cd25babeba2d4a7fb6c",
+    "model_reference": "registry/capital_impact/1.2.0",
+    "inputs_reference": "archive/unlabelled/run-0c2f871458836088/inputs",
+    "outputs_reference": "archive/unlabelled/run-0c2f871458836088/outputs/results.json",
+    "document": "{\"archive_label\":null,\"input_digest\":\"267929b6e53433579c1b504856a8445adf65822447debb04d73108baa8c3a166\",\"inputs\":[{\"file_ref\":\"prepared/exposures.csv\",\"input_alias\":\"exposures\",\"sha256\":\"beea5db75f9277439c6df2f862248b285314deec5d6f909764ae941a0b8fec36\"}],\"model_name\":\"capital_impact\",\"model_version\":\"1.2.0\",\"parameter_revision\":\"rev-3\",\"parameter_values\":{\"capital_ratio\":\"0.08\"},\"registry_entry_sha256\":\"07e5cd3955ce6fd5292c0bdc065189e535e7cfeb65a95cd25babeba2d4a7fb6c\",\"registry_id\":\"practice-models\",\"requested_quantities\":[\"rwa_added\",\"capital_required\"],\"results\":[{\"quantity\":\"rwa_added\",\"unit\":\"currency_units\",\"value\":\"750000.00\"},{\"quantity\":\"capital_required\",\"unit\":\"currency_units\",\"value\":\"60000.00\"}],\"run_id\":\"run-0c2f871458836088\",\"schema\":\"approved_financial_model_runner.archive/1\"}",
+    "document_sha256": "5cff3c52ffa62e6f5b71797f9df50d8f891ac4c8beb56d919c0566026eb54b47"
+  }
+}

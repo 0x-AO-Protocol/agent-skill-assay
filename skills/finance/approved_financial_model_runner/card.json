@@ -1,0 +1,41 @@
+{
+    "name": "Approved Financial Model Runner",
+    "description": "Run a registered financial model version on prepared tables and return rounded decimal figures with an archive record for audit.",
+    "issuer": {
+        "name": "Masa",
+        "email": "masa88keith@gmail.com",
+        "github": "mrmasa88",
+        "org": "AO"
+    },
+    "icon": "sigma",
+    "color": "#1d4ed8",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {
+                "key": "status",
+                "label": "Status"
+            },
+            {
+                "key": "model_name",
+                "label": "Model"
+            },
+            {
+                "key": "model_version",
+                "label": "Version"
+            },
+            {
+                "key": "parameter_revision",
+                "label": "Parameter revision"
+            },
+            {
+                "key": "archive_record.run_id",
+                "label": "Run id"
+            },
+            {
+                "key": "archive_record.document_sha256",
+                "label": "Archive digest"
+            }
+        ]
+    }
+}
