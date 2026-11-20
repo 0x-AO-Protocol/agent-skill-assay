@@ -6,6 +6,13 @@ The project uses Semantic Versioning. The public fork release line starts at v0.
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-11-25
+
+### Added
+
+- `compliance/scoped_risk_literature_scan`: for one review cycle, `screen` takes the publications the caller's agent collected and reported per source, keeps the items inside the cycle window, the declared jurisdictions and the declared risk domains, drops repeats, orders and caps the rest, flags the items relevant to clients with a follow-up date, counts the in-scope items, and returns one annotation slot per kept item; `compile` checks that exactly the kept items are annotated within the caps, credits competence minutes only on attestation, and returns the review record, held as pending review, for the caller to store. The annotation check covers presence, keys, enums and caps, not what a summary says. It makes no model call and uses no network, clock, file or environment access.
+- `office/underwriting_condition_reply_tracker`: for one loan file, `track` counts the whole days to closing and the days each condition has been open and flags every open condition inside the lead window; `scaffold` adds one draft slot per open condition; `compile` checks the cited documents against the verified file and the citation markers in the texts the caller supplies, applies a figure rule to those texts, composes any text left out from fixed templates, and returns every draft held for operator review. It sends nothing, makes no model call and uses no network, clock, file or environment access.
+
 ## [0.1.4] - 2026-11-18
 
 ### Added

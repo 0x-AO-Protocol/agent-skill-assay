@@ -5,6 +5,12 @@ and tests.
 The tables below are generated from the bundle manifests by `python scripts/registry_sync.py --write`.
 
 <!-- registry-sync:begin catalog-index -->
+## Compliance
+
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| [Scoped Risk Literature Scan](scoped_risk_literature_scan.md) | `compliance/scoped_risk_literature_scan` | `0.1.0` | AO | Screen a reported collection of publications by window, scope and cap, then check the caller's annotations before review. |
+
 ## Dev Tools
 
 | Skill | ID | Version | Issuer | Description |
@@ -30,6 +36,7 @@ The tables below are generated from the bundle manifests by `python scripts/regi
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | [Outreach Manager](outreach_manager.md) | `office/outreach_manager` | `0.1.0` | AO | Plans partitioned platform searches and scores exported lead rows. |
+| [Underwriting Condition Reply Tracker](underwriting_condition_reply_tracker.md) | `office/underwriting_condition_reply_tracker` | `0.1.0` | AO | Track underwriting conditions against the closing date and check reply drafts against the verified file, held for operator review. |
 
 ## Security
 

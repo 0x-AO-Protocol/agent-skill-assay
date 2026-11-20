@@ -1,0 +1,47 @@
+{
+  "status": "completed",
+  "cycle_start": "2027-06-01",
+  "cycle_end": "2027-06-30",
+  "window_days": 30,
+  "scope": {
+    "risk_domains": ["market_risk"],
+    "jurisdictions": ["US"]
+  },
+  "items": [
+    {
+      "item_ref": "R001",
+      "title": "Equity volatility review",
+      "source_name": "econ_wire",
+      "kind": "economic",
+      "published_date": "2027-06-20",
+      "jurisdiction": "US",
+      "matched_domains": ["market_risk"],
+      "url": null,
+      "client_relevant": false,
+      "follow_up_required": false,
+      "follow_up_due_by": null
+    }
+  ],
+  "excluded_count": 2,
+  "excluded_by_reason": {
+    "out_of_window": 0,
+    "out_of_jurisdiction": 0,
+    "out_of_domain": 0,
+    "duplicate": 1,
+    "over_cap": 1
+  },
+  "flagged_count": 0,
+  "tallies": {
+    "in_scope_count": 2,
+    "by_domain": {"market_risk": 2},
+    "by_jurisdiction": {"US": 2},
+    "by_kind": {"literature": 0, "regulatory": 0, "technology": 0, "economic": 2},
+    "change_by_domain": {"market_risk": -3}
+  },
+  "annotation_slots": [
+    {"item_ref": "R001", "caps": {"summary": 2000, "impact_note": 1000}}
+  ],
+  "impact_areas": ["exposures", "methods", "both", "none"],
+  "likelihoods": ["low", "medium", "high"],
+  "review_status": "not_annotated"
+}

@@ -1,0 +1,74 @@
+{
+  "action": "compile",
+  "cycle_start": "2027-04-05",
+  "cycle_end": "2027-04-11",
+  "risk_domains": ["credit_risk", "climate_risk"],
+  "jurisdictions": ["EU", "UK"],
+  "sources": [
+    {"name": "supervisor_feed", "url": "https://example.org/feed", "kind": "regulatory"},
+    {"name": "journal_alerts", "url": "https://example.org/alerts", "kind": "literature"}
+  ],
+  "max_items": 10,
+  "client_exposure_tags": ["shipping", "real_estate"],
+  "collection": [
+    {
+      "source_name": "supervisor_feed",
+      "status": "ok",
+      "items": [
+        {
+          "title": "Consultation on climate stress scenarios",
+          "published_date": "2027-04-07",
+          "jurisdiction": "EU",
+          "domains": ["climate_risk"],
+          "exposure_tags": ["real_estate"]
+        },
+        {
+          "title": "Annual report of the deposit scheme",
+          "published_date": "2027-04-08",
+          "jurisdiction": "US",
+          "domains": ["credit_risk"]
+        }
+      ]
+    },
+    {
+      "source_name": "journal_alerts",
+      "status": "ok",
+      "items": [
+        {
+          "title": "Default clustering in small-business loans",
+          "published_date": "2027-04-06",
+          "jurisdiction": "UK",
+          "domains": ["credit_risk"],
+          "exposure_tags": ["retail"]
+        },
+        {
+          "title": "Survey of liquidity buffers",
+          "published_date": "2027-03-30",
+          "jurisdiction": "EU",
+          "domains": ["credit_risk"]
+        }
+      ]
+    }
+  ],
+  "attestation": {"attested": true, "minutes": 50},
+  "annotations": [
+    {
+      "item_ref": "R001",
+      "summary": "The supervisor proposes three climate scenarios for bank stress tests.",
+      "impact": {
+        "area": "exposures",
+        "likelihood": "medium",
+        "note": "Property-backed loans may need scenario overlays."
+      }
+    },
+    {
+      "item_ref": "R002",
+      "summary": "A study finds that defaults among small-business loans arrive in clusters.",
+      "impact": {
+        "area": "methods",
+        "likelihood": "low",
+        "note": "Could inform the correlation assumption in default estimates."
+      }
+    }
+  ]
+}

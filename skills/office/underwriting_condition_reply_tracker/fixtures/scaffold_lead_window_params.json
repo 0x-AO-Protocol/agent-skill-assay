@@ -1,0 +1,15 @@
+{
+  "action": "scaffold",
+  "as_of_date": "2027-05-10",
+  "closing_deadline": "2027-05-14",
+  "escalation_lead_days": 5,
+  "verified_file": [
+    {"document_id": "DOC-H", "title": "Homeowner insurance declaration", "document_type": "insurance_evidence"},
+    {"document_id": "DOC-T", "title": "Preliminary title report", "document_type": "title_evidence"}
+  ],
+  "condition_requests": [
+    {"condition_id": "UC-7", "requested_on": "2027-05-06", "description": "Evidence of hazard cover naming the lender.", "status": "open"},
+    {"condition_id": "UC-8", "requested_on": "2027-05-08", "description": "Clear the open lien shown on title.", "status": "open"},
+    {"condition_id": "UC-9", "requested_on": "2027-05-01", "description": "Signed intent-to-proceed form.", "status": "waived"}
+  ]
+}

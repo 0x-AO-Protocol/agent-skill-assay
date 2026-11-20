@@ -1,0 +1,38 @@
+{
+  "action": "screen",
+  "cycle_start": "2027-06-01",
+  "cycle_end": "2027-06-30",
+  "risk_domains": ["market_risk"],
+  "jurisdictions": ["US"],
+  "sources": [
+    {"name": "econ_wire", "url": "https://example.org/econ", "kind": "economic"}
+  ],
+  "max_items": 1,
+  "previous_tallies": {"by_domain": {"market_risk": 5}},
+  "collection": [
+    {
+      "source_name": "econ_wire",
+      "status": "ok",
+      "items": [
+        {
+          "title": "Rate path outlook",
+          "published_date": "2027-06-03",
+          "jurisdiction": "US",
+          "domains": ["market_risk"]
+        },
+        {
+          "title": "Rate  path OUTLOOK",
+          "published_date": "2027-06-03",
+          "jurisdiction": "US",
+          "domains": ["market_risk"]
+        },
+        {
+          "title": "Equity volatility review",
+          "published_date": "2027-06-20",
+          "jurisdiction": "US",
+          "domains": ["market_risk"]
+        }
+      ]
+    }
+  ]
+}

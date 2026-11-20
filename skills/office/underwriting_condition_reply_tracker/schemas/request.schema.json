@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Underwriting condition reply tracker request",
+  "description": "One loan file: the run date, the closing date, an optional lead window, the verified documents, the underwriting conditions and, for compile, one draft per open condition. The skill checks these rules in code; the schema documents them. The citation and figure rules are checked in code only.",
+  "type": "object",
+  "required": ["action", "as_of_date", "closing_deadline", "verified_file", "condition_requests"],
+  "additionalProperties": false,
+  "properties": {
+    "action": {"enum": ["track", "scaffold", "compile"]},
+    "as_of_date": {"$ref": "#/$defs/date"},
+    "closing_deadline": {"$ref": "#/$defs/date"},
+    "escalation_lead_days": {"type": "integer", "minimum": 0, "maximum": 365},
+    "verified_file": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "required": ["document_id", "title", "document_type"],
+        "additionalProperties": false,
+        "properties": {
+          "document_id": {"$ref": "#/$defs/id"},
+          "title": {"$ref": "#/$defs/text", "maxLength": 200},
+          "document_type": {
+            "enum": [
+              "income_verification",
+              "asset_verification",
+              "identity_verification",
+              "employment_verification",
+              "property_valuation",
+              "insurance_evidence",
+              "title_evidence",
+              "explanation_letter",
+              "other"
+            ]
+          },
+          "summary": {
+            "description": "Read by the figure check as evidence; never repeated in any output.",
+            "$ref": "#/$defs/text",
+            "maxLength": 1000
+          }
+        }
+      }
+    },
+    "condition_requests": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "required": ["condition_id", "requested_on", "description", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "condition_id": {"$ref": "#/$defs/id"},
+          "requested_on": {"$ref": "#/$defs/date"},
+          "description": {"$ref": "#/$defs/text", "maxLength": 2000},
+          "status": {"enum": ["open", "resolved", "waived"]},
+          "prior_reply_count": {"type": "integer", "minimum": 0, "maximum": 50}
+        }
+      }
+    },
+    "drafts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "required": ["condition_id", "cited_document_ids"],
+        "additionalProperties": false,
+        "properties": {
+          "condition_id": {"$ref": "#/$defs/text"},
+          "cited_document_ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {"$ref": "#/$defs/text"}
+          },
+          "issue_summary": {"$ref": "#/$defs/text", "maxLength": 600},
+          "proposed_resolution": {"$ref": "#/$defs/text", "maxLength": 600},
+          "reply_body": {"$ref": "#/$defs/text", "maxLength": 4000}
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"action": {"const": "compile"}}},
+      "else": {"not": {"required": ["drafts"]}}
+    }
+  ],
+  "$defs": {
+    "date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*$", "maxLength": 64},
+    "text": {
+      "description": "Not blank; no control character other than line feed.",
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

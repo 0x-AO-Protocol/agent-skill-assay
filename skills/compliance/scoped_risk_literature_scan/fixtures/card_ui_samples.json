@@ -1,0 +1,61 @@
+{
+  "status": "completed",
+  "cycle_start": "2027-04-05",
+  "cycle_end": "2027-04-11",
+  "window_days": 7,
+  "scope": {
+    "risk_domains": ["credit_risk", "climate_risk"],
+    "jurisdictions": ["EU", "UK"]
+  },
+  "items": [
+    {
+      "item_ref": "R001",
+      "title": "Consultation on climate stress scenarios",
+      "source_name": "supervisor_feed",
+      "kind": "regulatory",
+      "published_date": "2027-04-07",
+      "jurisdiction": "EU",
+      "matched_domains": ["climate_risk"],
+      "url": null,
+      "client_relevant": true,
+      "follow_up_required": true,
+      "follow_up_due_by": "2027-04-18"
+    },
+    {
+      "item_ref": "R002",
+      "title": "Default clustering in small-business loans",
+      "source_name": "journal_alerts",
+      "kind": "literature",
+      "published_date": "2027-04-06",
+      "jurisdiction": "UK",
+      "matched_domains": ["credit_risk"],
+      "url": null,
+      "client_relevant": false,
+      "follow_up_required": false,
+      "follow_up_due_by": null
+    }
+  ],
+  "excluded_count": 2,
+  "excluded_by_reason": {
+    "out_of_window": 1,
+    "out_of_jurisdiction": 1,
+    "out_of_domain": 0,
+    "duplicate": 0,
+    "over_cap": 0
+  },
+  "flagged_count": 1,
+  "tallies": {
+    "in_scope_count": 2,
+    "by_domain": {"credit_risk": 1, "climate_risk": 1},
+    "by_jurisdiction": {"EU": 1, "UK": 1},
+    "by_kind": {"literature": 1, "regulatory": 1, "technology": 0, "economic": 0},
+    "change_by_domain": null
+  },
+  "annotation_slots": [
+    {"item_ref": "R001", "caps": {"summary": 2000, "impact_note": 1000}},
+    {"item_ref": "R002", "caps": {"summary": 2000, "impact_note": 1000}}
+  ],
+  "impact_areas": ["exposures", "methods", "both", "none"],
+  "likelihoods": ["low", "medium", "high"],
+  "review_status": "not_annotated"
+}

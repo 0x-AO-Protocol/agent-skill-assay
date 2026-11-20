@@ -1,0 +1,34 @@
+{
+  "status": "completed",
+  "days_until_closing": 4,
+  "lead_window_days": 5,
+  "tracker": [
+    {"condition_id": "UC-7", "status": "open", "days_until_closing": 4, "days_open": 4, "prior_reply_count": 0, "at_risk": true},
+    {"condition_id": "UC-8", "status": "open", "days_until_closing": 4, "days_open": 2, "prior_reply_count": 0, "at_risk": true},
+    {"condition_id": "UC-9", "status": "waived", "days_until_closing": 4, "days_open": 9, "prior_reply_count": 0, "at_risk": false}
+  ],
+  "escalations": [
+    {"condition_id": "UC-7", "days_until_closing": 4, "lead_window_days": 5},
+    {"condition_id": "UC-8", "days_until_closing": 4, "lead_window_days": 5}
+  ],
+  "operator_review_pending": true,
+  "run_summary": "Days to closing: 4. Lead window: 5. Open: 2. Resolved: 0. Waived: 1. Flagged: 2.",
+  "slots": [
+    {
+      "condition_id": "UC-7",
+      "description": "Evidence of hazard cover naming the lender.",
+      "allowed_document_ids": ["DOC-H", "DOC-T"],
+      "citation_marker": "[doc:<document_id>]",
+      "caps": {"cited_document_ids": 20, "issue_summary": 600, "proposed_resolution": 600, "reply_body": 4000},
+      "review_state": "awaiting_operator_review"
+    },
+    {
+      "condition_id": "UC-8",
+      "description": "Clear the open lien shown on title.",
+      "allowed_document_ids": ["DOC-H", "DOC-T"],
+      "citation_marker": "[doc:<document_id>]",
+      "caps": {"cited_document_ids": 20, "issue_summary": 600, "proposed_resolution": 600, "reply_body": 4000},
+      "review_state": "awaiting_operator_review"
+    }
+  ]
+}

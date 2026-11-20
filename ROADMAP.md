@@ -22,6 +22,8 @@ The v0.1 registry contains four AO-authored skills:
 | `finance/period_close` | v0.1.2 | Registered |
 | `dev_tools/upgrade_gate` | v0.1.3 | Registered |
 | `finance/approved_financial_model_runner` | v0.1.4 | Registered |
+| `compliance/scoped_risk_literature_scan` | v0.1.5 | Registered |
+| `office/underwriting_condition_reply_tracker` | v0.1.5 | Registered |
 <!-- registry-sync:end releases -->
 
 ## Planned skills

@@ -1,0 +1,570 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Scoped risk literature scan output",
+  "description": "A completed screen, a completed compile record, or an error envelope whose detail never repeats input text.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/screen"
+    },
+    {
+      "$ref": "#/$defs/compile"
+    },
+    {
+      "$ref": "#/$defs/error"
+    }
+  ],
+  "$defs": {
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "itemRef": {
+      "type": "string",
+      "pattern": "^R[0-9]{3}$"
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/count"
+      }
+    },
+    "scope": {
+      "type": "object",
+      "required": [
+        "risk_domains",
+        "jurisdictions"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "risk_domains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "jurisdictions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "screenItem": {
+      "type": "object",
+      "required": [
+        "item_ref",
+        "title",
+        "source_name",
+        "kind",
+        "published_date",
+        "jurisdiction",
+        "matched_domains",
+        "url",
+        "client_relevant",
+        "follow_up_required",
+        "follow_up_due_by"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "item_ref": {
+          "$ref": "#/$defs/itemRef"
+        },
+        "title": {
+          "type": "string"
+        },
+        "source_name": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "literature",
+            "regulatory",
+            "technology",
+            "economic"
+          ]
+        },
+        "published_date": {
+          "$ref": "#/$defs/date"
+        },
+        "jurisdiction": {
+          "type": "string"
+        },
+        "matched_domains": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "client_relevant": {
+          "type": "boolean"
+        },
+        "follow_up_required": {
+          "type": "boolean"
+        },
+        "follow_up_due_by": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "compileItem": {
+      "type": "object",
+      "required": [
+        "item_ref",
+        "title",
+        "source_name",
+        "kind",
+        "published_date",
+        "jurisdiction",
+        "matched_domains",
+        "url",
+        "client_relevant",
+        "follow_up_required",
+        "follow_up_due_by",
+        "summary",
+        "impact"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "item_ref": {
+          "$ref": "#/$defs/itemRef"
+        },
+        "title": {
+          "type": "string"
+        },
+        "source_name": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "literature",
+            "regulatory",
+            "technology",
+            "economic"
+          ]
+        },
+        "published_date": {
+          "$ref": "#/$defs/date"
+        },
+        "jurisdiction": {
+          "type": "string"
+        },
+        "matched_domains": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "client_relevant": {
+          "type": "boolean"
+        },
+        "follow_up_required": {
+          "type": "boolean"
+        },
+        "follow_up_due_by": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "impact": {
+          "type": "object",
+          "required": [
+            "area",
+            "likelihood",
+            "note"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "area": {
+              "enum": [
+                "exposures",
+                "methods",
+                "both",
+                "none"
+              ]
+            },
+            "likelihood": {
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            },
+            "note": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          }
+        }
+      }
+    },
+    "excludedByReason": {
+      "type": "object",
+      "required": [
+        "out_of_window",
+        "out_of_jurisdiction",
+        "out_of_domain",
+        "duplicate",
+        "over_cap"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "out_of_window": {
+          "$ref": "#/$defs/count"
+        },
+        "out_of_jurisdiction": {
+          "$ref": "#/$defs/count"
+        },
+        "out_of_domain": {
+          "$ref": "#/$defs/count"
+        },
+        "duplicate": {
+          "$ref": "#/$defs/count"
+        },
+        "over_cap": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    },
+    "tallies": {
+      "type": "object",
+      "required": [
+        "in_scope_count",
+        "by_domain",
+        "by_jurisdiction",
+        "by_kind",
+        "change_by_domain"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "in_scope_count": {
+          "$ref": "#/$defs/count"
+        },
+        "by_domain": {
+          "$ref": "#/$defs/counts"
+        },
+        "by_jurisdiction": {
+          "$ref": "#/$defs/counts"
+        },
+        "by_kind": {
+          "type": "object",
+          "required": [
+            "literature",
+            "regulatory",
+            "technology",
+            "economic"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "literature": {
+              "$ref": "#/$defs/count"
+            },
+            "regulatory": {
+              "$ref": "#/$defs/count"
+            },
+            "technology": {
+              "$ref": "#/$defs/count"
+            },
+            "economic": {
+              "$ref": "#/$defs/count"
+            }
+          }
+        },
+        "change_by_domain": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "screen": {
+      "type": "object",
+      "required": [
+        "status",
+        "cycle_start",
+        "cycle_end",
+        "window_days",
+        "scope",
+        "items",
+        "excluded_count",
+        "excluded_by_reason",
+        "flagged_count",
+        "tallies",
+        "annotation_slots",
+        "impact_areas",
+        "likelihoods",
+        "review_status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "completed"
+        },
+        "cycle_start": {
+          "$ref": "#/$defs/date"
+        },
+        "cycle_end": {
+          "$ref": "#/$defs/date"
+        },
+        "window_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 92
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "$ref": "#/$defs/screenItem"
+          }
+        },
+        "excluded_count": {
+          "$ref": "#/$defs/count"
+        },
+        "excluded_by_reason": {
+          "$ref": "#/$defs/excludedByReason"
+        },
+        "flagged_count": {
+          "$ref": "#/$defs/count"
+        },
+        "tallies": {
+          "$ref": "#/$defs/tallies"
+        },
+        "annotation_slots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "item_ref",
+              "caps"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "item_ref": {
+                "$ref": "#/$defs/itemRef"
+              },
+              "caps": {
+                "type": "object",
+                "required": [
+                  "summary",
+                  "impact_note"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "summary": {
+                    "const": 2000
+                  },
+                  "impact_note": {
+                    "const": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "impact_areas": {
+          "const": [
+            "exposures",
+            "methods",
+            "both",
+            "none"
+          ]
+        },
+        "likelihoods": {
+          "const": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "review_status": {
+          "const": "not_annotated"
+        }
+      }
+    },
+    "compile": {
+      "type": "object",
+      "required": [
+        "status",
+        "cycle_start",
+        "cycle_end",
+        "window_days",
+        "scope",
+        "items",
+        "excluded_count",
+        "excluded_by_reason",
+        "flagged_count",
+        "tallies",
+        "competence_minutes_logged",
+        "review_status",
+        "log_status",
+        "log_destination"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "completed"
+        },
+        "cycle_start": {
+          "$ref": "#/$defs/date"
+        },
+        "cycle_end": {
+          "$ref": "#/$defs/date"
+        },
+        "window_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 92
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "$ref": "#/$defs/compileItem"
+          }
+        },
+        "excluded_count": {
+          "$ref": "#/$defs/count"
+        },
+        "excluded_by_reason": {
+          "$ref": "#/$defs/excludedByReason"
+        },
+        "flagged_count": {
+          "$ref": "#/$defs/count"
+        },
+        "tallies": {
+          "$ref": "#/$defs/tallies"
+        },
+        "competence_minutes_logged": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1440
+        },
+        "review_status": {
+          "const": "pending_review"
+        },
+        "log_status": {
+          "const": "returned_to_caller"
+        },
+        "log_destination": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": [
+        "status",
+        "error"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "error"
+        },
+        "error": {
+          "type": "object",
+          "required": [
+            "code",
+            "detail"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "enum": [
+                "INVALID_REQUEST",
+                "INVALID_DATE",
+                "EMPTY_SCOPE",
+                "WINDOW_INVALID",
+                "DUPLICATE_KEY",
+                "UNKNOWN_SOURCE",
+                "SOURCE_NOT_REPORTED",
+                "SOURCE_UNREACHABLE",
+                "UNKNOWN_ITEM_REF",
+                "ANNOTATION_MISSING",
+                "INTERNAL_ERROR"
+              ]
+            },
+            "detail": {
+              "type": "object",
+              "required": [
+                "reason"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "reason": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "limit": {
+                  "type": "integer"
+                },
+                "item_ref": {
+                  "$ref": "#/$defs/itemRef"
+                },
+                "exception": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
