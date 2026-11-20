@@ -1,0 +1,128 @@
+name: office/underwriting_condition_reply_tracker
+version: 0.1.0
+description: >
+  Tracks the underwriting conditions on one loan file and checks the reply
+  drafts the caller's agent prepares. track counts the whole days to closing
+  and the days each condition has been open, flags every open condition inside
+  the lead window and lists the escalations. scaffold adds one draft slot per
+  open condition: the documents that may be cited, the citation marker
+  [doc:<document_id>] and the text caps. compile takes one draft per open
+  condition with the cited documents chosen by the caller and, optionally, the
+  caller's issue summary, proposed resolution and reply body; it checks the
+  cited ids against the verified file and the citation markers in the supplied
+  texts, applies to those texts the figure rule set out in instructions.md, and
+  composes any text the caller leaves out from fixed templates. Every draft is
+  returned held for operator review; the skill sends nothing and does not
+  verify that a reply is accurate. execute() makes no model call and uses no
+  network, clock, file or environment access; under the standard profile,
+  identical input returns identical output on one Python version.
+short_description: "Track underwriting conditions against the closing date and check reply drafts against the verified file, held for operator review."
+issuer:
+  name: Masa
+  email: masa88keith@gmail.com
+  github: mrmasa88
+  org: AO
+trust_tier: L0
+provenance:
+  anchor: repository
+  content_sha256: "47fedaf855ee70daf2f63bade9675ecb46f4d3e4d32f9966f37b04ff35fb6354"
+  authored_on: "2026-11-02"
+economic_effect:
+  claim: "Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption."
+  baseline_task: "The same task performed by an LLM agent without this skill (prompt-only)."
+  metric: "LLM tokens (input + output) per task run."
+  method: "Run the skill's reference fixtures through (a) the baseline agent and (b) the same agent calling the skill; publish the median tokens per run for both and the reduction."
+norm_version: norms-1.0.0
+origin: ao_standard
+serves_dwa:
+  onet_release: "31.0"
+  ids:
+    - 4.A.4.b.1.c.8
+category: office
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      enum: [track, scaffold, compile]
+      description: >-
+        track returns the countdown and the escalations; scaffold adds one draft
+        slot per open condition; compile checks the caller's drafts, composes
+        any text left out from fixed templates and returns every draft held for
+        operator review.
+    as_of_date:
+      type: string
+      description: >-
+        Required. The run date as YYYY-MM-DD; no clock is read.
+    closing_deadline:
+      type: string
+      description: >-
+        Required. The closing date as YYYY-MM-DD, not before as_of_date.
+    escalation_lead_days:
+      type: integer
+      description: >-
+        Optional. 0 to 365, default 7; an open condition is flagged when the
+        days to closing are at most this window.
+    verified_file:
+      type: array
+      description: >-
+        Required. 1 to 200 verified documents: document_id (unique), title (up
+        to 200 characters), document_type and an optional summary (up to 1000
+        characters) that the figure check reads as evidence and no output
+        repeats.
+    condition_requests:
+      type: array
+      description: >-
+        Required. 1 to 100 conditions: condition_id (unique), requested_on (not
+        after as_of_date), description (up to 2000 characters), status (open,
+        resolved or waived) and an optional prior_reply_count (0 to 50).
+    drafts:
+      type: array
+      description: >-
+        compile only. One draft per open condition:
+        condition_id, cited_document_ids (1 to 20 ids of the verified file) and
+        optional issue_summary, proposed_resolution (up to 600 characters each)
+        and reply_body (up to 4000 characters).
+  required:
+    - action
+  additionalProperties: false
+outputs:
+  status:
+    type: string
+    description: completed for a successful run; error for a contract violation.
+  days_until_closing:
+    type: integer
+    description: Whole days from as_of_date to closing_deadline.
+  lead_window_days:
+    type: integer
+    description: The lead window applied (the request's, or 7).
+  tracker:
+    type: array
+    description: >
+      One entry per condition in input order: condition_id, status,
+      days_until_closing, days_open, prior_reply_count and at_risk (open and
+      within the lead window).
+  escalations:
+    type: array
+    description: One entry per at-risk condition with its days to closing and the lead window.
+  operator_review_pending:
+    type: boolean
+    description: Always true; every draft waits for an operator.
+  run_summary:
+    type: string
+    description: A fixed-template line with the counts of the run, at most 600 characters.
+  slots:
+    type: array
+    description: "scaffold result: one slot per open condition with the allowed document ids, the marker form and the caps."
+  drafts:
+    type: array
+    description: >
+      compile result: one draft per open condition with issue_summary,
+      cited_document_ids in inventory order, proposed_resolution, reply_body,
+      composed_by (caller, template or mixed) and review_state.
+constitution: |
+  1. Read only the request: the verified file, the conditions and the caller's drafts; send, store or fetch nothing.
+  2. Count days and flag conditions by fixed rules, with no model call and no network, clock, file or environment access.
+  3. Accept a supplied draft text only when its citation markers name cited documents of the verified file and it passes the figure rule.
+  4. Compose any text the caller leaves out from fixed templates, and return every draft held for operator review.
+  5. Fail closed: a request that breaks the contract returns a structured error from a closed registry, never a partial result and never an exception.

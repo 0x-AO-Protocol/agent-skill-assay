@@ -22,10 +22,11 @@ dependency.
 <!-- registry-sync:begin category-extras -->
 | Extra | Skills | Packages |
 | :--- | :--- | :--- |
+| `compliance` | `compliance/scoped_risk_literature_scan` | *(none today)* |
 | `dev_tools` | `dev_tools/upgrade_gate` | *(none today)* |
 | `finance` | `finance/approved_financial_model_runner`, `finance/period_close` | *(none today)* |
 | `monitoring` | `monitoring/business_diagnostic`, `monitoring/kpi_gate` | *(none today)* |
-| `office` | `office/outreach_manager` | *(none today)* |
+| `office` | `office/outreach_manager`, `office/underwriting_condition_reply_tracker` | *(none today)* |
 | `security` | `security/prompt_injection_firewall` | *(none today)* |
 | `wellness` | `wellness/mental_coach` | `google-genai` |
 <!-- registry-sync:end category-extras -->
@@ -35,12 +36,14 @@ dependency.
 <!-- registry-sync:begin skill-extras -->
 | Extra | Registry ID | Packages |
 | :--- | :--- | :--- |
+| `compliance_scoped_risk_literature_scan` | `compliance/scoped_risk_literature_scan` | *(none today)* |
 | `dev_tools_upgrade_gate` | `dev_tools/upgrade_gate` | *(none today)* |
 | `finance_approved_financial_model_runner` | `finance/approved_financial_model_runner` | *(none today)* |
 | `finance_period_close` | `finance/period_close` | *(none today)* |
 | `monitoring_business_diagnostic` | `monitoring/business_diagnostic` | *(none today)* |
 | `monitoring_kpi_gate` | `monitoring/kpi_gate` | *(none today)* |
 | `office_outreach_manager` | `office/outreach_manager` | *(none today)* |
+| `office_underwriting_condition_reply_tracker` | `office/underwriting_condition_reply_tracker` | *(none today)* |
 | `security_prompt_injection_firewall` | `security/prompt_injection_firewall` | *(none today)* |
 | `wellness_mental_coach` | `wellness/mental_coach` | `google-genai` |
 <!-- registry-sync:end skill-extras -->

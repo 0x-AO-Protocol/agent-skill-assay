@@ -1,0 +1,186 @@
+name: compliance/scoped_risk_literature_scan
+version: 0.1.0
+description: >
+  Screens the publications a caller collected for one review cycle and checks
+  the caller's annotations of the items it keeps. The caller reads its
+  configured sources with its own tools and reports, per source, whether the
+  source was reachable and which items it found. screen drops items outside
+  the cycle window, the declared jurisdictions or the declared risk domains,
+  drops repeats by a fixed title rule, orders the rest (client-relevant first,
+  then newest first, then fixed tie-breaks), applies the item cap, flags client
+  relevance by exposure tags with a follow-up date, counts the in-scope items
+  per domain, jurisdiction and source kind with the change from the previous
+  cycle, and returns one annotation slot per kept item. compile repeats the
+  screen, checks that every kept item has exactly one annotation within the
+  caps, credits competence minutes only when the request attests them, holds
+  the record as pending review and returns it for the caller to store. The
+  check covers presence, keys, enums and caps; it never reads or judges what a
+  summary or impact note says. execute() makes no model call and uses no
+  network, clock, file or environment access; under the standard profile,
+  identical input returns identical output.
+short_description: "Screen a reported collection of publications by window, scope and cap, then check the caller's annotations before review."
+issuer:
+  name: Masa
+  email: masa88keith@gmail.com
+  github: mrmasa88
+  org: AO
+trust_tier: L0
+provenance:
+  anchor: repository
+  content_sha256: "67ecc9b823206277fa59542dedaada63a16263502f07c5d9a2adc0036585d75e"
+  authored_on: "2026-11-02"
+economic_effect:
+  claim: "Performs the task in deterministic code instead of LLM generation, reducing LLM token consumption."
+  baseline_task: "The same task performed by an LLM agent without this skill (prompt-only)."
+  metric: "LLM tokens (input + output) per task run."
+  method: "Run the skill's reference fixtures through (a) the baseline agent and (b) the same agent calling the skill; publish the median tokens per run for both and the reduction."
+norm_version: norms-1.0.0
+origin: ao_standard
+serves_dwa:
+  onet_release: "31.0"
+  ids:
+    - 4.A.2.a.4.b.2
+    - 4.A.2.b.3.a.21
+category: compliance
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      enum: [screen, compile]
+      description: >-
+        screen returns the screened items, the counts, the tallies and one
+        annotation slot per kept item; compile runs the same screen, checks the
+        caller's annotations and returns the review record.
+    cycle_start:
+      type: string
+      description: >-
+        Required. First day of the review cycle as YYYY-MM-DD; no clock is
+        read.
+    cycle_end:
+      type: string
+      description: >-
+        Required. Last day of the review cycle as YYYY-MM-DD, not before
+        cycle_start; the window holds 1 to 92 days, both ends included.
+    risk_domains:
+      type: array
+      description: >-
+        Required. 1 to 20 unique risk domains that bound the scan; the whole of
+        each must match [a-z][a-z0-9_]{1,63}.
+    jurisdictions:
+      type: array
+      description: >-
+        Required. 1 to 50 unique jurisdiction codes that bound the scan; the
+        whole of each must match [A-Z][A-Z0-9-]{1,7}.
+    sources:
+      type: array
+      description: >-
+        Required. 1 to 50 configured sources, each with a unique name, a link
+        that is never opened (at most 512 characters; the whole link must match
+        https://[A-Za-z0-9./_-]*) and a kind: literature, regulatory,
+        technology or economic.
+    max_items:
+      type: integer
+      description: >-
+        Required. The item cap, 1 to 200; in-scope items after the cap are
+        counted as over_cap.
+    client_exposure_tags:
+      type: array
+      description: >-
+        Optional. Up to 50 unique tags; an item whose exposure tags include one
+        of them is relevant to clients and gets a follow-up date.
+    previous_tallies:
+      type: object
+      description: >-
+        Optional. by_domain maps scope domains to the previous cycle's counts
+        (0 to 100000); a missing count is 0.
+    collection:
+      type: array
+      description: >-
+        Required. Exactly one report per configured source: source_name, status
+        (ok or unreachable) and items, each with title, published_date,
+        jurisdiction, domains and optional exposure_tags and url; at most 500
+        items per report and 2000 in all.
+    log_destination:
+      type: string
+      description: >-
+        Optional. Echoed in the compile record; never opened or written.
+    attestation:
+      type: object
+      description: >-
+        compile only, optional. attested (boolean) and minutes (0 to 1440); the
+        minutes are credited only when attested is true.
+    annotations:
+      type: array
+      description: >-
+        compile only, and required there. One annotation per kept item:
+        item_ref, summary (up to 2000 characters) and impact with area,
+        likelihood and note (up to 1000 characters).
+  required:
+    - action
+  additionalProperties: false
+outputs:
+  status:
+    type: string
+    description: completed for a successful run; error for a contract violation.
+  cycle_start:
+    type: string
+    description: The first day of the window, echoed.
+  cycle_end:
+    type: string
+    description: The last day of the window, echoed.
+  window_days:
+    type: integer
+    description: Days in the window, both ends included.
+  scope:
+    type: object
+    description: risk_domains and jurisdictions, echoed in input order.
+  items:
+    type: array
+    description: >
+      The kept items in order, each with item_ref (R001, R002, ...), title,
+      source_name, kind, published_date, jurisdiction, matched_domains, url or
+      null, client_relevant, follow_up_required and follow_up_due_by (cycle_end
+      plus window_days, or null); compile adds summary and impact.
+  excluded_count:
+    type: integer
+    description: Collected items minus kept items.
+  excluded_by_reason:
+    type: object
+    description: out_of_window, out_of_jurisdiction, out_of_domain, duplicate and over_cap.
+  flagged_count:
+    type: integer
+    description: Kept items that need a follow-up.
+  tallies:
+    type: object
+    description: >
+      Over the in-scope items after duplicates are removed and before the cap:
+      in_scope_count, by_domain, by_jurisdiction, by_kind and change_by_domain
+      (null without previous_tallies).
+  annotation_slots:
+    type: array
+    description: "screen result: one slot per kept item with item_ref and the summary and impact_note caps."
+  impact_areas:
+    type: array
+    description: "screen result: exposures, methods, both and none."
+  likelihoods:
+    type: array
+    description: "screen result: low, medium and high."
+  competence_minutes_logged:
+    type: integer
+    description: "compile result: attestation.minutes when attested is true; otherwise 0."
+  review_status:
+    type: string
+    description: not_annotated for screen; pending_review for compile.
+  log_status:
+    type: string
+    description: "compile result: returned_to_caller; the skill writes no log."
+  log_destination:
+    type: string
+    description: "compile result: the request's log_destination, echoed, or null."
+constitution: |
+  1. Read only the request: the caller collects every item and reports each source's reachability; the skill opens no link and fetches, stores or sends nothing.
+  2. Screen, order, cap, flag and count by fixed rules, with no model call and no network, clock, file or environment access.
+  3. Check only that each kept item carries one annotation within its caps; never read or judge what a summary or note says.
+  4. Credit competence minutes only when the request attests them, and return every record as pending review.
+  5. Fail closed: a request that breaks the contract returns a structured error from a closed registry, never a partial record and never an exception.

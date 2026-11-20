@@ -1,0 +1,23 @@
+{
+  "action": "track",
+  "as_of_date": "2027-03-01",
+  "closing_deadline": "2027-03-13",
+  "verified_file": [
+    {"document_id": "DOC-A", "title": "Bank statement, February", "document_type": "asset_verification"}
+  ],
+  "condition_requests": [
+    {
+      "condition_id": "UC-1",
+      "requested_on": "2027-02-25",
+      "description": "Show reserves equal to two monthly payments.",
+      "status": "open",
+      "prior_reply_count": 1
+    },
+    {
+      "condition_id": "UC-2",
+      "requested_on": "2027-02-20",
+      "description": "Confirm the annual property tax figure.",
+      "status": "resolved"
+    }
+  ]
+}

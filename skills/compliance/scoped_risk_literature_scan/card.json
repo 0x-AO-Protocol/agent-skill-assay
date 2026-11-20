@@ -1,0 +1,36 @@
+{
+    "name": "Scoped Risk Literature Scan",
+    "description": "Screen a reported collection of publications by window, scope and cap, then check the caller's annotations before review.",
+    "issuer": {
+        "name": "Masa",
+        "email": "masa88keith@gmail.com",
+        "github": "mrmasa88",
+        "org": "AO"
+    },
+    "icon": "list",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {
+                "key": "status",
+                "label": "Status"
+            },
+            {
+                "key": "window_days",
+                "label": "Window days"
+            },
+            {
+                "key": "excluded_count",
+                "label": "Excluded items"
+            },
+            {
+                "key": "flagged_count",
+                "label": "Flagged for follow-up"
+            },
+            {
+                "key": "review_status",
+                "label": "Review status"
+            }
+        ]
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "name": "Underwriting Condition Reply Tracker",
+    "description": "Track underwriting conditions against the closing date and check reply drafts against the verified file, held for operator review.",
+    "issuer": {
+        "name": "Masa",
+        "email": "masa88keith@gmail.com",
+        "github": "mrmasa88",
+        "org": "AO"
+    },
+    "icon": "list",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {
+                "key": "status",
+                "label": "Status"
+            },
+            {
+                "key": "days_until_closing",
+                "label": "Days to closing"
+            },
+            {
+                "key": "lead_window_days",
+                "label": "Lead window (days)"
+            },
+            {
+                "key": "operator_review_pending",
+                "label": "Operator review pending"
+            },
+            {
+                "key": "run_summary",
+                "label": "Run summary"
+            }
+        ]
+    }
+}

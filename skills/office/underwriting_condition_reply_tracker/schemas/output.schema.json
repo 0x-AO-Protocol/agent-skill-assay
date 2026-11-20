@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Underwriting condition reply tracker output",
+  "description": "A completed track, scaffold or compile run, or an error envelope whose detail never repeats input text.",
+  "oneOf": [
+    {"$ref": "#/$defs/completed"},
+    {"$ref": "#/$defs/error"}
+  ],
+  "$defs": {
+    "count": {"type": "integer", "minimum": 0},
+    "reviewState": {"const": "awaiting_operator_review"},
+    "trackerEntry": {
+      "type": "object",
+      "required": ["condition_id", "status", "days_until_closing", "days_open", "prior_reply_count", "at_risk"],
+      "additionalProperties": false,
+      "properties": {
+        "condition_id": {"type": "string"},
+        "status": {"enum": ["open", "resolved", "waived"]},
+        "days_until_closing": {"$ref": "#/$defs/count"},
+        "days_open": {"$ref": "#/$defs/count"},
+        "prior_reply_count": {"$ref": "#/$defs/count"},
+        "at_risk": {"type": "boolean"}
+      }
+    },
+    "escalation": {
+      "type": "object",
+      "required": ["condition_id", "days_until_closing", "lead_window_days"],
+      "additionalProperties": false,
+      "properties": {
+        "condition_id": {"type": "string"},
+        "days_until_closing": {"$ref": "#/$defs/count"},
+        "lead_window_days": {"$ref": "#/$defs/count"}
+      }
+    },
+    "slot": {
+      "type": "object",
+      "required": ["condition_id", "description", "allowed_document_ids", "citation_marker", "caps", "review_state"],
+      "additionalProperties": false,
+      "properties": {
+        "condition_id": {"type": "string"},
+        "description": {"type": "string"},
+        "allowed_document_ids": {"type": "array", "items": {"type": "string"}},
+        "citation_marker": {"const": "[doc:<document_id>]"},
+        "caps": {
+          "type": "object",
+          "required": ["cited_document_ids", "issue_summary", "proposed_resolution", "reply_body"],
+          "additionalProperties": false,
+          "properties": {
+            "cited_document_ids": {"const": 20},
+            "issue_summary": {"const": 600},
+            "proposed_resolution": {"const": 600},
+            "reply_body": {"const": 4000}
+          }
+        },
+        "review_state": {"$ref": "#/$defs/reviewState"}
+      }
+    },
+    "draft": {
+      "type": "object",
+      "required": ["condition_id", "issue_summary", "cited_document_ids", "proposed_resolution", "reply_body", "composed_by", "review_state"],
+      "additionalProperties": false,
+      "properties": {
+        "condition_id": {"type": "string"},
+        "issue_summary": {"type": "string", "minLength": 1, "maxLength": 600},
+        "cited_document_ids": {"type": "array", "minItems": 1, "maxItems": 20, "items": {"type": "string"}},
+        "proposed_resolution": {"type": "string", "minLength": 1, "maxLength": 600},
+        "reply_body": {"type": "string", "minLength": 1, "maxLength": 4000},
+        "composed_by": {"enum": ["caller", "template", "mixed"]},
+        "review_state": {"$ref": "#/$defs/reviewState"}
+      }
+    },
+    "completed": {
+      "type": "object",
+      "required": ["status", "days_until_closing", "lead_window_days", "tracker", "escalations", "operator_review_pending", "run_summary"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {"const": "completed"},
+        "days_until_closing": {"$ref": "#/$defs/count"},
+        "lead_window_days": {"type": "integer", "minimum": 0, "maximum": 365},
+        "tracker": {"type": "array", "items": {"$ref": "#/$defs/trackerEntry"}},
+        "escalations": {"type": "array", "items": {"$ref": "#/$defs/escalation"}},
+        "operator_review_pending": {"const": true},
+        "run_summary": {"type": "string", "maxLength": 600},
+        "slots": {"type": "array", "items": {"$ref": "#/$defs/slot"}},
+        "drafts": {"type": "array", "items": {"$ref": "#/$defs/draft"}}
+      },
+      "not": {"required": ["slots", "drafts"]}
+    },
+    "error": {
+      "type": "object",
+      "required": ["status", "error"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {"const": "error"},
+        "error": {
+          "type": "object",
+          "required": ["code", "detail"],
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "enum": [
+                "INVALID_REQUEST",
+                "INVALID_DATE",
+                "EMPTY_VERIFIED_FILE",
+                "DEADLINE_BEFORE_AS_OF",
+                "REQUEST_AFTER_AS_OF",
+                "DUPLICATE_ID",
+                "NO_OPEN_CONDITION",
+                "UNKNOWN_CONDITION",
+                "DRAFT_FOR_CLOSED_CONDITION",
+                "DRAFT_MISSING",
+                "UNKNOWN_DOCUMENT",
+                "MALFORMED_CITATION",
+                "CITATION_MISMATCH",
+                "UNSUPPORTED_FIGURE",
+                "INTERNAL_ERROR"
+              ]
+            },
+            "detail": {
+              "type": "object",
+              "required": ["reason"],
+              "additionalProperties": false,
+              "properties": {
+                "reason": {"type": "string"},
+                "path": {"type": "string"},
+                "limit": {"type": "integer"},
+                "actual": {"type": "integer"},
+                "exception": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

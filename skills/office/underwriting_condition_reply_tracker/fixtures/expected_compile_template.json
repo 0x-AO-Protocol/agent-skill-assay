@@ -1,0 +1,36 @@
+{
+  "status": "completed",
+  "days_until_closing": 4,
+  "lead_window_days": 5,
+  "tracker": [
+    {"condition_id": "UC-7", "status": "open", "days_until_closing": 4, "days_open": 4, "prior_reply_count": 0, "at_risk": true},
+    {"condition_id": "UC-8", "status": "open", "days_until_closing": 4, "days_open": 2, "prior_reply_count": 0, "at_risk": true},
+    {"condition_id": "UC-9", "status": "waived", "days_until_closing": 4, "days_open": 9, "prior_reply_count": 0, "at_risk": false}
+  ],
+  "escalations": [
+    {"condition_id": "UC-7", "days_until_closing": 4, "lead_window_days": 5},
+    {"condition_id": "UC-8", "days_until_closing": 4, "lead_window_days": 5}
+  ],
+  "operator_review_pending": true,
+  "run_summary": "Days to closing: 4. Lead window: 5. Open: 2. Resolved: 0. Waived: 1. Flagged: 2. Drafts awaiting operator review: 2.",
+  "drafts": [
+    {
+      "condition_id": "UC-7",
+      "issue_summary": "Condition UC-7, raised 2027-05-06: Evidence of hazard cover naming the lender.",
+      "cited_document_ids": ["DOC-H"],
+      "proposed_resolution": "Review the cited verified documents (DOC-H) and clear condition UC-7 if they satisfy it.",
+      "reply_body": "Regarding condition UC-7, raised 2027-05-06.\n\nThe verified file holds these documents in support:\n- Homeowner insurance declaration [doc:DOC-H]\n\nWe ask that the condition be reviewed for clearance on the basis of these documents.",
+      "composed_by": "template",
+      "review_state": "awaiting_operator_review"
+    },
+    {
+      "condition_id": "UC-8",
+      "issue_summary": "Condition UC-8, raised 2027-05-08: Clear the open lien shown on title.",
+      "cited_document_ids": ["DOC-T"],
+      "proposed_resolution": "Review the cited verified documents (DOC-T) and clear condition UC-8 if they satisfy it.",
+      "reply_body": "Regarding condition UC-8, raised 2027-05-08.\n\nThe verified file holds these documents in support:\n- Preliminary title report [doc:DOC-T]\n\nWe ask that the condition be reviewed for clearance on the basis of these documents.",
+      "composed_by": "template",
+      "review_state": "awaiting_operator_review"
+    }
+  ]
+}

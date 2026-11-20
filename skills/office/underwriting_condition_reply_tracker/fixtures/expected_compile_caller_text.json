@@ -1,0 +1,23 @@
+{
+  "status": "completed",
+  "days_until_closing": 12,
+  "lead_window_days": 7,
+  "tracker": [
+    {"condition_id": "UC-1", "status": "open", "days_until_closing": 12, "days_open": 4, "prior_reply_count": 1, "at_risk": false},
+    {"condition_id": "UC-2", "status": "resolved", "days_until_closing": 12, "days_open": 9, "prior_reply_count": 0, "at_risk": false}
+  ],
+  "escalations": [],
+  "operator_review_pending": true,
+  "run_summary": "Days to closing: 12. Lead window: 7. Open: 1. Resolved: 1. Waived: 0. Flagged: 0. Drafts awaiting operator review: 1.",
+  "drafts": [
+    {
+      "condition_id": "UC-1",
+      "issue_summary": "Reserves of two monthly payments are requested.",
+      "cited_document_ids": ["DOC-A"],
+      "proposed_resolution": "Rely on the February statement balance.",
+      "reply_body": "The February statement [doc:DOC-A] shows a balance above two monthly payments. Please clear UC-1.",
+      "composed_by": "caller",
+      "review_state": "awaiting_operator_review"
+    }
+  ]
+}

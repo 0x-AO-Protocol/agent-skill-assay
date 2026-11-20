@@ -417,14 +417,14 @@ Place each skill under one top-level directory under `skills/`. Use an existing 
 <!-- registry-sync:begin categories -->
 | Category | Purpose | Skills |
 | :--- | :--- | :--- |
-| `compliance` | Privacy, policy, regulatory guardrails | 0 |
+| `compliance` | Privacy, policy, regulatory guardrails | [1](docs/skills/README.md#compliance) |
 | `creative` | Image processing, media editing, and creative utilities | 0 |
 | `data_engineering` | Datasets, generation, ETL-style tooling | 0 |
 | `defi` | On-chain trading and agent wallet execution | 0 |
 | `dev_tools` | Developer workflows, issue resolution, repo tooling | [1](docs/skills/README.md#dev-tools) |
 | `finance` | Blockchain, risk, financial analysis | [2](docs/skills/README.md#finance) |
 | `monitoring` | Agent loop observability, budget gates, task control | [2](docs/skills/README.md#monitoring) |
-| `office` | Documents, productivity, email | [1](docs/skills/README.md#office) |
+| `office` | Documents, productivity, email | [2](docs/skills/README.md#office) |
 | `optimization` | Middleware, compression, efficiency | 0 |
 | `security` | Offline, local-first defenses for untrusted input reaching agents | [1](docs/skills/README.md#security) |
 | `wellness` | Coaching guardrails, mental health support | [1](docs/skills/README.md#wellness) |
